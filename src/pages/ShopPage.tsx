@@ -116,9 +116,9 @@ const ShopPage: React.FC = () => {
                     </AspectRatio>
                   </div>
                   <p className="text-sm text-muted-foreground mb-2 h-10 line-clamp-2">{item.description}</p>
-                  <p className="font-bold flex items-center gap-2">
-                    <span className="text-fipt-blue">{formatFiptPrice(item.price)} $FIPT</span>
-                    <span className="text-sm text-muted-foreground">({formatUsdPrice(item.price)} USD)</span>
+                  <p className="flex items-center gap-2">
+                    <span className="text-fipt-blue text-sm font-semibold">{formatFiptPrice(item.price)} $FIPT</span>
+                    <span className="text-xs text-muted-foreground">({formatUsdPrice(item.price)} USD)</span>
                   </p>
                 </CardContent>
                 <CardFooter className="p-4 pt-0">
@@ -145,17 +145,17 @@ const ShopPage: React.FC = () => {
               </p>
               <div className="mt-4 space-y-4">
                 <div className="p-4 border rounded-lg">
-                  <h3 className="font-bold flex items-center gap-2">
-                    <span className="text-fipt-blue">9.9k $FIPT</span>
-                    <span className="text-sm text-muted-foreground">($1.00 USD)</span>
+                  <h3 className="flex items-center gap-2">
+                    <span className="text-fipt-blue text-sm font-semibold">9.9k $FIPT</span>
+                    <span className="text-xs text-muted-foreground">($1.00 USD)</span>
                   </h3>
                   <p className="text-sm text-muted-foreground">Full access to all premium features</p>
                   <Button className="mt-2 w-full">Subscribe</Button>
                 </div>
                 <div className="p-4 border rounded-lg bg-muted/50">
-                  <h3 className="font-bold flex items-center gap-2">
-                    <span className="text-fipt-blue">99.9k $FIPT</span>
-                    <span className="text-sm text-muted-foreground">($10.00 USD)</span>
+                  <h3 className="flex items-center gap-2">
+                    <span className="text-fipt-blue text-sm font-semibold">99.9k $FIPT</span>
+                    <span className="text-xs text-muted-foreground">($10.00 USD)</span>
                   </h3>
                   <p className="text-sm text-muted-foreground">Save over 15% with yearly membership</p>
                   <Button className="mt-2 w-full">Subscribe</Button>
