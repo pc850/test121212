@@ -2,6 +2,7 @@
 import { useState } from "react";
 import { Heart, MessageSquare, Share2 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useToast } from "@/components/ui/use-toast";
 
 interface FeedCardProps {
   id: string;
@@ -27,14 +28,36 @@ const FeedCard = ({
   const [liked, setLiked] = useState(false);
   const [likeCount, setLikeCount] = useState(likes);
   const [isLoading, setIsLoading] = useState(!!image);
+  const [tokens, setTokens] = useState(10); // Starting with 10 tokens
+  const { toast } = useToast();
 
   const handleLike = () => {
+    // If already liked, unlike without cost
     if (liked) {
       setLikeCount(prev => prev - 1);
-    } else {
-      setLikeCount(prev => prev + 1);
+      setLiked(false);
+      return;
     }
-    setLiked(!liked);
+    
+    // Check if user has enough tokens
+    if (tokens < 1) {
+      toast({
+        title: "Not enough tokens",
+        description: "You need 1 token to like this post",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    // Deduct token and like the post
+    setTokens(prev => prev - 1);
+    setLikeCount(prev => prev + 1);
+    setLiked(true);
+    
+    toast({
+      title: "Like added",
+      description: `Used 1 token. ${tokens - 1} tokens remaining.`,
+    });
   };
 
   const handleImageLoad = () => {
@@ -56,6 +79,11 @@ const FeedCard = ({
         <div className="ml-3">
           <h3 className="font-medium text-fipt-dark">{username}</h3>
           <p className="text-xs text-fipt-muted">FIPT Community</p>
+        </div>
+        <div className="ml-auto">
+          <span className="text-xs font-medium text-fipt-blue">
+            {tokens} tokens
+          </span>
         </div>
       </div>
 
