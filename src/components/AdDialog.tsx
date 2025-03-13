@@ -15,7 +15,7 @@ interface AdDialogProps {
 
 export function AdDialog({ open, onOpenChange, points, onSuccess, onSkip }: AdDialogProps) {
   const [adPlaying, setAdPlaying] = useState(false);
-  const [timeRemaining, setTimeRemaining] = useState(30);
+  const [timeRemaining, setTimeRemaining] = useState(15); // Changed from 30 to 15 seconds
   const [completed, setCompleted] = useState(false);
   const [claimed, setClaimed] = useState(false);
 
@@ -23,7 +23,7 @@ export function AdDialog({ open, onOpenChange, points, onSuccess, onSkip }: AdDi
   useEffect(() => {
     if (open) {
       setAdPlaying(false);
-      setTimeRemaining(30);
+      setTimeRemaining(15); // Changed from 30 to 15 seconds
       setCompleted(false);
       setClaimed(false);
     }
@@ -91,7 +91,7 @@ export function AdDialog({ open, onOpenChange, points, onSuccess, onSkip }: AdDi
           <DialogDescription className="text-center">
             {completed 
               ? `You've earned ${points} FIPT points!` 
-              : `Watch a 30-second ad to claim ${points} FIPT points`}
+              : `Watch a 15-second ad to claim ${points} FIPT points`} {/* Changed from 30 to 15 seconds */}
           </DialogDescription>
         </DialogHeader>
         
