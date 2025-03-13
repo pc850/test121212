@@ -1,6 +1,7 @@
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useToast } from "@/hooks/use-toast";
 
 interface Stream {
   room: string;
@@ -8,15 +9,26 @@ interface Stream {
   id: string;
 }
 
-// Initial stream data
+interface ChaturbateRoom {
+  username: string;
+  current_show: string;
+  num_users: number;
+  num_followers: number;
+  display_name: string;
+  gender: string;
+  tags: string[];
+  image_url: string;
+  is_hd: boolean;
+}
+
+// Initial stream data (fallback)
 const initialStreams: Stream[] = [
   { room: 'alfredouihuntoui', campaign: '6DE6w', id: '1' },
   { room: 'another_model_room', campaign: '6DE6w', id: '2' },
-  // Add more models here
 ];
 
-// Function to generate more stream data (in a real app, this would be an API call)
-const generateMoreStreams = (count: number, startId: number): Stream[] => {
+// Function to generate fallback streams if API fails
+const generateFallbackStreams = (count: number, startId: number): Stream[] => {
   return Array.from({ length: count }, (_, i) => ({
     room: `model_room_${startId + i}`,
     campaign: '6DE6w',
@@ -30,6 +42,9 @@ const TikTokScrollFeed = () => {
   const [streams, setStreams] = useState<Stream[]>(initialStreams);
   const [isLoading, setIsLoading] = useState(false);
   const [hasMore, setHasMore] = useState(true);
+  const [page, setPage] = useState(1);
+  const { toast } = useToast();
+  const affiliateCode = '6DE6w'; // Your affiliate code
   
   // Observer for infinite scrolling
   const observer = useRef<IntersectionObserver | null>(null);
@@ -47,26 +62,95 @@ const TikTokScrollFeed = () => {
     if (node) observer.current.observe(node);
   }, [isLoading, hasMore]);
   
-  // Function to load more streams - load more streams as user scrolls
-  const loadMoreStreams = () => {
+  // Function to fetch streams from Chaturbate API
+  const fetchChaturbateRooms = async (pageNum: number): Promise<Stream[]> => {
+    try {
+      // For demonstration purposes, we're using a proxy URL. In production, this should be a backend endpoint
+      // that makes the API call with proper authentication.
+      const response = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(
+        `https://chaturbate.com/api/public/affiliates/onlinerooms/?wm=fiptonton&page=${pageNum}`
+      )}`);
+      
+      if (!response.ok) {
+        throw new Error('Failed to fetch rooms');
+      }
+      
+      const data = await response.json();
+      let rooms: ChaturbateRoom[] = [];
+      
+      // Parse the response content
+      if (data && data.contents) {
+        try {
+          const parsedContent = JSON.parse(data.contents);
+          rooms = parsedContent.results || [];
+        } catch (e) {
+          console.error('Error parsing API response:', e);
+          throw new Error('Invalid API response format');
+        }
+      }
+      
+      // Map the API response to our Stream format
+      return rooms.map((room, index) => ({
+        room: room.username,
+        campaign: affiliateCode,
+        id: `chaturbate-${pageNum}-${index}`
+      }));
+    } catch (error) {
+      console.error('Error fetching rooms:', error);
+      toast({
+        title: "Error loading streams",
+        description: "Using fallback data instead",
+        variant: "destructive"
+      });
+      
+      // Return fallback data if API fails
+      return generateFallbackStreams(5, (pageNum - 1) * 5 + 1);
+    }
+  };
+  
+  // Initial data fetch
+  useEffect(() => {
+    const fetchInitialData = async () => {
+      setIsLoading(true);
+      const initialRooms = await fetchChaturbateRooms(1);
+      setStreams(initialRooms);
+      setIsLoading(false);
+    };
+    
+    fetchInitialData();
+  }, []);
+  
+  // Function to load more streams as user scrolls
+  const loadMoreStreams = async () => {
     if (isLoading || !hasMore) return;
     
     setIsLoading(true);
     
-    // Simulate API call delay
-    setTimeout(() => {
-      // Generate more streams - in a real app, you would fetch from an API
-      const newStreams = generateMoreStreams(3, streams.length + 1); // Increased from 2 to 3 for better fill rate
+    try {
+      // Fetch the next page of rooms
+      const nextPage = page + 1;
+      const newRooms = await fetchChaturbateRooms(nextPage);
       
-      // In a real application, you might want to check if the server has more data
-      // For now, we'll limit to 20 streams total for demonstration (increased from 10)
-      if (streams.length + newStreams.length >= 20) {
+      // If no new rooms returned, we've reached the end
+      if (newRooms.length === 0) {
+        setHasMore(false);
+      } else {
+        setStreams(prevStreams => [...prevStreams, ...newRooms]);
+        setPage(nextPage);
+      }
+    } catch (error) {
+      console.error('Error loading more streams:', error);
+      // Even if there's an error, let's add some fallback data
+      const fallbackStreams = generateFallbackStreams(3, streams.length + 1);
+      setStreams(prevStreams => [...prevStreams, ...fallbackStreams]);
+      
+      // After 20 fallback streams, stop showing more
+      if (streams.length + 3 >= 20) {
         setHasMore(false);
       }
-      
-      setStreams(prevStreams => [...prevStreams, ...newStreams]);
+    } finally {
       setIsLoading(false);
-    }, 1000); // Reduced from 1500ms to 1000ms for faster loading
+    }
   };
 
   const handleScroll = () => {
