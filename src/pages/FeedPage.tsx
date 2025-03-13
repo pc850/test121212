@@ -3,6 +3,7 @@ import { useEffect, useState, useRef } from "react";
 import FeedCard from "@/components/FeedCard";
 import { Search } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { useToast } from "@/hooks/use-toast";
 
 const mockFeedData = [
   {
@@ -52,6 +53,7 @@ const FeedPage = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [activeIndex, setActiveIndex] = useState(0);
   const feedRefs = useRef<(HTMLDivElement | null)[]>([]);
+  const { toast } = useToast();
 
   useEffect(() => {
     // Set page title

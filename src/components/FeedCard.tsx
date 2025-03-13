@@ -2,8 +2,9 @@
 import { useState, useEffect } from "react";
 import { Heart, MessageSquare, Share2, ChevronUp, ChevronDown, Bookmark } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 import { AspectRatio } from "@/components/ui/aspect-ratio";
+import { Button } from "@/components/ui/button";
 
 interface FeedCardProps {
   id: string;
@@ -47,14 +48,18 @@ const FeedCard = ({
     if (liked) {
       setLikeCount(prev => prev - 1);
       setLiked(false);
+      toast({
+        title: "Like removed",
+        description: "You've removed your like from this post",
+      });
       return;
     }
     
     // Check if user has enough tokens
     if (tokens < 1) {
       toast({
-        title: "Not enough tokens",
-        description: "You need 1 token to like this post",
+        title: "Not enough FIPT",
+        description: "You need 1 FIPT token to like this post",
         variant: "destructive",
       });
       return;
@@ -67,7 +72,21 @@ const FeedCard = ({
     
     toast({
       title: "Like added",
-      description: `Used 1 token. ${tokens - 1} tokens remaining.`,
+      description: `Used 1 FIPT token. ${tokens - 1} tokens remaining.`,
+    });
+  };
+
+  const handleComment = () => {
+    toast({
+      title: "Comments",
+      description: "Comments feature coming soon!",
+    });
+  };
+
+  const handleShare = () => {
+    toast({
+      title: "Share",
+      description: "Share feature coming soon!",
     });
   };
 
@@ -138,6 +157,7 @@ const FeedCard = ({
             <button 
               className="w-12 h-12 rounded-full bg-black/30 flex items-center justify-center backdrop-blur-sm transition-transform hover:scale-110"
               onClick={handleLike}
+              aria-label={liked ? "Unlike post" : "Like post"}
             >
               <Heart 
                 className={cn(
@@ -150,14 +170,22 @@ const FeedCard = ({
           </div>
           
           <div className="flex flex-col items-center">
-            <button className="w-12 h-12 rounded-full bg-black/30 flex items-center justify-center backdrop-blur-sm transition-transform hover:scale-110">
+            <button 
+              className="w-12 h-12 rounded-full bg-black/30 flex items-center justify-center backdrop-blur-sm transition-transform hover:scale-110"
+              onClick={handleComment}
+              aria-label="Comment on post"
+            >
               <MessageSquare className="w-6 h-6 text-white" />
             </button>
             <span className="text-xs font-medium text-white mt-1 drop-shadow-md">{comments}</span>
           </div>
           
           <div className="flex flex-col items-center">
-            <button className="w-12 h-12 rounded-full bg-black/30 flex items-center justify-center backdrop-blur-sm transition-transform hover:scale-110">
+            <button 
+              className="w-12 h-12 rounded-full bg-black/30 flex items-center justify-center backdrop-blur-sm transition-transform hover:scale-110"
+              onClick={handleShare}
+              aria-label="Share post"
+            >
               <Share2 className="w-6 h-6 text-white" />
             </button>
             <span className="text-xs font-medium text-white mt-1 drop-shadow-md">{shares}</span>
@@ -167,6 +195,7 @@ const FeedCard = ({
             <button 
               className="w-12 h-12 rounded-full bg-black/30 flex items-center justify-center backdrop-blur-sm transition-transform hover:scale-110"
               onClick={handleSave}
+              aria-label={saved ? "Remove from favorites" : "Save to favorites"}
             >
               <Bookmark 
                 className={cn(
@@ -189,7 +218,7 @@ const FeedCard = ({
       {/* Tokens indicator */}
       <div className="absolute top-4 right-4 z-10">
         <span className="px-3 py-1 rounded-full bg-black/30 backdrop-blur-sm text-xs font-medium text-white drop-shadow-md">
-          {tokens} tokens
+          {tokens} FIPT
         </span>
       </div>
     </div>
