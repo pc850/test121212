@@ -1,8 +1,12 @@
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import EarnButton from "@/components/EarnButton";
+import { Card } from "@/components/ui/card";
+import { Coins } from "lucide-react";
 
 const EarnPage = () => {
+  const [balance, setBalance] = useState(1250); // Initial FIPT balance
+  
   useEffect(() => {
     // Set page title
     document.title = "FIPT - Earn";
@@ -10,6 +14,25 @@ const EarnPage = () => {
 
   return (
     <div className="min-h-screen flex flex-col pt-6 px-4 animate-fade-in">
+      {/* FIPT Balance Section */}
+      <div className="mb-6">
+        <Card className="w-full p-4 border border-fipt-blue/20 bg-gradient-to-r from-fipt-blue/10 to-fipt-accent/10">
+          <div className="flex items-center justify-between">
+            <div>
+              <h2 className="text-sm font-medium text-fipt-muted">Your Balance</h2>
+              <div className="flex items-center mt-1">
+                <Coins className="w-5 h-5 mr-2 text-fipt-blue" />
+                <span className="text-2xl font-bold text-fipt-dark">{balance.toLocaleString()}</span>
+                <span className="ml-1 text-xs font-medium text-fipt-blue">FIPT</span>
+              </div>
+            </div>
+            <div className="bg-white/80 px-3 py-1 rounded-full shadow-sm">
+              <span className="text-xs font-medium text-fipt-dark">Rank #42</span>
+            </div>
+          </div>
+        </Card>
+      </div>
+      
       {/* Header */}
       <div className="mb-8 text-center">
         <div className="inline-block px-3 py-1 bg-fipt-blue/10 rounded-full text-xs font-medium text-fipt-blue mb-2">
