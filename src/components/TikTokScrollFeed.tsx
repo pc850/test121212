@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useRef, useCallback } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
@@ -198,7 +197,7 @@ const TikTokScrollFeed = () => {
             }}
           >
             <iframe
-              src={`https://chaturbate.com/in/?tour=Limj&campaign=${stream.campaign}&track=default&signup_notice=1&b=${stream.room}`}
+              src={`https://chaturbate.com/in/?tour=eQof&campaign=${stream.campaign}&track=default&signup_notice=1&b=${stream.room}`}
               className="w-full h-full border-none"
               allowFullScreen
               title={`Live Stream - ${stream.room}`}
