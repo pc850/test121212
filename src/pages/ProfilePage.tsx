@@ -1,9 +1,11 @@
 
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import ProfileHeader from "@/components/ProfileHeader";
+import LeaderboardSection from "@/components/LeaderboardSection";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Award, ChevronRight, BarChart3, Settings, Users } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { Separator } from "@/components/ui/separator";
 
 const ProfilePage = () => {
   useEffect(() => {
@@ -71,6 +73,15 @@ const ProfilePage = () => {
                   <h3 className="text-sm font-medium text-fipt-muted mb-1">Current Streak</h3>
                   <p className="text-xl font-bold text-fipt-dark">7 days</p>
                 </div>
+              </div>
+              
+              {/* Leaderboard Section */}
+              <div className="mt-6">
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="text-sm font-medium text-fipt-dark">Leaderboard</h3>
+                  <Users className="w-4 h-4 text-fipt-muted" />
+                </div>
+                <LeaderboardSection />
               </div>
               
               {/* Settings options */}
