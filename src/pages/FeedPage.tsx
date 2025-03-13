@@ -54,6 +54,17 @@ const FeedPage = () => {
   const [activeIndex, setActiveIndex] = useState(0);
   const feedRefs = useRef<(HTMLDivElement | null)[]>([]);
   const { toast } = useToast();
+  
+  // Get the user's balance from localStorage
+  const [balance, setBalance] = useState(() => {
+    const savedBalance = localStorage.getItem('fiptBalance');
+    return savedBalance ? parseInt(savedBalance, 10) : 0;
+  });
+
+  // Update balance in localStorage when it changes
+  useEffect(() => {
+    localStorage.setItem('fiptBalance', balance.toString());
+  }, [balance]);
 
   useEffect(() => {
     // Set page title
@@ -88,18 +99,28 @@ const FeedPage = () => {
     };
   }, [feedData.length]);
 
+  // Function to update the balance (for FeedCard interactions)
+  const updateBalance = (amount: number) => {
+    setBalance(prev => prev + amount);
+  };
+
   return (
     <div className="h-screen overflow-hidden">
       {/* Header */}
       <div className="absolute top-0 left-0 right-0 z-10 py-3 px-4 flex items-center justify-between glass">
         <h1 className="text-xl font-bold text-fipt-dark">FIPT Feed</h1>
-        <div className="relative">
-          <input 
-            type="text"
-            placeholder="Search"
-            className="pl-9 pr-4 py-2 w-32 rounded-full text-sm text-fipt-dark bg-fipt-gray border-none focus:outline-none focus:ring-2 focus:ring-fipt-blue"
-          />
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-fipt-muted" />
+        <div className="flex items-center gap-3">
+          <span className="px-3 py-1 rounded-full bg-fipt-blue/10 text-sm font-medium text-fipt-blue">
+            {balance} FIPT
+          </span>
+          <div className="relative">
+            <input 
+              type="text"
+              placeholder="Search"
+              className="pl-9 pr-4 py-2 w-32 rounded-full text-sm text-fipt-dark bg-fipt-gray border-none focus:outline-none focus:ring-2 focus:ring-fipt-blue"
+            />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-fipt-muted" />
+          </div>
         </div>
       </div>
       
@@ -114,6 +135,8 @@ const FeedPage = () => {
             <FeedCard 
               {...post}
               isActive={activeIndex === index}
+              balance={balance}
+              onBalanceChange={updateBalance}
             />
           </div>
         ))}

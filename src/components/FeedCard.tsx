@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Heart, MessageSquare, Share2, ChevronUp, ChevronDown, Bookmark } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -16,6 +15,8 @@ interface FeedCardProps {
   comments: number;
   shares: number;
   isActive?: boolean;
+  balance?: number;
+  onBalanceChange?: (amount: number) => void;
 }
 
 const FeedCard = ({
@@ -28,11 +29,12 @@ const FeedCard = ({
   comments,
   shares,
   isActive = false,
+  balance = 0,
+  onBalanceChange,
 }: FeedCardProps) => {
   const [liked, setLiked] = useState(false);
   const [likeCount, setLikeCount] = useState(likes);
   const [isLoading, setIsLoading] = useState(!!image);
-  const [tokens, setTokens] = useState(10); // Starting with 10 tokens
   const [saved, setSaved] = useState(false);
   const { toast } = useToast();
 
@@ -55,8 +57,8 @@ const FeedCard = ({
       return;
     }
     
-    // Check if user has enough tokens
-    if (tokens < 1) {
+    // Check if user has enough FIPT
+    if (balance < 1) {
       toast({
         title: "Not enough FIPT",
         description: "You need 1 FIPT token to like this post",
@@ -65,14 +67,17 @@ const FeedCard = ({
       return;
     }
     
-    // Deduct token and like the post
-    setTokens(prev => prev - 1);
+    // Deduct FIPT and like the post
+    if (onBalanceChange) {
+      onBalanceChange(-1); // Deduct 1 FIPT
+    }
+    
     setLikeCount(prev => prev + 1);
     setLiked(true);
     
     toast({
       title: "Like added",
-      description: `Used 1 FIPT token. ${tokens - 1} tokens remaining.`,
+      description: `Used 1 FIPT token. ${balance - 1} tokens remaining.`,
     });
   };
 
@@ -218,7 +223,7 @@ const FeedCard = ({
       {/* Tokens indicator */}
       <div className="absolute top-4 right-4 z-10">
         <span className="px-3 py-1 rounded-full bg-black/30 backdrop-blur-sm text-xs font-medium text-white drop-shadow-md">
-          {tokens} FIPT
+          {balance} FIPT
         </span>
       </div>
     </div>

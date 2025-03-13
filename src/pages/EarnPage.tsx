@@ -5,12 +5,21 @@ import { Card } from "@/components/ui/card";
 import { Coins } from "lucide-react";
 
 const EarnPage = () => {
-  const [balance, setBalance] = useState(0); // Start with zero balance
+  const [balance, setBalance] = useState(() => {
+    // Initialize balance from localStorage, or 0 if not found
+    const savedBalance = localStorage.getItem('fiptBalance');
+    return savedBalance ? parseInt(savedBalance, 10) : 0;
+  });
   
   useEffect(() => {
     // Set page title
     document.title = "FIPT - Earn";
   }, []);
+
+  useEffect(() => {
+    // Save balance to localStorage whenever it changes
+    localStorage.setItem('fiptBalance', balance.toString());
+  }, [balance]);
 
   // Function to increase balance with each button tap
   const handleEarnPoints = (points: number) => {
