@@ -47,7 +47,7 @@ const TikTokScrollFeed = () => {
     if (node) observer.current.observe(node);
   }, [isLoading, hasMore]);
   
-  // Function to load more streams
+  // Function to load more streams - load more streams as user scrolls
   const loadMoreStreams = () => {
     if (isLoading || !hasMore) return;
     
@@ -55,17 +55,18 @@ const TikTokScrollFeed = () => {
     
     // Simulate API call delay
     setTimeout(() => {
-      const newStreams = generateMoreStreams(2, streams.length + 1);
+      // Generate more streams - in a real app, you would fetch from an API
+      const newStreams = generateMoreStreams(3, streams.length + 1); // Increased from 2 to 3 for better fill rate
       
       // In a real application, you might want to check if the server has more data
-      // For now, we'll limit to 10 streams total for demonstration
-      if (streams.length + newStreams.length >= 10) {
+      // For now, we'll limit to 20 streams total for demonstration (increased from 10)
+      if (streams.length + newStreams.length >= 20) {
         setHasMore(false);
       }
       
       setStreams(prevStreams => [...prevStreams, ...newStreams]);
       setIsLoading(false);
-    }, 1500);
+    }, 1000); // Reduced from 1500ms to 1000ms for faster loading
   };
 
   const handleScroll = () => {
@@ -113,7 +114,7 @@ const TikTokScrollFeed = () => {
             }}
           >
             <iframe
-              src={`https://chaturbate.com/fullvideo/?b=${stream.room}&campaign=${stream.campaign}`}
+              src={`https://chaturbate.com/embed/${stream.room}/?campaign=${stream.campaign}&disable_sound=0&tour=limt&mobileRedirect=never`}
               className="w-full h-full border-none"
               allowFullScreen
               title={`Live Stream - ${stream.room}`}
