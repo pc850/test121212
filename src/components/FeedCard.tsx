@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Heart, MessageSquare, Share2, ChevronUp, ChevronDown, Bookmark } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -57,11 +58,11 @@ const FeedCard = ({
       return;
     }
     
-    // Check if user has enough FIPT
-    if (balance < 1) {
+    // Check if user has enough FIPT (now minimum 11 FIPT)
+    if (balance < 11) {
       toast({
         title: "Not enough FIPT",
-        description: "You need 1 FIPT token to like this post",
+        description: "You need at least 11 FIPT tokens to like this post",
         variant: "destructive",
       });
       return;
@@ -160,14 +161,18 @@ const FeedCard = ({
         <div className="absolute right-4 bottom-16 flex flex-col items-center gap-6">
           <div className="flex flex-col items-center">
             <button 
-              className="w-12 h-12 rounded-full bg-black/30 flex items-center justify-center backdrop-blur-sm transition-transform hover:scale-110"
+              className={cn(
+                "w-12 h-12 rounded-full flex items-center justify-center backdrop-blur-sm transition-transform hover:scale-110",
+                balance >= 11 || liked ? "bg-black/30" : "bg-black/10"
+              )}
               onClick={handleLike}
               aria-label={liked ? "Unlike post" : "Like post"}
+              disabled={balance < 11 && !liked}
             >
               <Heart 
                 className={cn(
                   "w-6 h-6 transition-all",
-                  liked ? "fill-red-500 text-red-500" : "text-white"
+                  liked ? "fill-red-500 text-red-500" : balance >= 11 ? "text-white" : "text-white/50"
                 )} 
               />
             </button>
@@ -222,7 +227,10 @@ const FeedCard = ({
 
       {/* Tokens indicator */}
       <div className="absolute top-4 right-4 z-10">
-        <span className="px-3 py-1 rounded-full bg-black/30 backdrop-blur-sm text-xs font-medium text-white drop-shadow-md">
+        <span className={cn(
+          "px-3 py-1 rounded-full backdrop-blur-sm text-xs font-medium text-white drop-shadow-md",
+          balance >= 11 ? "bg-black/30" : "bg-red-500/50"
+        )}>
           {balance} FIPT
         </span>
       </div>
