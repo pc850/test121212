@@ -33,6 +33,12 @@ const VideoPlayer = forwardRef(({
     playerContainer.style.height = typeof height === 'number' ? `${height}px` : height;
     containerRef.current.appendChild(playerContainer);
     
+    // Add the video overlay element
+    const videoOverlay = document.createElement('div');
+    videoOverlay.className = 'mc_video_overlay mc_js_video_overlay';
+    videoOverlay.setAttribute('data-testid', 'videoOverlay');
+    containerRef.current.appendChild(videoOverlay);
+    
     // Remove any existing script
     if (scriptRef.current && scriptRef.current.parentNode) {
       scriptRef.current.parentNode.removeChild(scriptRef.current);
