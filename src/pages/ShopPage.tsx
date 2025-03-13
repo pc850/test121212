@@ -1,9 +1,10 @@
 
 import React, { useState } from "react";
-import { ShoppingBag, ShoppingCart } from "lucide-react";
+import { ShoppingCart } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { AspectRatio } from "@/components/ui/aspect-ratio";
 import { toast } from "@/hooks/use-toast";
 
 const ShopPage: React.FC = () => {
@@ -84,12 +85,14 @@ const ShopPage: React.FC = () => {
                   <CardTitle className="text-lg">{item.name}</CardTitle>
                 </CardHeader>
                 <CardContent className="p-4 pt-0">
-                  <div className="aspect-square bg-muted rounded-md mb-3 overflow-hidden">
-                    <img 
-                      src={item.image} 
-                      alt={item.name}
-                      className="w-full h-full object-cover"
-                    />
+                  <div className="mb-3 overflow-hidden rounded-md">
+                    <AspectRatio ratio={1}>
+                      <img 
+                        src={item.image} 
+                        alt={item.name}
+                        className="object-contain w-full h-full"
+                      />
+                    </AspectRatio>
                   </div>
                   <p className="text-sm text-muted-foreground mb-2">{item.description}</p>
                   <p className="font-bold">{item.price}</p>
