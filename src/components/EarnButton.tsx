@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -14,6 +13,7 @@ const EarnButton = ({ onEarn }: EarnButtonProps) => {
   const [showAnimation, setShowAnimation] = useState(false);
   const [particles, setParticles] = useState<Array<{ id: number; x: number; y: number; size: number; color: string }>>([]);
   const [showAdDialog, setShowAdDialog] = useState(false);
+  const [pendingPoints, setPendingPoints] = useState(0);
 
   const handleClick = () => {
     // Earn points
@@ -51,8 +51,28 @@ const EarnButton = ({ onEarn }: EarnButtonProps) => {
     
     // Check if we've hit a multiple of 10 points
     if ((points + 1) % 10 === 0) {
+      setPendingPoints(10); // Store the pending bonus points
       setShowAdDialog(true);
     }
+  };
+  
+  // Handle successful ad watch and claim
+  const handleAdSuccess = () => {
+    // The user watched the ad and claimed the points, so we keep the points
+    // Points are already added via the click handler, so nothing to do here
+  };
+  
+  // Handle ad skip
+  const handleAdSkip = () => {
+    // The user skipped the ad, so subtract the bonus points
+    setPoints(prev => prev - pendingPoints);
+    
+    // Also notify parent component if needed
+    if (onEarn) {
+      onEarn(-pendingPoints);
+    }
+    
+    setPendingPoints(0);
   };
   
   // Clean up particles
@@ -111,7 +131,9 @@ const EarnButton = ({ onEarn }: EarnButtonProps) => {
       <AdDialog 
         open={showAdDialog} 
         onOpenChange={setShowAdDialog} 
-        points={10}
+        points={pendingPoints}
+        onSuccess={handleAdSuccess}
+        onSkip={handleAdSkip}
       />
     </div>
   );

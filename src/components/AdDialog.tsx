@@ -9,12 +9,15 @@ interface AdDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   points: number;
+  onSuccess?: () => void; // Callback for successful claim
+  onSkip?: () => void; // Callback for when user skips
 }
 
-export function AdDialog({ open, onOpenChange, points }: AdDialogProps) {
+export function AdDialog({ open, onOpenChange, points, onSuccess, onSkip }: AdDialogProps) {
   const [adPlaying, setAdPlaying] = useState(false);
   const [timeRemaining, setTimeRemaining] = useState(30);
   const [completed, setCompleted] = useState(false);
+  const [claimed, setClaimed] = useState(false);
 
   // Reset states when dialog opens
   useEffect(() => {
@@ -22,6 +25,7 @@ export function AdDialog({ open, onOpenChange, points }: AdDialogProps) {
       setAdPlaying(false);
       setTimeRemaining(30);
       setCompleted(false);
+      setClaimed(false);
     }
   }, [open]);
 
@@ -54,16 +58,31 @@ export function AdDialog({ open, onOpenChange, points }: AdDialogProps) {
 
   const handleClaim = () => {
     // Here you would typically call an API to credit the points
+    setClaimed(true);
+    if (onSuccess) onSuccess();
     onOpenChange(false);
   };
 
   const handleSkip = () => {
     // Close the dialog without claiming any points
+    if (onSkip) onSkip();
     onOpenChange(false);
   };
 
+  // Handle dialog close via X button or ESC key
+  const handleOpenChange = (open: boolean) => {
+    if (!open && !claimed && !completed) {
+      // If closing without claiming and without completing, treat as skip
+      if (onSkip) onSkip();
+    } else if (!open && completed && !claimed) {
+      // If completed ad but closing without claiming, still treat as skip
+      if (onSkip) onSkip();
+    }
+    onOpenChange(open);
+  };
+
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle className="text-center text-lg">
