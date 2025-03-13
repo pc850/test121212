@@ -1,5 +1,5 @@
 
-import React from "react";
+import React, { useState } from "react";
 import { ShoppingBag, ShoppingCart } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -7,7 +7,10 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "@/hooks/use-toast";
 
 const ShopPage: React.FC = () => {
+  const [cartItems, setCartItems] = useState<number>(0);
+
   const addToCart = (product: string) => {
+    setCartItems(cartItems + 1);
     toast({
       title: "Added to cart",
       description: `${product} has been added to your cart`,
@@ -17,24 +20,31 @@ const ShopPage: React.FC = () => {
   const merchandiseItems = [
     {
       id: 1, 
-      name: "FIPT Hoodie", 
+      name: "FIPT Hoodie - Signature Pattern", 
       price: "$49.99",
-      description: "Comfortable hoodie with FIPT branding",
-      image: "/placeholder.svg"
+      description: "Comfortable red hoodie with FIPT branding and signature pattern",
+      image: "/lovable-uploads/d46305d6-1a9a-40ff-a23f-d089f1f82ff9.png"
     },
     {
       id: 2, 
-      name: "FIPT T-Shirt", 
-      price: "$24.99",
-      description: "Premium cotton with FIPT logo",
-      image: "/placeholder.svg"
+      name: "FIPT Classic Hoodie", 
+      price: "$49.99",
+      description: "Classic red hoodie with bold FIPT logo on front",
+      image: "/lovable-uploads/4648ba41-cc11-4400-9f60-cd7ddbe64569.png"
     },
     {
       id: 3, 
-      name: "FIPT Cap", 
-      price: "$19.99",
-      description: "Stylish cap with embroidered FIPT logo",
-      image: "/placeholder.svg"
+      name: "FIPT White T-Shirt - Blue Logo", 
+      price: "$24.99",
+      description: "Premium white cotton t-shirt with blue FIPT logo",
+      image: "/lovable-uploads/7cb7440e-1c67-40ef-a80e-80673f441b31.png"
+    },
+    {
+      id: 4, 
+      name: "FIPT White T-Shirt - Black Logo", 
+      price: "$24.99",
+      description: "Premium white cotton t-shirt with black FIPT logo",
+      image: "/lovable-uploads/6fdbbf6c-66d7-4f35-99d5-88aa55da77ad.png"
     }
   ];
 
@@ -47,7 +57,9 @@ const ShopPage: React.FC = () => {
         </div>
         <Button variant="outline" size="icon" className="relative">
           <ShoppingCart className="h-5 w-5" />
-          <span className="absolute -top-1 -right-1 bg-fipt-blue text-white rounded-full w-5 h-5 text-xs flex items-center justify-center">0</span>
+          <span className="absolute -top-1 -right-1 bg-fipt-blue text-white rounded-full w-5 h-5 text-xs flex items-center justify-center">
+            {cartItems}
+          </span>
         </Button>
       </header>
 
@@ -65,8 +77,12 @@ const ShopPage: React.FC = () => {
                   <CardTitle className="text-lg">{item.name}</CardTitle>
                 </CardHeader>
                 <CardContent className="p-4 pt-0">
-                  <div className="aspect-square bg-muted rounded-md mb-3 flex items-center justify-center">
-                    <ShoppingBag className="h-12 w-12 text-muted-foreground" />
+                  <div className="aspect-square bg-muted rounded-md mb-3 overflow-hidden">
+                    <img 
+                      src={item.image} 
+                      alt={item.name}
+                      className="w-full h-full object-cover"
+                    />
                   </div>
                   <p className="text-sm text-muted-foreground mb-2">{item.description}</p>
                   <p className="font-bold">{item.price}</p>
