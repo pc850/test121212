@@ -19,7 +19,7 @@ export const initialStreams: Stream[] = [
   { room: 'another_model_room', campaign: '6DE6w', id: '2' },
 ];
 
-export const fetchChaturbateRooms = async (pageNum: number): Promise<Stream[]> => {
+export const fetchChaturbateRooms = async (pageNum: number): Promise<{ streams: Stream[], error: string | null }> => {
   try {
     // For demonstration purposes, we're using a proxy URL. In production, this should be a backend endpoint
     // that makes the API call with proper authentication.
@@ -38,6 +38,13 @@ export const fetchChaturbateRooms = async (pageNum: number): Promise<Stream[]> =
     if (data && data.contents) {
       try {
         const parsedContent = JSON.parse(data.contents);
+        
+        // Check if API returned errors
+        if (parsedContent.errors) {
+          console.error('API returned errors:', parsedContent.errors);
+          throw new Error('API returned an error response');
+        }
+        
         rooms = parsedContent.results || [];
       } catch (e) {
         console.error('Error parsing API response:', e);
@@ -46,20 +53,21 @@ export const fetchChaturbateRooms = async (pageNum: number): Promise<Stream[]> =
     }
     
     // Map the API response to our Stream format
-    return rooms.map((room, index) => ({
-      room: room.username,
-      campaign: affiliateCode,
-      id: `chaturbate-${pageNum}-${index}`
-    }));
+    return {
+      streams: rooms.map((room, index) => ({
+        room: room.username,
+        campaign: affiliateCode,
+        id: `chaturbate-${pageNum}-${index}`
+      })),
+      error: null
+    };
   } catch (error) {
     console.error('Error fetching rooms:', error);
-    toast({
-      title: "Error loading streams",
-      description: "Using fallback data instead",
-      variant: "destructive"
-    });
     
-    // Return fallback data if API fails
-    return generateFallbackStreams(5, (pageNum - 1) * 5 + 1);
+    // Return fallback data if API fails along with the error message
+    return {
+      streams: generateFallbackStreams(5, (pageNum - 1) * 5 + 1),
+      error: error instanceof Error ? error.message : 'Unknown error occurred'
+    };
   }
 };

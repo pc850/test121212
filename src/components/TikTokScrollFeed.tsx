@@ -4,6 +4,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Stream } from "@/types/streams";
 import StreamItem from "@/components/streams/StreamItem";
 import LoadingIndicator from "@/components/streams/LoadingIndicator";
+import ErrorMessage from "@/components/streams/ErrorMessage";
 import InfiniteScrollHandler from "@/components/streams/InfiniteScrollHandler";
 import { fetchChaturbateRooms, initialStreams } from "@/services/StreamsService";
 
@@ -14,52 +15,71 @@ const TikTokScrollFeed = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [hasMore, setHasMore] = useState(true);
   const [page, setPage] = useState(1);
+  const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
   
-  // Initial data fetch
-  useEffect(() => {
-    const fetchInitialData = async () => {
-      setIsLoading(true);
-      try {
-        const initialRooms = await fetchChaturbateRooms(1);
-        setStreams(initialRooms);
-      } catch (error) {
-        console.error("Failed to fetch initial streams:", error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    
-    fetchInitialData();
-  }, []);
-  
-  // Function to load more streams as user scrolls
-  const loadMoreStreams = async () => {
-    if (isLoading || !hasMore) return;
-    
+  // Function to fetch streams
+  const fetchStreams = async (pageNumber: number, showToast = false) => {
     setIsLoading(true);
+    setError(null);
     
     try {
-      // Fetch the next page of rooms
-      const nextPage = page + 1;
-      const newRooms = await fetchChaturbateRooms(nextPage);
+      const result = await fetchChaturbateRooms(pageNumber);
       
-      // If no new rooms returned, we've reached the end
-      if (newRooms.length === 0) {
+      if (result.error) {
+        setError(result.error);
+        if (showToast) {
+          toast({
+            title: "Error loading streams",
+            description: result.error,
+            variant: "destructive"
+          });
+        }
+      }
+      
+      // Even if there's an error, we'll still show fallback streams
+      if (pageNumber === 1) {
+        setStreams(result.streams);
+      } else {
+        setStreams(prevStreams => [...prevStreams, ...result.streams]);
+      }
+      
+      // If no new streams returned or error occurred, we've reached the end
+      if (result.streams.length === 0 || result.error) {
         setHasMore(false);
       } else {
-        setStreams(prevStreams => [...prevStreams, ...newRooms]);
-        setPage(nextPage);
+        setPage(pageNumber);
       }
-    } catch (error) {
-      console.error('Error loading more streams:', error);
-      // After 20 fallback streams, stop showing more
-      if (streams.length >= 20) {
-        setHasMore(false);
+    } catch (err) {
+      console.error("Unexpected error during fetch:", err);
+      setError("An unexpected error occurred");
+      if (showToast) {
+        toast({
+          title: "Error loading streams",
+          description: "An unexpected error occurred while loading streams",
+          variant: "destructive"
+        });
       }
     } finally {
       setIsLoading(false);
     }
+  };
+  
+  // Initial data fetch
+  useEffect(() => {
+    fetchStreams(1);
+  }, []);
+  
+  // Function to load more streams as user scrolls
+  const loadMoreStreams = () => {
+    if (isLoading || !hasMore) return;
+    fetchStreams(page + 1);
+  };
+  
+  // Retry fetch function for error state
+  const handleRetry = () => {
+    setPage(1);
+    fetchStreams(1, true);
   };
 
   const handleScroll = () => {
@@ -86,6 +106,11 @@ const TikTokScrollFeed = () => {
     };
   }, [currentIndex]);
 
+  // Show full-screen error only if no streams loaded and error exists
+  if (error && streams.length === 0) {
+    return <ErrorMessage message={error} onRetry={handleRetry} />;
+  }
+
   return (
     <div
       ref={scrollContainerRef}
@@ -94,6 +119,13 @@ const TikTokScrollFeed = () => {
         scrollSnapType: 'y mandatory'
       }}
     >
+      {/* Error banner if we have some streams but encountered an error loading more */}
+      {error && streams.length > 0 && (
+        <div className="sticky top-0 z-10 p-2 bg-destructive/90 text-destructive-foreground text-center text-sm">
+          Error loading more streams. <button className="underline" onClick={handleRetry}>Try again</button>
+        </div>
+      )}
+      
       <InfiniteScrollHandler
         isLoading={isLoading}
         hasMore={hasMore}
@@ -115,7 +147,7 @@ const TikTokScrollFeed = () => {
       
       {isLoading && <LoadingIndicator />}
       
-      {!hasMore && streams.length > 0 && (
+      {!hasMore && streams.length > 0 && !error && (
         <div className="py-8 text-center text-fipt-muted">
           No more streams to load
         </div>
