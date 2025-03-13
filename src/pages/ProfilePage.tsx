@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import ProfileHeader from "@/components/ProfileHeader";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Award, ChevronRight, BarChart3, Settings, Users } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 const ProfilePage = () => {
   useEffect(() => {
