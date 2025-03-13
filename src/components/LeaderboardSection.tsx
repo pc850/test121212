@@ -1,6 +1,6 @@
 
 import React from "react";
-import { Trophy, Award, Users } from "lucide-react";
+import { Trophy, Clock, Flame, Heart } from "lucide-react";
 import { 
   Card, 
   CardContent, 
@@ -15,13 +15,14 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
 
-type LeaderboardUser = {
+type MasturbationUser = {
   id: string;
   username: string;
   avatar: string;
-  points: number;
+  minutesSpent: number;
   rank: number;
 };
 
@@ -30,99 +31,121 @@ interface LeaderboardSectionProps {
 }
 
 const LeaderboardSection = ({ className }: LeaderboardSectionProps) => {
-  // Mock data - in a real app this would come from an API
-  const topUsers: LeaderboardUser[] = [
+  // Data for adult users 18+ who spend time on platforms
+  const topMasturbators: MasturbationUser[] = [
     { 
       id: "1", 
-      username: "MoniqueSpell", 
-      avatar: "https://i.pravatar.cc/150?img=1", 
-      points: 12450, 
+      username: "@HotRod_69", 
+      avatar: "https://i.pravatar.cc/150?img=11", 
+      minutesSpent: 12450, 
       rank: 1 
     },
     { 
       id: "2", 
-      username: "JasminQueen", 
-      avatar: "https://i.pravatar.cc/150?img=2", 
-      points: 10980, 
+      username: "@PussyLover420", 
+      avatar: "https://i.pravatar.cc/150?img=12", 
+      minutesSpent: 10980, 
       rank: 2 
     },
     { 
       id: "3", 
-      username: "LovelyEmma", 
-      avatar: "https://i.pravatar.cc/150?img=3", 
-      points: 9870, 
+      username: "@StrokeKing", 
+      avatar: "https://i.pravatar.cc/150?img=13", 
+      minutesSpent: 9870, 
       rank: 3 
     },
     { 
       id: "4", 
-      username: "SweetCandy", 
-      avatar: "https://i.pravatar.cc/150?img=4", 
-      points: 8540, 
+      username: "@LonelyGuy4U", 
+      avatar: "https://i.pravatar.cc/150?img=14", 
+      minutesSpent: 8540, 
       rank: 4 
     },
     { 
       id: "5", 
-      username: "HotSophia", 
-      avatar: "https://i.pravatar.cc/150?img=5", 
-      points: 7650, 
+      username: "@SexMachine88", 
+      avatar: "https://i.pravatar.cc/150?img=15", 
+      minutesSpent: 7650, 
       rank: 5 
+    },
+    { 
+      id: "6", 
+      username: "@JerkyBoy", 
+      avatar: "https://i.pravatar.cc/150?img=16", 
+      minutesSpent: 6890, 
+      rank: 6 
+    },
+    { 
+      id: "7", 
+      username: "@CamLover24", 
+      avatar: "https://i.pravatar.cc/150?img=17", 
+      minutesSpent: 5950, 
+      rank: 7 
     }
   ];
 
+  // Format minutes to hours and minutes
+  const formatTime = (minutes: number): string => {
+    const hours = Math.floor(minutes / 60);
+    const mins = minutes % 60;
+    return `${hours}h ${mins}m`;
+  };
+
   return (
     <Card className={cn("shadow-sm", className)}>
-      <CardHeader className="pb-3">
+      <CardHeader className="pb-3 bg-fipt-dark text-white rounded-t-lg">
         <CardTitle className="text-base font-medium flex items-center gap-2">
-          <Trophy className="h-4 w-4 text-fipt-blue" />
-          Top Performers
+          <Flame className="h-5 w-5 text-red-500" />
+          Top Masturbators
         </CardTitle>
       </CardHeader>
-      <CardContent>
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead className="w-12">Rank</TableHead>
-              <TableHead>User</TableHead>
-              <TableHead className="text-right">Points</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {topUsers.map((user) => (
-              <TableRow key={user.id}>
-                <TableCell className="font-medium">
-                  {user.rank === 1 ? (
-                    <div className="flex items-center justify-center w-6 h-6 rounded-full bg-yellow-100">
-                      <Trophy className="h-3 w-3 text-yellow-500" />
-                    </div>
-                  ) : user.rank === 2 ? (
-                    <div className="flex items-center justify-center w-6 h-6 rounded-full bg-gray-100">
-                      <Award className="h-3 w-3 text-gray-500" />
-                    </div>
-                  ) : user.rank === 3 ? (
-                    <div className="flex items-center justify-center w-6 h-6 rounded-full bg-amber-100">
-                      <Award className="h-3 w-3 text-amber-600" />
-                    </div>
-                  ) : (
-                    user.rank
-                  )}
-                </TableCell>
-                <TableCell>
-                  <div className="flex items-center">
-                    <div className="h-8 w-8 rounded-full overflow-hidden mr-2">
-                      <img 
-                        src={user.avatar} 
-                        alt={user.username} 
-                        className="h-full w-full object-cover"
-                      />
-                    </div>
-                    <span className="font-medium text-sm">{user.username}</span>
+      <CardContent className="p-0">
+        <div className="bg-white rounded-b-lg overflow-hidden">
+          {topMasturbators.map((user) => (
+            <div 
+              key={user.id} 
+              className="flex items-center p-3 border-b last:border-0 hover:bg-gray-50 transition-colors"
+            >
+              <div className="flex items-center justify-center w-8 min-w-8">
+                {user.rank === 1 ? (
+                  <Trophy className="h-5 w-5 text-yellow-500" />
+                ) : user.rank === 2 ? (
+                  <Trophy className="h-5 w-5 text-gray-400" />
+                ) : user.rank === 3 ? (
+                  <Trophy className="h-5 w-5 text-amber-600" />
+                ) : (
+                  <span className="text-sm text-gray-500 font-medium">{user.rank}</span>
+                )}
+              </div>
+              
+              <div className="flex items-center flex-1 ml-2">
+                <Avatar className="h-10 w-10 border-2 border-white shadow-sm mr-3">
+                  <AvatarImage src={user.avatar} alt={user.username} />
+                  <AvatarFallback>{user.username.slice(1, 3).toUpperCase()}</AvatarFallback>
+                </Avatar>
+                <div>
+                  <div className="font-medium text-sm text-fipt-dark">{user.username}</div>
+                  <div className="flex items-center text-xs text-gray-500">
+                    <Clock className="h-3 w-3 mr-1" /> 
+                    <span>{formatTime(user.minutesSpent)} spent</span>
                   </div>
-                </TableCell>
-                <TableCell className="text-right font-medium">{user.points}</TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+                </div>
+              </div>
+              
+              <div className="flex flex-col items-end">
+                <div className="flex items-center">
+                  <Heart className="h-4 w-4 text-red-500 mr-1" />
+                  <span className="text-xs font-medium">{Math.floor(user.minutesSpent / 100)}</span>
+                </div>
+                <div className="text-xs text-gray-500">sessions</div>
+              </div>
+            </div>
+          ))}
+          
+          <div className="p-3 bg-gray-50 text-center">
+            <span className="text-xs text-gray-500">All users are 18+ years old</span>
+          </div>
+        </div>
       </CardContent>
     </Card>
   );
