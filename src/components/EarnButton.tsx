@@ -4,7 +4,11 @@ import { Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/components/ui/use-toast";
 
-const EarnButton = () => {
+interface EarnButtonProps {
+  onEarn?: (points: number) => void;
+}
+
+const EarnButton = ({ onEarn }: EarnButtonProps) => {
   const [points, setPoints] = useState(0);
   const [isPressed, setIsPressed] = useState(false);
   const [showAnimation, setShowAnimation] = useState(false);
@@ -13,7 +17,14 @@ const EarnButton = () => {
 
   const handleClick = () => {
     // Earn points
-    setPoints(prev => prev + 1);
+    const earnedPoints = 1;
+    setPoints(prev => prev + earnedPoints);
+    
+    // Call the parent's onEarn callback if provided
+    if (onEarn) {
+      onEarn(earnedPoints);
+    }
+    
     setIsPressed(true);
     setShowAnimation(true);
     
