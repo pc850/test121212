@@ -22,46 +22,52 @@ const ShopPage: React.FC = () => {
     {
       id: 1, 
       name: "FIPT Hoodie - Signature Pattern", 
-      price: "$49.99",
+      price: 499990,
       description: "Comfortable red hoodie with FIPT branding and signature pattern",
       image: "/lovable-uploads/d46305d6-1a9a-40ff-a23f-d089f1f82ff9.png"
     },
     {
       id: 2, 
       name: "FIPT Classic Hoodie", 
-      price: "$49.99",
+      price: 499990,
       description: "Classic red hoodie with bold FIPT logo on front",
       image: "/lovable-uploads/4648ba41-cc11-4400-9f60-cd7ddbe64569.png"
     },
     {
       id: 3, 
       name: "FIPT White T-Shirt - Blue Logo", 
-      price: "$24.99",
+      price: 249990,
       description: "Premium white cotton t-shirt with blue FIPT logo",
       image: "/lovable-uploads/7cb7440e-1c67-40ef-a80e-80673f441b31.png"
     },
     {
       id: 4, 
       name: "FIPT White T-Shirt - Black Logo", 
-      price: "$24.99",
+      price: 249990,
       description: "Premium white cotton t-shirt with black FIPT logo",
       image: "/lovable-uploads/6fdbbf6c-66d7-4f35-99d5-88aa55da77ad.png"
     },
     {
       id: 5, 
       name: "FIPT Sportswear Set - Blue & Pink", 
-      price: "$59.99",
+      price: 599990,
       description: "Two-piece workout set with crop top and shorts in blue and pink",
       image: "/lovable-uploads/0edb97c4-4ed5-48bd-b939-bc687505eaa8.png"
     },
     {
       id: 6, 
       name: "FIPT Black Hoodie - Urban Edition", 
-      price: "$49.99",
+      price: 499990,
       description: "Sleek black hoodie with minimalist FIPT logo, perfect for urban style",
       image: "/lovable-uploads/7e4efff2-6eff-4879-a1df-b660a7c9a7be.png"
     }
   ];
+
+  // Helper function to format the USD price
+  const formatUsdPrice = (fiptPrice: number) => {
+    const usdPrice = (fiptPrice * 0.0001).toFixed(2);
+    return `$${usdPrice}`;
+  };
 
   return (
     <div className="container py-6 space-y-6">
@@ -102,7 +108,10 @@ const ShopPage: React.FC = () => {
                     </AspectRatio>
                   </div>
                   <p className="text-sm text-muted-foreground mb-2">{item.description}</p>
-                  <p className="font-bold">{item.price}</p>
+                  <p className="font-bold flex items-center gap-2">
+                    <span className="text-fipt-blue">{item.price.toLocaleString()} $FIPT</span>
+                    <span className="text-sm text-muted-foreground">({formatUsdPrice(item.price)} USD)</span>
+                  </p>
                 </CardContent>
                 <CardFooter className="p-4 pt-0">
                   <Button 
@@ -128,12 +137,18 @@ const ShopPage: React.FC = () => {
               </p>
               <div className="mt-4 space-y-4">
                 <div className="p-4 border rounded-lg">
-                  <h3 className="font-bold">Monthly - $9.99</h3>
+                  <h3 className="font-bold flex items-center gap-2">
+                    <span className="text-fipt-blue">99,990 $FIPT</span>
+                    <span className="text-sm text-muted-foreground">($9.99 USD)</span>
+                  </h3>
                   <p className="text-sm text-muted-foreground">Full access to all premium features</p>
                   <Button className="mt-2 w-full">Subscribe</Button>
                 </div>
                 <div className="p-4 border rounded-lg bg-muted/50">
-                  <h3 className="font-bold">Yearly - $99.99</h3>
+                  <h3 className="font-bold flex items-center gap-2">
+                    <span className="text-fipt-blue">999,990 $FIPT</span>
+                    <span className="text-sm text-muted-foreground">($99.99 USD)</span>
+                  </h3>
                   <p className="text-sm text-muted-foreground">Save over 15% with yearly membership</p>
                   <Button className="mt-2 w-full">Subscribe</Button>
                 </div>
