@@ -3,6 +3,7 @@ export interface Stream {
   room: string;
   campaign: string;
   id: string;
+  image?: string; // Optional preview image
 }
 
 export interface ChaturbateRoom {
