@@ -1,5 +1,5 @@
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 
 interface VideoPlayerProps {
   containerId: string;
@@ -15,6 +15,8 @@ const VideoPlayer = ({
   onLoad 
 }: VideoPlayerProps) => {
   const containerRef = useRef<HTMLDivElement>(null);
+  const scriptRef = useRef<HTMLScriptElement | null>(null);
+  const [isLoaded, setIsLoaded] = useState(false);
   
   useEffect(() => {
     if (!containerRef.current) return;
@@ -30,25 +32,34 @@ const VideoPlayer = ({
     playerContainer.style.height = typeof height === 'number' ? `${height}px` : height;
     containerRef.current.appendChild(playerContainer);
     
+    // Remove any existing script
+    if (scriptRef.current && scriptRef.current.parentNode) {
+      scriptRef.current.parentNode.removeChild(scriptRef.current);
+    }
+    
     // Load the script dynamically
     const script = document.createElement('script');
     script.src = "https://ttedwm.com/embed/tbplyrrnd/?psid=fiptonton&pstool=421_3&sexualOrientation=straight&forcedPerformers[]=&tags=virgin&primaryColor=8AC437&labelColor=11053B&campaign_id=&site=jasmin&accessKey=dbb57faea5338987e757b66689bad62c&ms_notrack=1&c=" + containerId;
     script.async = true;
+    
+    // Add load event handler
     script.onload = () => {
+      setIsLoaded(true);
       if (onLoad) onLoad();
     };
+    
+    // Store the script reference
+    scriptRef.current = script;
     
     // Append script to document
     document.body.appendChild(script);
     
     // Cleanup function
     return () => {
-      if (script.parentNode) {
-        document.body.removeChild(script);
+      if (scriptRef.current && scriptRef.current.parentNode) {
+        document.body.removeChild(scriptRef.current);
       }
-      if (containerRef.current) {
-        containerRef.current.innerHTML = '';
-      }
+      setIsLoaded(false);
     };
   }, [containerId, width, height, onLoad]);
   

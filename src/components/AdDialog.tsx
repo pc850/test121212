@@ -37,7 +37,8 @@ export function AdDialog({ open, onOpenChange, points, onSuccess, onSkip }: AdDi
   useEffect(() => {
     let timer: ReturnType<typeof setInterval>;
     
-    if (adPlaying && timeRemaining > 0) {
+    if (adPlaying && timeRemaining > 0 && adLoaded) {
+      // Only start countdown after ad is loaded
       timer = setInterval(() => {
         setTimeRemaining((prev) => {
           if (prev <= 1) {
@@ -54,13 +55,14 @@ export function AdDialog({ open, onOpenChange, points, onSuccess, onSkip }: AdDi
     return () => {
       if (timer) clearInterval(timer);
     };
-  }, [adPlaying, timeRemaining]);
+  }, [adPlaying, timeRemaining, adLoaded]);
 
   const handleStartAd = () => {
     setAdPlaying(true);
   };
 
   const handleAdLoaded = () => {
+    console.log("Ad loaded successfully");
     setAdLoaded(true);
   };
 
@@ -120,7 +122,7 @@ export function AdDialog({ open, onOpenChange, points, onSuccess, onSkip }: AdDi
                     onLoad={handleAdLoaded} 
                   />
                   <div className="absolute top-2 right-2 bg-black/70 text-white px-2 py-1 rounded-full text-xs">
-                    {timeRemaining}s
+                    {adLoaded ? timeRemaining : "Loading..."}s
                   </div>
                 </div>
               ) : (
@@ -135,7 +137,7 @@ export function AdDialog({ open, onOpenChange, points, onSuccess, onSkip }: AdDi
                 className="w-full"
                 variant={adPlaying ? "outline" : "default"}
               >
-                {adPlaying ? `Watching content (${timeRemaining}s)...` : "Watch Content"}
+                {adPlaying ? (adLoaded ? `Watching content (${timeRemaining}s)...` : "Loading content...") : "Watch Content"}
               </Button>
               
               {!adPlaying && (
