@@ -4,6 +4,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Button } from "@/components/ui/button";
 import { Play, Check, X } from "lucide-react";
 import { cn } from "@/lib/utils";
+import VideoPlayer from "./VideoPlayer";
 
 interface AdDialogProps {
   open: boolean;
@@ -15,17 +16,20 @@ interface AdDialogProps {
 
 export function AdDialog({ open, onOpenChange, points, onSuccess, onSkip }: AdDialogProps) {
   const [adPlaying, setAdPlaying] = useState(false);
-  const [timeRemaining, setTimeRemaining] = useState(15); // Changed from 30 to 15 seconds
+  const [timeRemaining, setTimeRemaining] = useState(15); // 15 seconds
   const [completed, setCompleted] = useState(false);
   const [claimed, setClaimed] = useState(false);
+  const [adLoaded, setAdLoaded] = useState(false);
+  const adContainerId = "ad_player_container";
 
   // Reset states when dialog opens
   useEffect(() => {
     if (open) {
       setAdPlaying(false);
-      setTimeRemaining(15); // Changed from 30 to 15 seconds
+      setTimeRemaining(15);
       setCompleted(false);
       setClaimed(false);
+      setAdLoaded(false);
     }
   }, [open]);
 
@@ -56,6 +60,10 @@ export function AdDialog({ open, onOpenChange, points, onSuccess, onSkip }: AdDi
     setAdPlaying(true);
   };
 
+  const handleAdLoaded = () => {
+    setAdLoaded(true);
+  };
+
   const handleClaim = () => {
     // Here you would typically call an API to credit the points
     setClaimed(true);
@@ -83,7 +91,7 @@ export function AdDialog({ open, onOpenChange, points, onSuccess, onSkip }: AdDi
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-lg">
         <DialogHeader>
           <DialogTitle className="text-center text-lg">
             {completed ? "Congratulations!" : "Earn FIPT Points"}
@@ -91,25 +99,35 @@ export function AdDialog({ open, onOpenChange, points, onSuccess, onSkip }: AdDi
           <DialogDescription className="text-center">
             {completed 
               ? `You've earned ${points} FIPT points!` 
-              : `Watch a 15-second ad to claim ${points} FIPT points`} {/* Changed from 30 to 15 seconds */}
+              : `Watch content for 15 seconds to claim ${points} FIPT points`}
           </DialogDescription>
         </DialogHeader>
         
         <div className="flex flex-col items-center justify-center p-4">
           {!completed ? (
             <>
-              <div className={cn(
-                "w-24 h-24 rounded-full flex items-center justify-center mb-4",
-                adPlaying 
-                  ? "bg-gray-100 animate-pulse" 
-                  : "bg-fipt-blue/10"
-              )}>
-                {adPlaying ? (
-                  <span className="text-2xl font-bold text-fipt-dark">{timeRemaining}</span>
-                ) : (
+              {adPlaying ? (
+                <div className="w-full max-w-md h-64 mb-4 relative bg-black">
+                  {!adLoaded && (
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <div className="w-8 h-8 border-2 border-fipt-blue border-t-transparent rounded-full animate-spin"></div>
+                    </div>
+                  )}
+                  <VideoPlayer 
+                    containerId={adContainerId} 
+                    width="100%" 
+                    height="100%" 
+                    onLoad={handleAdLoaded} 
+                  />
+                  <div className="absolute top-2 right-2 bg-black/70 text-white px-2 py-1 rounded-full text-xs">
+                    {timeRemaining}s
+                  </div>
+                </div>
+              ) : (
+                <div className="w-24 h-24 rounded-full flex items-center justify-center mb-4 bg-fipt-blue/10">
                   <Play className="w-10 h-10 text-fipt-blue" />
-                )}
-              </div>
+                </div>
+              )}
               
               <Button 
                 onClick={adPlaying ? undefined : handleStartAd}
@@ -117,7 +135,7 @@ export function AdDialog({ open, onOpenChange, points, onSuccess, onSkip }: AdDi
                 className="w-full"
                 variant={adPlaying ? "outline" : "default"}
               >
-                {adPlaying ? `Watching ad (${timeRemaining}s)...` : "Watch Ad"}
+                {adPlaying ? `Watching content (${timeRemaining}s)...` : "Watch Content"}
               </Button>
               
               {!adPlaying && (
