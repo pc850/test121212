@@ -198,7 +198,7 @@ const TikTokScrollFeed = () => {
             }}
           >
             <iframe
-              src={`https://chaturbate.com/embed/${stream.room}/?campaign=${stream.campaign}&disable_sound=0&tour=limt&mobileRedirect=never`}
+              src={`https://chaturbate.com/in/?tour=Limj&campaign=${stream.campaign}&track=default&signup_notice=1&b=${stream.room}`}
               className="w-full h-full border-none"
               allowFullScreen
               title={`Live Stream - ${stream.room}`}
