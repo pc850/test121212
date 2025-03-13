@@ -2,7 +2,7 @@
 import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Play, Check } from "lucide-react";
+import { Play, Check, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface AdDialogProps {
@@ -57,6 +57,11 @@ export function AdDialog({ open, onOpenChange, points }: AdDialogProps) {
     onOpenChange(false);
   };
 
+  const handleSkip = () => {
+    // Close the dialog without claiming any points
+    onOpenChange(false);
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
@@ -95,6 +100,17 @@ export function AdDialog({ open, onOpenChange, points }: AdDialogProps) {
               >
                 {adPlaying ? `Watching ad (${timeRemaining}s)...` : "Watch Ad"}
               </Button>
+              
+              {!adPlaying && (
+                <Button 
+                  onClick={handleSkip}
+                  variant="ghost" 
+                  className="mt-2 text-fipt-muted"
+                  size="sm"
+                >
+                  Skip <X className="ml-1 w-3 h-3" />
+                </Button>
+              )}
             </>
           ) : (
             <>
