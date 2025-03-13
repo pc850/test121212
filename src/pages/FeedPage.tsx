@@ -12,6 +12,7 @@ const mockFeedData = [
     userAvatar: "https://i.pravatar.cc/150?img=1",
     content: "Just earned 500 FIPT tokens today! The click-to-earn mechanism is so addictive 🚀",
     image: "https://images.unsplash.com/photo-1621504450181-5d356f61d307?q=80&w=500&auto=format&fit=crop",
+    video: false,
     likes: 128,
     comments: 24,
     shares: 7
@@ -22,6 +23,7 @@ const mockFeedData = [
     userAvatar: "https://i.pravatar.cc/150?img=2",
     content: "FIPT community is growing fast! Who else is excited about the upcoming features?",
     image: "https://images.unsplash.com/photo-1639762681485-074b7f938ba0?q=80&w=500&auto=format&fit=crop",
+    video: false,
     likes: 87,
     comments: 14,
     shares: 3
@@ -31,7 +33,8 @@ const mockFeedData = [
     username: "blockchain_dev",
     userAvatar: "https://i.pravatar.cc/150?img=3",
     content: "Check out my new achievement in FIPT! Reached top 10 on the leaderboard.",
-    image: "https://images.unsplash.com/photo-1639762681057-408e52192e55?q=80&w=500&auto=format&fit=crop",
+    image: null,
+    video: true,
     likes: 256,
     comments: 42,
     shares: 18
@@ -42,6 +45,7 @@ const mockFeedData = [
     userAvatar: "https://i.pravatar.cc/150?img=4",
     content: "Pro tip: Make sure to check in daily for bonus points. I've accumulated over 10,000 FIPT this month!",
     image: "https://images.unsplash.com/photo-1621504450181-5d356f61d307?q=80&w=600&auto=format&fit=crop",
+    video: false,
     likes: 198,
     comments: 35,
     shares: 11

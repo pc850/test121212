@@ -1,10 +1,11 @@
 
 import { useState, useEffect } from "react";
-import { Heart, MessageSquare, Share2, ChevronUp, ChevronDown, Bookmark } from "lucide-react";
+import { Heart, MessageSquare, Share2, ChevronUp, ChevronDown, Bookmark, Video } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 import { AspectRatio } from "@/components/ui/aspect-ratio";
 import { Button } from "@/components/ui/button";
+import VideoPlayer from "./VideoPlayer";
 
 interface FeedCardProps {
   id: string;
@@ -12,6 +13,7 @@ interface FeedCardProps {
   userAvatar: string;
   content: string;
   image?: string;
+  video?: boolean;
   likes: number;
   comments: number;
   shares: number;
@@ -26,6 +28,7 @@ const FeedCard = ({
   userAvatar,
   content,
   image,
+  video = false,
   likes,
   comments,
   shares,
@@ -35,16 +38,17 @@ const FeedCard = ({
 }: FeedCardProps) => {
   const [liked, setLiked] = useState(false);
   const [likeCount, setLikeCount] = useState(likes);
-  const [isLoading, setIsLoading] = useState(!!image);
+  const [isLoading, setIsLoading] = useState(!!(image || video));
   const [saved, setSaved] = useState(false);
   const { toast } = useToast();
+  const playerContainerId = `player_container_${id}`;
 
   // Reset loading state when active changes
   useEffect(() => {
-    if (isActive && image) {
+    if (isActive && (image || video)) {
       setIsLoading(true);
     }
-  }, [isActive, image]);
+  }, [isActive, image, video]);
 
   const handleLike = () => {
     // If already liked, unlike without cost
@@ -108,12 +112,16 @@ const FeedCard = ({
     setIsLoading(false);
   };
 
+  const handleVideoLoad = () => {
+    setIsLoading(false);
+  };
+
   return (
     <div className="w-full max-w-md h-full rounded-xl overflow-hidden bg-white shadow-md border border-gray-100 flex flex-col animate-fade-in relative">
       {/* Content container */}
       <div className="relative flex-grow overflow-hidden">
         {/* Image (if any) */}
-        {image && (
+        {image && !video && (
           <div className="absolute inset-0 bg-fipt-gray">
             {isLoading && (
               <div className="absolute inset-0 flex items-center justify-center z-10">
@@ -133,6 +141,26 @@ const FeedCard = ({
           </div>
         )}
 
+        {/* Video (if any) */}
+        {video && (
+          <div className="absolute inset-0 bg-fipt-gray">
+            {isLoading && (
+              <div className="absolute inset-0 flex items-center justify-center z-10">
+                <div className="w-8 h-8 border-2 border-fipt-blue border-t-transparent rounded-full animate-spin"></div>
+              </div>
+            )}
+            <div className={cn(
+              "w-full h-full transition-opacity duration-300",
+              isLoading ? "opacity-0" : "opacity-100"
+            )}>
+              <VideoPlayer 
+                containerId={playerContainerId} 
+                onLoad={handleVideoLoad}
+              />
+            </div>
+          </div>
+        )}
+
         {/* Overlay content */}
         <div className="absolute inset-0 flex flex-col justify-between p-4 bg-gradient-to-b from-black/20 via-transparent to-black/40">
           {/* Header */}
@@ -149,6 +177,11 @@ const FeedCard = ({
               <h3 className="font-medium text-white drop-shadow-md">{username}</h3>
               <p className="text-xs text-white/80 drop-shadow-sm">FIPT Community</p>
             </div>
+            {video && (
+              <div className="ml-auto">
+                <Video className="h-5 w-5 text-white" />
+              </div>
+            )}
           </div>
 
           {/* Footer content */}
