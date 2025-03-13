@@ -53,6 +53,13 @@ const ShopPage: React.FC = () => {
       price: "$59.99",
       description: "Two-piece workout set with crop top and shorts in blue and pink",
       image: "/lovable-uploads/0edb97c4-4ed5-48bd-b939-bc687505eaa8.png"
+    },
+    {
+      id: 6, 
+      name: "FIPT Black Hoodie - Urban Edition", 
+      price: "$49.99",
+      description: "Sleek black hoodie with minimalist FIPT logo, perfect for urban style",
+      image: "/lovable-uploads/7e4efff2-6eff-4879-a1df-b660a7c9a7be.png"
     }
   ];
 
