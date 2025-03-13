@@ -2,7 +2,6 @@
 import { useState, useEffect } from "react";
 import { Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { useToast } from "@/components/ui/use-toast";
 
 interface EarnButtonProps {
   onEarn?: (points: number) => void;
@@ -13,7 +12,6 @@ const EarnButton = ({ onEarn }: EarnButtonProps) => {
   const [isPressed, setIsPressed] = useState(false);
   const [showAnimation, setShowAnimation] = useState(false);
   const [particles, setParticles] = useState<Array<{ id: number; x: number; y: number; size: number; color: string }>>([]);
-  const { toast } = useToast();
 
   const handleClick = () => {
     // Earn points
@@ -48,19 +46,6 @@ const EarnButton = ({ onEarn }: EarnButtonProps) => {
     setTimeout(() => {
       setShowAnimation(false);
     }, 700);
-    
-    // Show milestone toasts
-    if (points + 1 === 10) {
-      toast({
-        title: "Achievement Unlocked!",
-        description: "You've earned 10 FIPT points!",
-      });
-    } else if ((points + 1) % 50 === 0) {
-      toast({
-        title: "Milestone Reached!",
-        description: `You've earned ${points + 1} FIPT points!`,
-      });
-    }
   };
   
   // Clean up particles
