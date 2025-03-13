@@ -6,6 +6,7 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/componen
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AspectRatio } from "@/components/ui/aspect-ratio";
 import { toast } from "@/hooks/use-toast";
+import TonConnectButton from "@/components/TonConnectButton";
 
 const ShopPage: React.FC = () => {
   const [cartItems, setCartItems] = useState<number>(0);
@@ -84,12 +85,15 @@ const ShopPage: React.FC = () => {
           <h1 className="text-2xl font-bold">FIPT Shop</h1>
           <p className="text-muted-foreground">Official FIPT merchandise</p>
         </div>
-        <Button variant="outline" size="icon" className="relative">
-          <ShoppingCart className="h-5 w-5" />
-          <span className="absolute -top-1 -right-1 bg-fipt-blue text-white rounded-full w-5 h-5 text-xs flex items-center justify-center">
-            {cartItems}
-          </span>
-        </Button>
+        <div className="flex items-center gap-2">
+          <TonConnectButton />
+          <Button variant="outline" size="icon" className="relative">
+            <ShoppingCart className="h-5 w-5" />
+            <span className="absolute -top-1 -right-1 bg-fipt-blue text-white rounded-full w-5 h-5 text-xs flex items-center justify-center">
+              {cartItems}
+            </span>
+          </Button>
+        </div>
       </header>
 
       <Tabs defaultValue="merchandise">
