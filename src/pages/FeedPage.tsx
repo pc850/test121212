@@ -1,4 +1,3 @@
-
 import { useEffect, useState, useRef } from "react";
 import FeedCard from "@/components/FeedCard";
 import TikTokScrollFeed from "@/components/TikTokScrollFeed";
@@ -6,7 +5,7 @@ import { Search } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
-import { TonConnectButton } from "@/components/TonConnectButton";
+import TonConnectButton from "@/components/TonConnectButton";
 
 const mockFeedData = [
   {
