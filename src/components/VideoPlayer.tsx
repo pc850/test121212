@@ -36,9 +36,9 @@ const VideoPlayer = forwardRef(({
       scriptRef.current.parentNode.removeChild(scriptRef.current);
     }
     
-    // Load the script dynamically
+    // Load the script dynamically with the new source
     const script = document.createElement('script');
-    script.src = `https://ttedwm.com/embed/lf?c=${containerId}&site=jasmin&cobrandId=&psid=fiptonton&pstool=202_1&psprogram=revs&campaign_id=&category=hot_flirt&forcedPerformers[]=&vp[showChat]=&vp[chatAutoHide]=&vp[showCallToAction]=&vp[showPerformerName]=&vp[showPerformerStatus]=&ms_notrack=1&subAffId={SUBAFFID}`;
+    script.src = `https://wmedps.com/pu/?target=wmrttr&site=jasmin&psid=fiptonton&psprogram=revs&campaign_id=&category=girl&ms_notrack=1&subaffid={SUBAFFID}`;
     script.async = true;
     
     // Add load event handler
@@ -47,7 +47,7 @@ const VideoPlayer = forwardRef(({
       setTimeout(() => {
         setIsLoaded(true);
         if (onLoad) onLoad();
-      }, 500);
+      }, 1000); // Increased timeout to give more time for initialization
     };
     
     // Store the script reference
