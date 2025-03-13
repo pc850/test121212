@@ -22,42 +22,42 @@ const ShopPage: React.FC = () => {
     {
       id: 1, 
       name: "FIPT Hoodie - Signature Pattern", 
-      price: 499990,
+      price: 49999,
       description: "Comfortable red hoodie with FIPT branding and signature pattern",
       image: "/lovable-uploads/d46305d6-1a9a-40ff-a23f-d089f1f82ff9.png"
     },
     {
       id: 2, 
       name: "FIPT Classic Hoodie", 
-      price: 499990,
+      price: 49999,
       description: "Classic red hoodie with bold FIPT logo on front",
       image: "/lovable-uploads/4648ba41-cc11-4400-9f60-cd7ddbe64569.png"
     },
     {
       id: 3, 
       name: "FIPT White T-Shirt - Blue Logo", 
-      price: 249990,
+      price: 24999,
       description: "Premium white cotton t-shirt with blue FIPT logo",
       image: "/lovable-uploads/7cb7440e-1c67-40ef-a80e-80673f441b31.png"
     },
     {
       id: 4, 
       name: "FIPT White T-Shirt - Black Logo", 
-      price: 249990,
+      price: 24999,
       description: "Premium white cotton t-shirt with black FIPT logo",
       image: "/lovable-uploads/6fdbbf6c-66d7-4f35-99d5-88aa55da77ad.png"
     },
     {
       id: 5, 
       name: "FIPT Sportswear Set - Blue & Pink", 
-      price: 599990,
+      price: 59999,
       description: "Two-piece workout set with crop top and shorts in blue and pink",
       image: "/lovable-uploads/0edb97c4-4ed5-48bd-b939-bc687505eaa8.png"
     },
     {
       id: 6, 
       name: "FIPT Black Hoodie - Urban Edition", 
-      price: 499990,
+      price: 49999,
       description: "Sleek black hoodie with minimalist FIPT logo, perfect for urban style",
       image: "/lovable-uploads/7e4efff2-6eff-4879-a1df-b660a7c9a7be.png"
     }
@@ -138,16 +138,16 @@ const ShopPage: React.FC = () => {
               <div className="mt-4 space-y-4">
                 <div className="p-4 border rounded-lg">
                   <h3 className="font-bold flex items-center gap-2">
-                    <span className="text-fipt-blue">99,990 $FIPT</span>
-                    <span className="text-sm text-muted-foreground">($9.99 USD)</span>
+                    <span className="text-fipt-blue">9,999 $FIPT</span>
+                    <span className="text-sm text-muted-foreground">($1.00 USD)</span>
                   </h3>
                   <p className="text-sm text-muted-foreground">Full access to all premium features</p>
                   <Button className="mt-2 w-full">Subscribe</Button>
                 </div>
                 <div className="p-4 border rounded-lg bg-muted/50">
                   <h3 className="font-bold flex items-center gap-2">
-                    <span className="text-fipt-blue">999,990 $FIPT</span>
-                    <span className="text-sm text-muted-foreground">($99.99 USD)</span>
+                    <span className="text-fipt-blue">99,999 $FIPT</span>
+                    <span className="text-sm text-muted-foreground">($10.00 USD)</span>
                   </h3>
                   <p className="text-sm text-muted-foreground">Save over 15% with yearly membership</p>
                   <Button className="mt-2 w-full">Subscribe</Button>
