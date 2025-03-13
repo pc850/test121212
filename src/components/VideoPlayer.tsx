@@ -27,7 +27,6 @@ const VideoPlayer = ({
     // Create container with the requested ID
     const playerContainer = document.createElement('div');
     playerContainer.id = containerId;
-    playerContainer.setAttribute('data-awe-container-id', containerId);
     playerContainer.style.width = typeof width === 'number' ? `${width}px` : width;
     playerContainer.style.height = typeof height === 'number' ? `${height}px` : height;
     containerRef.current.appendChild(playerContainer);
@@ -39,13 +38,16 @@ const VideoPlayer = ({
     
     // Load the script dynamically
     const script = document.createElement('script');
-    script.src = "https://ttedwm.com/embed/tbplyrrnd/?psid=fiptonton&pstool=421_3&sexualOrientation=straight&forcedPerformers[]=&tags=virgin&primaryColor=8AC437&labelColor=11053B&campaign_id=&site=jasmin&accessKey=dbb57faea5338987e757b66689bad62c&ms_notrack=1&c=" + containerId;
+    script.src = `https://ttedwm.com/embed/lf?c=${containerId}&site=jasmin&cobrandId=&psid=fiptonton&pstool=202_1&psprogram=revs&campaign_id=&category=hot_flirt&forcedPerformers[]=&vp[showChat]=&vp[chatAutoHide]=&vp[showCallToAction]=&vp[showPerformerName]=&vp[showPerformerStatus]=&ms_notrack=1&subAffId={SUBAFFID}`;
     script.async = true;
     
     // Add load event handler
     script.onload = () => {
-      setIsLoaded(true);
-      if (onLoad) onLoad();
+      // Wait a short amount of time to ensure the player has initialized
+      setTimeout(() => {
+        setIsLoaded(true);
+        if (onLoad) onLoad();
+      }, 500);
     };
     
     // Store the script reference

@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Heart, MessageSquare, Share2, ChevronUp, ChevronDown, Bookmark, Video } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
@@ -40,13 +40,24 @@ const FeedCard = ({
   const [likeCount, setLikeCount] = useState(likes);
   const [isLoading, setIsLoading] = useState(!!(image || video));
   const [saved, setSaved] = useState(false);
+  const [videoReady, setVideoReady] = useState(false);
   const { toast } = useToast();
   const playerContainerId = `player_container_${id}`;
+  const playerRef = useRef<any>(null);
 
   // Reset loading state when active changes
   useEffect(() => {
     if (isActive && (image || video)) {
       setIsLoading(true);
+      if (!video) {
+        // For images, we don't need to do anything special
+      } else {
+        // For videos, we need to reset the video ready state
+        setVideoReady(false);
+      }
+    } else if (!isActive && video) {
+      // When card becomes inactive, mark video as not ready
+      setVideoReady(false);
     }
   }, [isActive, image, video]);
 
@@ -113,6 +124,8 @@ const FeedCard = ({
   };
 
   const handleVideoLoad = () => {
+    console.log(`Video loaded for player ${playerContainerId}`);
+    setVideoReady(true);
     setIsLoading(false);
   };
 
@@ -144,20 +157,23 @@ const FeedCard = ({
         {/* Video (if any) */}
         {video && (
           <div className="absolute inset-0 bg-fipt-gray">
-            {isLoading && (
+            {(isLoading || !videoReady) && (
               <div className="absolute inset-0 flex items-center justify-center z-10">
                 <div className="w-8 h-8 border-2 border-fipt-blue border-t-transparent rounded-full animate-spin"></div>
               </div>
             )}
-            <div className={cn(
-              "w-full h-full transition-opacity duration-300",
-              isLoading ? "opacity-0" : "opacity-100"
-            )}>
-              <VideoPlayer 
-                containerId={playerContainerId} 
-                onLoad={handleVideoLoad}
-              />
-            </div>
+            {isActive && (
+              <div className={cn(
+                "w-full h-full transition-opacity duration-300",
+                videoReady ? "opacity-100" : "opacity-0"
+              )}>
+                <VideoPlayer 
+                  containerId={playerContainerId} 
+                  onLoad={handleVideoLoad}
+                  ref={playerRef}
+                />
+              </div>
+            )}
           </div>
         )}
 

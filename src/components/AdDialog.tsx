@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Play, Check, X } from "lucide-react";
@@ -20,6 +20,7 @@ export function AdDialog({ open, onOpenChange, points, onSuccess, onSkip }: AdDi
   const [completed, setCompleted] = useState(false);
   const [claimed, setClaimed] = useState(false);
   const [adLoaded, setAdLoaded] = useState(false);
+  const timerRef = useRef<ReturnType<typeof setInterval>>();
   const adContainerId = "ad_player_container";
 
   // Reset states when dialog opens
@@ -30,21 +31,34 @@ export function AdDialog({ open, onOpenChange, points, onSuccess, onSkip }: AdDi
       setCompleted(false);
       setClaimed(false);
       setAdLoaded(false);
+      
+      // Clear any existing timer
+      if (timerRef.current) {
+        clearInterval(timerRef.current);
+        timerRef.current = undefined;
+      }
     }
   }, [open]);
 
   // Handle countdown when ad is playing
   useEffect(() => {
-    let timer: ReturnType<typeof setInterval>;
+    // Clear any existing timer
+    if (timerRef.current) {
+      clearInterval(timerRef.current);
+      timerRef.current = undefined;
+    }
     
     if (adPlaying && timeRemaining > 0 && adLoaded) {
       // Only start countdown after ad is loaded
-      timer = setInterval(() => {
+      timerRef.current = setInterval(() => {
         setTimeRemaining((prev) => {
           if (prev <= 1) {
             setAdPlaying(false);
             setCompleted(true);
-            clearInterval(timer);
+            if (timerRef.current) {
+              clearInterval(timerRef.current);
+              timerRef.current = undefined;
+            }
             return 0;
           }
           return prev - 1;
@@ -53,9 +67,22 @@ export function AdDialog({ open, onOpenChange, points, onSuccess, onSkip }: AdDi
     }
     
     return () => {
-      if (timer) clearInterval(timer);
+      if (timerRef.current) {
+        clearInterval(timerRef.current);
+        timerRef.current = undefined;
+      }
     };
   }, [adPlaying, timeRemaining, adLoaded]);
+
+  // Clean up timer on unmount
+  useEffect(() => {
+    return () => {
+      if (timerRef.current) {
+        clearInterval(timerRef.current);
+        timerRef.current = undefined;
+      }
+    };
+  }, []);
 
   const handleStartAd = () => {
     setAdPlaying(true);
