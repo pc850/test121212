@@ -13,6 +13,7 @@ interface FeedCardProps {
   content: string;
   image?: string;
   video?: boolean;
+  performerId?: string;
   likes: number;
   comments: number;
   shares: number;
@@ -28,6 +29,7 @@ const FeedCard = ({
   content,
   image,
   video = false,
+  performerId,
   likes,
   comments,
   shares,
@@ -159,6 +161,7 @@ const FeedCard = ({
                 <VideoPlayer 
                   containerId={playerContainerId} 
                   onLoad={handleVideoLoad}
+                  performerId={performerId}
                 />
               </div>
             )}

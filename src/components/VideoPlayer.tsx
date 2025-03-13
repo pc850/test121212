@@ -6,13 +6,15 @@ interface VideoPlayerProps {
   width?: number | string;
   height?: number | string;
   onLoad?: () => void;
+  performerId?: string;
 }
 
 const VideoPlayer = forwardRef(({ 
   containerId, 
   width = "100%", 
   height = "100%", 
-  onLoad 
+  onLoad,
+  performerId
 }: VideoPlayerProps, ref: ForwardedRef<HTMLDivElement>) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const scriptRef = useRef<HTMLScriptElement | null>(null);
@@ -36,9 +38,16 @@ const VideoPlayer = forwardRef(({
       scriptRef.current.parentNode.removeChild(scriptRef.current);
     }
     
-    // Load the script dynamically with the new source
+    // Load the script dynamically with the performer parameter if provided
     const script = document.createElement('script');
-    script.src = `https://wmedps.com/pu/?target=wmrttr&site=jasmin&psid=fiptonton&psprogram=revs&campaign_id=&category=girl&ms_notrack=1&subaffid={SUBAFFID}`;
+    
+    // If a specific performer ID is provided, use it in the URL
+    if (performerId) {
+      script.src = `https://wmedps.com/pu/?target=wmrttr&site=jasmin&psid=fiptonton&psprogram=revs&campaign_id=&category=girl&ms_notrack=1&subaffid={SUBAFFID}&performer=${performerId}`;
+    } else {
+      script.src = `https://wmedps.com/pu/?target=wmrttr&site=jasmin&psid=fiptonton&psprogram=revs&campaign_id=&category=girl&ms_notrack=1&subaffid={SUBAFFID}`;
+    }
+    
     script.async = true;
     
     // Add load event handler
@@ -63,7 +72,7 @@ const VideoPlayer = forwardRef(({
       }
       setIsLoaded(false);
     };
-  }, [containerId, width, height, onLoad]);
+  }, [containerId, width, height, onLoad, performerId]);
   
   return <div ref={(node) => {
     // Handle both the forwarded ref and our internal ref

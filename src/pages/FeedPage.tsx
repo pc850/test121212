@@ -30,11 +30,12 @@ const mockFeedData = [
   },
   {
     id: "3",
-    username: "blockchain_dev",
+    username: "MoniqueSpell",
     userAvatar: "https://i.pravatar.cc/150?img=3",
-    content: "Check out my new achievement in FIPT! Reached top 10 on the leaderboard.",
+    content: "Live now! Join my room and let's chat 💕",
     image: null,
     video: true,
+    performerId: "MoniqueSpell",
     likes: 256,
     comments: 42,
     shares: 18
