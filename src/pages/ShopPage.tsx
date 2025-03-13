@@ -21,7 +21,7 @@ const ShopPage: React.FC = () => {
   const merchandiseItems = [
     {
       id: 1, 
-      name: "FIPT Hoodie - Signature Pattern", 
+      name: "FIPT Red Hoodie", 
       price: 49999,
       description: "Comfortable red hoodie with FIPT branding and signature pattern",
       image: "/lovable-uploads/d46305d6-1a9a-40ff-a23f-d089f1f82ff9.png"
@@ -35,33 +35,41 @@ const ShopPage: React.FC = () => {
     },
     {
       id: 3, 
-      name: "FIPT White T-Shirt - Blue Logo", 
+      name: "FIPT White Tee - Blue", 
       price: 24999,
       description: "Premium white cotton t-shirt with blue FIPT logo",
       image: "/lovable-uploads/7cb7440e-1c67-40ef-a80e-80673f441b31.png"
     },
     {
       id: 4, 
-      name: "FIPT White T-Shirt - Black Logo", 
+      name: "FIPT White Tee - Black", 
       price: 24999,
       description: "Premium white cotton t-shirt with black FIPT logo",
       image: "/lovable-uploads/6fdbbf6c-66d7-4f35-99d5-88aa55da77ad.png"
     },
     {
       id: 5, 
-      name: "FIPT Sportswear Set - Blue & Pink", 
+      name: "FIPT Sport Set", 
       price: 59999,
       description: "Two-piece workout set with crop top and shorts in blue and pink",
       image: "/lovable-uploads/0edb97c4-4ed5-48bd-b939-bc687505eaa8.png"
     },
     {
       id: 6, 
-      name: "FIPT Black Hoodie - Urban Edition", 
+      name: "FIPT Black Hoodie", 
       price: 49999,
       description: "Sleek black hoodie with minimalist FIPT logo, perfect for urban style",
       image: "/lovable-uploads/7e4efff2-6eff-4879-a1df-b660a7c9a7be.png"
     }
   ];
+
+  // Helper function to format the FIPT price with k notation
+  const formatFiptPrice = (price: number) => {
+    if (price >= 1000) {
+      return `${(price / 1000).toFixed(price % 1000 === 0 ? 0 : 1)}k`;
+    }
+    return price.toString();
+  };
 
   // Helper function to format the USD price
   const formatUsdPrice = (fiptPrice: number) => {
@@ -94,12 +102,12 @@ const ShopPage: React.FC = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {merchandiseItems.map((item) => (
               <Card key={item.id}>
-                <CardHeader className="p-4">
-                  <CardTitle className="text-lg">{item.name}</CardTitle>
+                <CardHeader className="p-4 pb-0">
+                  <CardTitle className="text-lg h-8 truncate">{item.name}</CardTitle>
                 </CardHeader>
-                <CardContent className="p-4 pt-0">
+                <CardContent className="p-4">
                   <div className="mb-3 overflow-hidden rounded-md">
-                    <AspectRatio ratio={1}>
+                    <AspectRatio ratio={1} className="h-48">
                       <img 
                         src={item.image} 
                         alt={item.name}
@@ -107,9 +115,9 @@ const ShopPage: React.FC = () => {
                       />
                     </AspectRatio>
                   </div>
-                  <p className="text-sm text-muted-foreground mb-2">{item.description}</p>
+                  <p className="text-sm text-muted-foreground mb-2 h-10 line-clamp-2">{item.description}</p>
                   <p className="font-bold flex items-center gap-2">
-                    <span className="text-fipt-blue">{item.price.toLocaleString()} $FIPT</span>
+                    <span className="text-fipt-blue">{formatFiptPrice(item.price)} $FIPT</span>
                     <span className="text-sm text-muted-foreground">({formatUsdPrice(item.price)} USD)</span>
                   </p>
                 </CardContent>
@@ -138,7 +146,7 @@ const ShopPage: React.FC = () => {
               <div className="mt-4 space-y-4">
                 <div className="p-4 border rounded-lg">
                   <h3 className="font-bold flex items-center gap-2">
-                    <span className="text-fipt-blue">9,999 $FIPT</span>
+                    <span className="text-fipt-blue">9.9k $FIPT</span>
                     <span className="text-sm text-muted-foreground">($1.00 USD)</span>
                   </h3>
                   <p className="text-sm text-muted-foreground">Full access to all premium features</p>
@@ -146,7 +154,7 @@ const ShopPage: React.FC = () => {
                 </div>
                 <div className="p-4 border rounded-lg bg-muted/50">
                   <h3 className="font-bold flex items-center gap-2">
-                    <span className="text-fipt-blue">99,999 $FIPT</span>
+                    <span className="text-fipt-blue">99.9k $FIPT</span>
                     <span className="text-sm text-muted-foreground">($10.00 USD)</span>
                   </h3>
                   <p className="text-sm text-muted-foreground">Save over 15% with yearly membership</p>
