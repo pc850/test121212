@@ -1,7 +1,8 @@
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import FeedCard from "@/components/FeedCard";
 import { Search } from "lucide-react";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 const mockFeedData = [
   {
@@ -19,6 +20,7 @@ const mockFeedData = [
     username: "crypto_whale",
     userAvatar: "https://i.pravatar.cc/150?img=2",
     content: "FIPT community is growing fast! Who else is excited about the upcoming features?",
+    image: "https://images.unsplash.com/photo-1639762681485-074b7f938ba0?q=80&w=500&auto=format&fit=crop",
     likes: 87,
     comments: 14,
     shares: 3
@@ -38,6 +40,7 @@ const mockFeedData = [
     username: "defi_guru",
     userAvatar: "https://i.pravatar.cc/150?img=4",
     content: "Pro tip: Make sure to check in daily for bonus points. I've accumulated over 10,000 FIPT this month!",
+    image: "https://images.unsplash.com/photo-1621504450181-5d356f61d307?q=80&w=600&auto=format&fit=crop",
     likes: 198,
     comments: 35,
     shares: 11
@@ -47,16 +50,46 @@ const mockFeedData = [
 const FeedPage = () => {
   const [feedData, setFeedData] = useState(mockFeedData);
   const [isLoading, setIsLoading] = useState(false);
+  const [activeIndex, setActiveIndex] = useState(0);
+  const feedRefs = useRef<(HTMLDivElement | null)[]>([]);
 
   useEffect(() => {
     // Set page title
     document.title = "FIPT - Feed";
-  }, []);
+    
+    // Initialize refs array
+    feedRefs.current = feedRefs.current.slice(0, feedData.length);
+
+    // Set up intersection observer for snap scrolling
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            const index = feedRefs.current.findIndex(ref => ref === entry.target);
+            if (index !== -1) {
+              setActiveIndex(index);
+            }
+          }
+        });
+      },
+      { threshold: 0.7 } // Trigger when 70% of element is visible
+    );
+
+    feedRefs.current.forEach((ref) => {
+      if (ref) observer.observe(ref);
+    });
+
+    return () => {
+      feedRefs.current.forEach((ref) => {
+        if (ref) observer.unobserve(ref);
+      });
+    };
+  }, [feedData.length]);
 
   return (
-    <div className="min-h-screen flex flex-col pt-6 px-4 animate-fade-in">
+    <div className="h-screen overflow-hidden">
       {/* Header */}
-      <div className="mb-6 flex items-center justify-between">
+      <div className="absolute top-0 left-0 right-0 z-10 py-3 px-4 flex items-center justify-between glass">
         <h1 className="text-xl font-bold text-fipt-dark">FIPT Feed</h1>
         <div className="relative">
           <input 
@@ -68,13 +101,19 @@ const FeedPage = () => {
         </div>
       </div>
       
-      {/* Feed */}
-      <div className="flex-1">
-        {feedData.map(post => (
-          <FeedCard 
+      {/* Feed - TikTok Style Vertical Scroll */}
+      <div className="h-screen pt-14 pb-16 snap-y snap-mandatory overflow-y-auto no-scrollbar">
+        {feedData.map((post, index) => (
+          <div 
             key={post.id}
-            {...post}
-          />
+            ref={el => feedRefs.current[index] = el}
+            className="h-[calc(100vh-120px)] w-full snap-start snap-always flex items-center justify-center"
+          >
+            <FeedCard 
+              {...post}
+              isActive={activeIndex === index}
+            />
+          </div>
         ))}
         
         {/* Loader */}
