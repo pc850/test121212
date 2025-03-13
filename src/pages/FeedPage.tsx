@@ -1,9 +1,12 @@
 
 import { useEffect, useState, useRef } from "react";
 import FeedCard from "@/components/FeedCard";
+import TikTokScrollFeed from "@/components/TikTokScrollFeed";
 import { Search } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useToast } from "@/hooks/use-toast";
+import { Button } from "@/components/ui/button";
+import { TonConnectButton } from "@/components/TonConnectButton";
 
 const mockFeedData = [
   {
@@ -57,6 +60,7 @@ const FeedPage = () => {
   const [feedData, setFeedData] = useState(mockFeedData);
   const [isLoading, setIsLoading] = useState(false);
   const [activeIndex, setActiveIndex] = useState(0);
+  const [showWebcams, setShowWebcams] = useState(false);
   const feedRefs = useRef<(HTMLDivElement | null)[]>([]);
   const { toast } = useToast();
   
@@ -109,6 +113,10 @@ const FeedPage = () => {
     setBalance(prev => prev + amount);
   };
 
+  const toggleFeedType = () => {
+    setShowWebcams(prev => !prev);
+  };
+
   return (
     <div className="h-screen overflow-hidden">
       {/* Header */}
@@ -118,6 +126,7 @@ const FeedPage = () => {
           <span className="px-3 py-1 rounded-full bg-fipt-blue/10 text-sm font-medium text-fipt-blue">
             {balance} FIPT
           </span>
+          <TonConnectButton />
           <div className="relative">
             <input 
               type="text"
@@ -129,30 +138,53 @@ const FeedPage = () => {
         </div>
       </div>
       
-      {/* Feed - TikTok Style Vertical Scroll */}
-      <div className="h-screen pt-14 pb-16 snap-y snap-mandatory overflow-y-auto no-scrollbar">
-        {feedData.map((post, index) => (
-          <div 
-            key={post.id}
-            ref={el => feedRefs.current[index] = el}
-            className="h-[calc(100vh-120px)] w-full snap-start snap-always flex items-center justify-center"
-          >
-            <FeedCard 
-              {...post}
-              isActive={activeIndex === index}
-              balance={balance}
-              onBalanceChange={updateBalance}
-            />
-          </div>
-        ))}
-        
-        {/* Loader */}
-        {isLoading && (
-          <div className="flex justify-center py-4">
-            <div className="w-6 h-6 border-2 border-fipt-blue border-t-transparent rounded-full animate-spin"></div>
-          </div>
-        )}
+      <div className="absolute top-16 left-0 right-0 z-10 py-2 px-4 flex justify-center gap-2 glass">
+        <Button 
+          variant={!showWebcams ? "default" : "outline"}
+          size="sm"
+          onClick={() => setShowWebcams(false)}
+          className="rounded-full"
+        >
+          FIPT Feed
+        </Button>
+        <Button 
+          variant={showWebcams ? "default" : "outline"}
+          size="sm"
+          onClick={() => setShowWebcams(true)}
+          className="rounded-full"
+        >
+          Live Streams
+        </Button>
       </div>
+      
+      {showWebcams ? (
+        <TikTokScrollFeed />
+      ) : (
+        /* Feed - TikTok Style Vertical Scroll */
+        <div className="h-screen pt-24 pb-16 snap-y snap-mandatory overflow-y-auto no-scrollbar">
+          {feedData.map((post, index) => (
+            <div 
+              key={post.id}
+              ref={el => feedRefs.current[index] = el}
+              className="h-[calc(100vh-120px)] w-full snap-start snap-always flex items-center justify-center"
+            >
+              <FeedCard 
+                {...post}
+                isActive={activeIndex === index}
+                balance={balance}
+                onBalanceChange={updateBalance}
+              />
+            </div>
+          ))}
+          
+          {/* Loader */}
+          {isLoading && (
+            <div className="flex justify-center py-4">
+              <div className="w-6 h-6 border-2 border-fipt-blue border-t-transparent rounded-full animate-spin"></div>
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 };
