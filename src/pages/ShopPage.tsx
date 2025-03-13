@@ -45,6 +45,13 @@ const ShopPage: React.FC = () => {
       price: "$24.99",
       description: "Premium white cotton t-shirt with black FIPT logo",
       image: "/lovable-uploads/6fdbbf6c-66d7-4f35-99d5-88aa55da77ad.png"
+    },
+    {
+      id: 5, 
+      name: "FIPT Sportswear Set - Blue & Pink", 
+      price: "$59.99",
+      description: "Two-piece workout set with crop top and shorts in blue and pink",
+      image: "/lovable-uploads/0edb97c4-4ed5-48bd-b939-bc687505eaa8.png"
     }
   ];
 
