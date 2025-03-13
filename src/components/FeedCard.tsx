@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useRef } from "react";
 import { Heart, MessageSquare, Share2, ChevronUp, ChevronDown, Bookmark, Video } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -45,24 +44,19 @@ const FeedCard = ({
   const playerContainerId = `player_container_${id}`;
   const playerRef = useRef<any>(null);
 
-  // Reset loading state when active changes
   useEffect(() => {
     if (isActive && (image || video)) {
       setIsLoading(true);
       if (!video) {
-        // For images, we don't need to do anything special
       } else {
-        // For videos, we need to reset the video ready state
         setVideoReady(false);
       }
     } else if (!isActive && video) {
-      // When card becomes inactive, mark video as not ready
       setVideoReady(false);
     }
   }, [isActive, image, video]);
 
   const handleLike = () => {
-    // If already liked, unlike without cost
     if (liked) {
       setLikeCount(prev => prev - 1);
       setLiked(false);
@@ -73,7 +67,6 @@ const FeedCard = ({
       return;
     }
     
-    // Check if user has enough FIPT (now minimum 11 FIPT)
     if (balance < 11) {
       toast({
         title: "Not enough FIPT",
@@ -83,9 +76,8 @@ const FeedCard = ({
       return;
     }
     
-    // Deduct FIPT and like the post
     if (onBalanceChange) {
-      onBalanceChange(-1); // Deduct 1 FIPT
+      onBalanceChange(-1);
     }
     
     setLikeCount(prev => prev + 1);
@@ -131,9 +123,7 @@ const FeedCard = ({
 
   return (
     <div className="w-full max-w-md h-full rounded-xl overflow-hidden bg-white shadow-md border border-gray-100 flex flex-col animate-fade-in relative">
-      {/* Content container */}
       <div className="relative flex-grow overflow-hidden">
-        {/* Image (if any) */}
         {image && !video && (
           <div className="absolute inset-0 bg-fipt-gray">
             {isLoading && (
@@ -154,7 +144,6 @@ const FeedCard = ({
           </div>
         )}
 
-        {/* Video (if any) */}
         {video && (
           <div className="absolute inset-0 bg-fipt-gray">
             {(isLoading || !videoReady) && (
@@ -170,16 +159,13 @@ const FeedCard = ({
                 <VideoPlayer 
                   containerId={playerContainerId} 
                   onLoad={handleVideoLoad}
-                  ref={playerRef}
                 />
               </div>
             )}
           </div>
         )}
 
-        {/* Overlay content */}
         <div className="absolute inset-0 flex flex-col justify-between p-4 bg-gradient-to-b from-black/20 via-transparent to-black/40">
-          {/* Header */}
           <div className="flex items-center">
             <div className="w-10 h-10 rounded-full overflow-hidden border-2 border-white">
               <img 
@@ -200,13 +186,11 @@ const FeedCard = ({
             )}
           </div>
 
-          {/* Footer content */}
           <div className="mt-auto">
             <p className="text-sm text-white drop-shadow-md mb-4 max-w-[80%]">{content}</p>
           </div>
         </div>
 
-        {/* Side actions */}
         <div className="absolute right-4 bottom-16 flex flex-col items-center gap-6">
           <div className="flex flex-col items-center">
             <button 
@@ -266,7 +250,6 @@ const FeedCard = ({
           </div>
         </div>
 
-        {/* Navigation hints */}
         <div className="absolute left-1/2 -translate-x-1/2 bottom-4 flex flex-col items-center gap-1">
           <ChevronUp className="w-5 h-5 text-white/70" />
           <span className="text-xs text-white/70">Swipe</span>
@@ -274,7 +257,6 @@ const FeedCard = ({
         </div>
       </div>
 
-      {/* Tokens indicator */}
       <div className="absolute top-4 right-4 z-10">
         <span className={cn(
           "px-3 py-1 rounded-full backdrop-blur-sm text-xs font-medium text-white drop-shadow-md",

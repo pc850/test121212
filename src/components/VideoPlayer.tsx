@@ -1,5 +1,5 @@
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, forwardRef, ForwardedRef } from "react";
 
 interface VideoPlayerProps {
   containerId: string;
@@ -8,12 +8,12 @@ interface VideoPlayerProps {
   onLoad?: () => void;
 }
 
-const VideoPlayer = ({ 
+const VideoPlayer = forwardRef(({ 
   containerId, 
   width = "100%", 
   height = "100%", 
   onLoad 
-}: VideoPlayerProps) => {
+}: VideoPlayerProps, ref: ForwardedRef<HTMLDivElement>) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const scriptRef = useRef<HTMLScriptElement | null>(null);
   const [isLoaded, setIsLoaded] = useState(false);
@@ -65,7 +65,20 @@ const VideoPlayer = ({
     };
   }, [containerId, width, height, onLoad]);
   
-  return <div ref={containerRef} className="video-player-container" />;
-};
+  return <div ref={(node) => {
+    // Handle both the forwarded ref and our internal ref
+    if (typeof ref === 'function') {
+      ref(node);
+    } else if (ref) {
+      ref.current = node;
+    }
+    
+    // Also update our internal ref
+    containerRef.current = node;
+  }} className="video-player-container" />;
+});
+
+// Add display name for better debugging
+VideoPlayer.displayName = "VideoPlayer";
 
 export default VideoPlayer;
