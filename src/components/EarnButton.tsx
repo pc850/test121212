@@ -2,6 +2,7 @@
 import { useState, useEffect } from "react";
 import { Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { AdDialog } from "@/components/AdDialog";
 
 interface EarnButtonProps {
   onEarn?: (points: number) => void;
@@ -12,6 +13,7 @@ const EarnButton = ({ onEarn }: EarnButtonProps) => {
   const [isPressed, setIsPressed] = useState(false);
   const [showAnimation, setShowAnimation] = useState(false);
   const [particles, setParticles] = useState<Array<{ id: number; x: number; y: number; size: number; color: string }>>([]);
+  const [showAdDialog, setShowAdDialog] = useState(false);
 
   const handleClick = () => {
     // Earn points
@@ -46,6 +48,11 @@ const EarnButton = ({ onEarn }: EarnButtonProps) => {
     setTimeout(() => {
       setShowAnimation(false);
     }, 700);
+    
+    // Check if we've hit a multiple of 10 points
+    if ((points + 1) % 10 === 0) {
+      setShowAdDialog(true);
+    }
   };
   
   // Clean up particles
@@ -99,6 +106,13 @@ const EarnButton = ({ onEarn }: EarnButtonProps) => {
           </div>
         </div>
       </button>
+      
+      {/* Ad Dialog */}
+      <AdDialog 
+        open={showAdDialog} 
+        onOpenChange={setShowAdDialog} 
+        points={10}
+      />
     </div>
   );
 };
