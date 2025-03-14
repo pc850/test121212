@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { AdDialog } from "@/components/AdDialog";
+import { AdDialog } from "@/components/ad/AdDialog";
 
 interface EarnButtonProps {
   onEarn?: (points: number) => void;
