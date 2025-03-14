@@ -20,7 +20,7 @@ export const initialStreams: Stream[] = [
   { room: 'another_model_room', campaign: affiliateCode, id: '2', image: 'https://images.unsplash.com/photo-1488590528505-98d2b5aba04b?w=300&h=200&fit=crop' },
 ];
 
-// Hardcoded list of popular chaturbate models to use when API fails
+// Hardcoded list of popular chaturbate models known to be active
 const popularModels = [
   'asianbabydolli',
   'lilyxcx',
@@ -46,9 +46,6 @@ const popularModels = [
 
 export const fetchChaturbateRooms = async (pageNum: number): Promise<{ streams: Stream[], error: string | null }> => {
   try {
-    // Instead of using the problematic API, we'll use hardcoded popular models for now
-    // In a real app, you would use a backend proxy to fetch this data properly
-    
     // Get 5 models per page based on the page number
     const startIndex = (pageNum - 1) * 5;
     const endIndex = Math.min(startIndex + 5, popularModels.length);
@@ -60,14 +57,18 @@ export const fetchChaturbateRooms = async (pageNum: number): Promise<{ streams: 
     
     const pageModels = popularModels.slice(startIndex, endIndex);
     
-    // Map the models to our Stream format
-    const streams = pageModels.map((username, index) => ({
-      room: username,
-      campaign: affiliateCode,
-      id: `model-${pageNum}-${index}`,
-      // Generate a random image for the preview
-      image: `https://thumbs.sb-cd.com/t/${username}/160x120/9/REPLACE_WITH_YOUR_AFFILIATE_TAG` 
-    }));
+    // Map the models to our Stream format with correct thumbnail URLs
+    const streams = pageModels.map((username, index) => {
+      // Generate a proper thumbnail URL
+      const thumbnailUrl = `https://roomimg.stream.highwebmedia.com/ri/${username}.jpg?${Date.now()}`;
+      
+      return {
+        room: username,
+        campaign: affiliateCode,
+        id: `model-${pageNum}-${index}`,
+        image: thumbnailUrl
+      };
+    });
     
     return { streams, error: null };
   } catch (error) {

@@ -1,7 +1,8 @@
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Stream } from "@/types/streams";
 import { Skeleton } from "@/components/ui/skeleton";
+import { AlertCircle } from "lucide-react";
 
 interface StreamItemProps {
   stream: Stream;
@@ -11,16 +12,30 @@ interface StreamItemProps {
 
 const StreamItem = ({ stream, isLastElement, lastElementRef }: StreamItemProps) => {
   const [isLoading, setIsLoading] = useState(true);
+  const [hasError, setHasError] = useState(false);
+
+  // Reset states when stream changes
+  useEffect(() => {
+    setIsLoading(true);
+    setHasError(false);
+  }, [stream.id]);
+
+  const handleIframeLoad = () => {
+    setIsLoading(false);
+  };
+
+  const handleIframeError = () => {
+    setIsLoading(false);
+    setHasError(true);
+  };
 
   return (
     <div
       ref={isLastElement ? lastElementRef : null}
       className="h-screen relative"
-      style={{
-        scrollSnapAlign: 'start',
-      }}
+      style={{ scrollSnapAlign: 'start' }}
     >
-      {/* Preview image or loading skeleton */}
+      {/* Loading state */}
       {isLoading && (
         <div className="absolute inset-0 z-10 flex items-center justify-center bg-background">
           {stream.image ? (
@@ -48,12 +63,26 @@ const StreamItem = ({ stream, isLastElement, lastElementRef }: StreamItemProps) 
         </div>
       )}
 
+      {/* Error state */}
+      {hasError && !isLoading && (
+        <div className="absolute inset-0 z-10 flex items-center justify-center bg-background/90">
+          <div className="max-w-xs p-6 bg-card rounded-lg shadow-lg text-center">
+            <AlertCircle className="w-12 h-12 text-destructive mx-auto mb-4" />
+            <h3 className="text-lg font-semibold mb-2">Stream Unavailable</h3>
+            <p className="text-sm text-muted-foreground mb-4">
+              This stream might be offline or unavailable right now.
+            </p>
+          </div>
+        </div>
+      )}
+
       <iframe
         src={`https://chaturbate.com/embed/${stream.room}/?campaign=${stream.campaign}&disable_sound=0&mobileRedirect=never`}
         className="w-full h-full border-none"
         allowFullScreen
         title={`Live Stream - ${stream.room}`}
-        onLoad={() => setIsLoading(false)}
+        onLoad={handleIframeLoad}
+        onError={handleIframeError}
       />
     </div>
   );
