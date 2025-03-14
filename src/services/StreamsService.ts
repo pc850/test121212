@@ -7,15 +7,15 @@ export const generateFallbackStreams = (count: number, startId: number): Stream[
   return Array.from({ length: count }, (_, i) => ({
     room: `ad_slot_${startId + i}`,
     campaign: '',
-    id: `${startId + i}`,
+    id: `fallback-${startId + i}`,
     image: `https://images.unsplash.com/photo-164997290434${i}-6e44c42644a7?w=300&h=200&fit=crop`
   }));
 };
 
 // Initial stream data
 export const initialStreams: Stream[] = [
-  { room: 'ad_slot_1', campaign: '', id: '1', image: 'https://images.unsplash.com/photo-1649972904349-6e44c42644a7?w=300&h=200&fit=crop' },
-  { room: 'ad_slot_2', campaign: '', id: '2', image: 'https://images.unsplash.com/photo-1488590528505-98d2b5aba04b?w=300&h=200&fit=crop' },
+  { room: 'ad_slot_1', campaign: '', id: 'initial-1', image: 'https://images.unsplash.com/photo-1649972904349-6e44c42644a7?w=300&h=200&fit=crop' },
+  { room: 'ad_slot_2', campaign: '', id: 'initial-2', image: 'https://images.unsplash.com/photo-1488590528505-98d2b5aba04b?w=300&h=200&fit=crop' },
 ];
 
 // Generate a list of ad slots
@@ -35,14 +35,12 @@ export const fetchChaturbateRooms = async (pageNum: number): Promise<{ streams: 
     const pageSlots = adSlots.slice(startIndex, endIndex);
     
     // Map the slots to our Stream format
-    const streams = pageSlots.map((slot, index) => {
-      return {
-        room: slot,
-        campaign: '',
-        id: `ad-${pageNum}-${index}-${Date.now()}`, // Add timestamp to ensure uniqueness
-        image: `https://source.unsplash.com/random/300x200?sig=${startIndex + index}-${Date.now()}` // Add timestamp to prevent image caching
-      };
-    });
+    const streams = pageSlots.map((slot, index) => ({
+      room: slot,
+      campaign: '',
+      id: `page-${pageNum}-${index}`,
+      image: `https://source.unsplash.com/random/300x200?sig=${startIndex + index}`
+    }));
     
     return { streams, error: null };
   } catch (error) {

@@ -16,6 +16,7 @@ const StreamItem = ({ stream, isLastElement, lastElementRef }: StreamItemProps) 
   const [isLoading, setIsLoading] = useState(true);
   const [hasError, setHasError] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
+  const scriptRef = useRef<HTMLScriptElement | null>(null);
   
   // Function to create ad container with unique ID
   const createAdContainer = () => {
@@ -25,7 +26,7 @@ const StreamItem = ({ stream, isLastElement, lastElementRef }: StreamItemProps) 
     containerRef.current.innerHTML = '';
     
     // Create a unique ID for this ad container
-    const containerId = `ad-container-${stream.id}-${Date.now()}`;
+    const containerId = `ad-container-${stream.id}`;
     const adContainer = document.createElement('div');
     adContainer.id = containerId;
     adContainer.className = 'w-full h-full flex items-center justify-center';
@@ -43,6 +44,16 @@ const StreamItem = ({ stream, isLastElement, lastElementRef }: StreamItemProps) 
     
     // Create fresh ad container
     createAdContainer();
+    
+    // Clean up existing script if any
+    if (scriptRef.current) {
+      try {
+        document.body.removeChild(scriptRef.current);
+      } catch (e) {
+        console.log("Script already removed or not in document body");
+      }
+      scriptRef.current = null;
+    }
     
     // Create and inject the script
     const script = document.createElement('script');
@@ -66,37 +77,31 @@ const StreamItem = ({ stream, isLastElement, lastElementRef }: StreamItemProps) 
       });
     };
     
+    // Store the script reference
+    scriptRef.current = script;
+    
     // Inject the script into the document body
     document.body.appendChild(script);
-    
-    return script;
   };
   
   // Load script when component mounts or stream changes
   useEffect(() => {
-    setIsLoading(true);
-    setHasError(false);
-    
-    const script = loadAdsterraScript();
+    loadAdsterraScript();
     
     // Cleanup function
     return () => {
-      if (script && document.body.contains(script)) {
-        document.body.removeChild(script);
+      if (scriptRef.current && document.body.contains(scriptRef.current)) {
+        try {
+          document.body.removeChild(scriptRef.current);
+        } catch (e) {
+          console.log("Script already removed or not in document body");
+        }
       }
     };
   }, [stream.id]);
   
   // Function to reload the ad
   const reloadAd = () => {
-    // Remove any existing scripts with this source
-    const existingScripts = document.querySelectorAll(`script[src*="harmlesstranquilizer.com"]`);
-    existingScripts.forEach(script => {
-      if (document.body.contains(script)) {
-        document.body.removeChild(script);
-      }
-    });
-    
     loadAdsterraScript();
   };
 
@@ -107,7 +112,9 @@ const StreamItem = ({ stream, isLastElement, lastElementRef }: StreamItemProps) 
         if (isLastElement && lastElementRef) {
           lastElementRef(node);
         }
-        containerRef.current = node;
+        if (node) {
+          containerRef.current = node;
+        }
       }}
       className="h-screen relative"
       style={{ scrollSnapAlign: 'start' }}
@@ -119,7 +126,7 @@ const StreamItem = ({ stream, isLastElement, lastElementRef }: StreamItemProps) 
             <div className="relative w-full h-full">
               <img 
                 src={stream.image} 
-                alt={`Preview of ${stream.room}`}
+                alt={`Ad content loading`}
                 className="w-full h-full object-cover"
                 onError={(e) => {
                   // If image fails, set a fallback
