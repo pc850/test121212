@@ -38,11 +38,11 @@ export function AdVideoPlayer({ adPlaying, adLoaded, setAdLoaded }: AdVideoPlaye
       )}
       <iframe 
         ref={videoRef}
-        src="https://www.tiktok.com/embed/v2/7338609783458565382?autoplay=1"
+        src="https://www.youtube.com/embed/phmlFk9D8p4?autoplay=1&mute=1&playlist=PLyw3Q6JcmE712Ox7Rkbw_vH9WUsFJ1Pyk"
         className="w-full h-full"
         allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
         allowFullScreen
-        title="TikTok Video"
+        title="YouTube Video"
       ></iframe>
     </div>
   );
