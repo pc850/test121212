@@ -16,11 +16,9 @@ const EarnButton = ({ onEarn }: EarnButtonProps) => {
   const [pendingPoints, setPendingPoints] = useState(0);
 
   const handleClick = () => {
-    // Earn points
     const earnedPoints = 1;
     setPoints(prev => prev + earnedPoints);
     
-    // Call the parent's onEarn callback if provided
     if (onEarn) {
       onEarn(earnedPoints);
     }
@@ -28,7 +26,6 @@ const EarnButton = ({ onEarn }: EarnButtonProps) => {
     setIsPressed(true);
     setShowAnimation(true);
     
-    // Generate particles
     const newParticles = Array.from({ length: 8 }).map((_, i) => ({
       id: Date.now() + i,
       x: 50 + Math.random() * 30 - 15,
@@ -39,35 +36,26 @@ const EarnButton = ({ onEarn }: EarnButtonProps) => {
     
     setParticles([...particles, ...newParticles]);
     
-    // Reset button state
     setTimeout(() => {
       setIsPressed(false);
     }, 150);
     
-    // Remove animation
     setTimeout(() => {
       setShowAnimation(false);
     }, 700);
     
-    // Check if we've hit a multiple of 10 points
     if ((points + 1) % 10 === 0) {
-      setPendingPoints(10); // Store the pending bonus points
+      setPendingPoints(10);
       setShowAdDialog(true);
     }
   };
   
-  // Handle successful ad watch and claim
   const handleAdSuccess = () => {
-    // The user watched the ad and claimed the points, so we keep the points
-    // Points are already added via the click handler, so nothing to do here
   };
   
-  // Handle ad skip
   const handleAdSkip = () => {
-    // The user skipped the ad, so subtract the bonus points
     setPoints(prev => prev - pendingPoints);
     
-    // Also notify parent component if needed
     if (onEarn) {
       onEarn(-pendingPoints);
     }
@@ -75,7 +63,6 @@ const EarnButton = ({ onEarn }: EarnButtonProps) => {
     setPendingPoints(0);
   };
   
-  // Clean up particles
   useEffect(() => {
     if (particles.length > 0) {
       const timer = setTimeout(() => {
@@ -87,7 +74,6 @@ const EarnButton = ({ onEarn }: EarnButtonProps) => {
 
   return (
     <div className="relative w-64 h-64 flex items-center justify-center">
-      {/* Particles */}
       {particles.map((particle) => (
         <div
           key={particle.id}
@@ -103,14 +89,12 @@ const EarnButton = ({ onEarn }: EarnButtonProps) => {
           }}
         />
       ))}
-
-      {/* Pulse ring */}
+      
       <div className={cn(
         "absolute w-56 h-56 rounded-full",
         showAnimation ? "animate-pulse-scale ring-2 ring-fipt-blue" : "opacity-0"
       )} />
       
-      {/* Main button */}
       <button
         onClick={handleClick}
         className={cn(
@@ -127,7 +111,6 @@ const EarnButton = ({ onEarn }: EarnButtonProps) => {
         </div>
       </button>
       
-      {/* Ad Dialog */}
       <AdDialog 
         open={showAdDialog} 
         onOpenChange={setShowAdDialog} 
