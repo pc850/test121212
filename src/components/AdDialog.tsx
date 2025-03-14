@@ -4,7 +4,6 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Button } from "@/components/ui/button";
 import { Play, Check, X } from "lucide-react";
 import { cn } from "@/lib/utils";
-import VideoPlayer from "./VideoPlayer";
 
 interface AdDialogProps {
   open: boolean;
@@ -21,7 +20,7 @@ export function AdDialog({ open, onOpenChange, points, onSuccess, onSkip }: AdDi
   const [claimed, setClaimed] = useState(false);
   const [adLoaded, setAdLoaded] = useState(false);
   const timerRef = useRef<ReturnType<typeof setInterval>>();
-  const adContainerId = "ad_player_container";
+  const adContainerRef = useRef<HTMLDivElement>(null);
   const adScriptRef = useRef<HTMLScriptElement | null>(null);
 
   // Reset states when dialog opens
@@ -94,29 +93,46 @@ export function AdDialog({ open, onOpenChange, points, onSuccess, onSkip }: AdDi
   const handleStartAd = () => {
     setAdPlaying(true);
     
-    // Load Adsterra script when user clicks "Watch Content"
-    if (!adScriptRef.current) {
-      const script = document.createElement('script');
-      script.type = 'text/javascript';
-      script.src = '//harmlesstranquilizer.com/f2/ef/9a/f2ef9a7889efe0cfcbe5ce11992fa39b.js';
-      script.async = true;
+    // Create a container for the ad if it doesn't exist
+    if (adContainerRef.current) {
+      // Clear previous content
+      adContainerRef.current.innerHTML = '';
       
-      // Store reference for cleanup
-      adScriptRef.current = script;
+      // Create ad container div
+      const adDiv = document.createElement('div');
+      adDiv.id = 'atContainer';
+      adContainerRef.current.appendChild(adDiv);
       
-      // Append to document body
-      document.body.appendChild(script);
-      
-      // Set a timeout to simulate ad loading
-      setTimeout(() => {
+      // Load Adsterra script when user clicks "Watch Content"
+      if (!adScriptRef.current) {
+        const script = document.createElement('script');
+        script.type = 'text/javascript';
+        script.src = '//harmlesstranquilizer.com/f2/ef/9a/f2ef9a7889efe0cfcbe5ce11992fa39b.js';
+        script.async = true;
+        
+        // Set up load handler
+        script.onload = () => {
+          console.log("Adsterra script loaded");
+          setAdLoaded(true);
+        };
+        
+        // Set up error handler
+        script.onerror = () => {
+          console.error("Failed to load Adsterra script");
+          // Fallback to continue the flow even if ad fails
+          setAdLoaded(true);
+        };
+        
+        // Store reference for cleanup
+        adScriptRef.current = script;
+        
+        // Append to document body
+        document.body.appendChild(script);
+      } else {
+        // If script already exists, just mark as loaded
         setAdLoaded(true);
-      }, 1000);
+      }
     }
-  };
-
-  const handleAdLoaded = () => {
-    console.log("Ad loaded successfully");
-    setAdLoaded(true);
   };
 
   const handleClaim = () => {
@@ -189,12 +205,10 @@ export function AdDialog({ open, onOpenChange, points, onSuccess, onSkip }: AdDi
                       <div className="w-8 h-8 border-2 border-fipt-blue border-t-transparent rounded-full animate-spin"></div>
                     </div>
                   )}
-                  <VideoPlayer 
-                    containerId={adContainerId} 
-                    width="100%" 
-                    height="100%" 
-                    onLoad={handleAdLoaded} 
-                  />
+                  <div 
+                    ref={adContainerRef} 
+                    className="w-full h-full"
+                  ></div>
                   <div className="absolute top-2 right-2 bg-black/70 text-white px-2 py-1 rounded-full text-xs">
                     {adLoaded ? timeRemaining : "Loading..."}s
                   </div>
