@@ -1,3 +1,4 @@
+
 import { useEffect, useState, useRef } from "react";
 import FeedCard from "@/components/FeedCard";
 import TikTokScrollFeed from "@/components/TikTokScrollFeed";
@@ -8,6 +9,17 @@ import { Button } from "@/components/ui/button";
 import TonConnectButton from "@/components/TonConnectButton";
 
 const mockFeedData = [
+  {
+    id: "youtube-1",
+    username: "official_music",
+    userAvatar: "https://i.pravatar.cc/150?img=5",
+    content: "Check out this amazing music video! 🎵",
+    youtubeVideoId: "phmlFk9D8p4",
+    video: false,
+    likes: 342,
+    comments: 57,
+    shares: 28
+  },
   {
     id: "1",
     username: "alex_crypto",

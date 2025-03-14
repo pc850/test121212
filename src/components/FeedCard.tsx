@@ -14,6 +14,7 @@ interface FeedCardProps {
   image?: string;
   video?: boolean;
   performerId?: string;
+  youtubeVideoId?: string;
   likes: number;
   comments: number;
   shares: number;
@@ -30,6 +31,7 @@ const FeedCard = ({
   image,
   video = false,
   performerId,
+  youtubeVideoId,
   likes,
   comments,
   shares,
@@ -39,7 +41,7 @@ const FeedCard = ({
 }: FeedCardProps) => {
   const [liked, setLiked] = useState(false);
   const [likeCount, setLikeCount] = useState(likes);
-  const [isLoading, setIsLoading] = useState(!!(image || video));
+  const [isLoading, setIsLoading] = useState(!!(image || video || youtubeVideoId));
   const [saved, setSaved] = useState(false);
   const [videoReady, setVideoReady] = useState(false);
   const { toast } = useToast();
@@ -47,16 +49,16 @@ const FeedCard = ({
   const playerRef = useRef<any>(null);
 
   useEffect(() => {
-    if (isActive && (image || video)) {
+    if (isActive && (image || video || youtubeVideoId)) {
       setIsLoading(true);
-      if (!video) {
+      if (!video && !youtubeVideoId) {
       } else {
         setVideoReady(false);
       }
-    } else if (!isActive && video) {
+    } else if (!isActive && (video || youtubeVideoId)) {
       setVideoReady(false);
     }
-  }, [isActive, image, video]);
+  }, [isActive, image, video, youtubeVideoId]);
 
   const handleLike = () => {
     if (liked) {
@@ -126,7 +128,7 @@ const FeedCard = ({
   return (
     <div className="w-full max-w-md h-full rounded-xl overflow-hidden bg-white shadow-md border border-gray-100 flex flex-col animate-fade-in relative">
       <div className="relative flex-grow overflow-hidden">
-        {image && !video && (
+        {image && !video && !youtubeVideoId && (
           <div className="absolute inset-0 bg-fipt-gray">
             {isLoading && (
               <div className="absolute inset-0 flex items-center justify-center z-10">
@@ -146,7 +148,7 @@ const FeedCard = ({
           </div>
         )}
 
-        {video && (
+        {video && !youtubeVideoId && (
           <div className="absolute inset-0 bg-fipt-gray">
             {(isLoading || !videoReady) && (
               <div className="absolute inset-0 flex items-center justify-center z-10">
@@ -163,6 +165,34 @@ const FeedCard = ({
                   onLoad={handleVideoLoad}
                   performerId={performerId}
                 />
+              </div>
+            )}
+          </div>
+        )}
+
+        {youtubeVideoId && (
+          <div className="absolute inset-0 bg-fipt-gray">
+            {(isLoading || !videoReady) && (
+              <div className="absolute inset-0 flex items-center justify-center z-10">
+                <div className="w-8 h-8 border-2 border-fipt-blue border-t-transparent rounded-full animate-spin"></div>
+              </div>
+            )}
+            {isActive && (
+              <div className={cn(
+                "w-full h-full transition-opacity duration-300",
+                videoReady ? "opacity-100" : "opacity-0"
+              )}>
+                <iframe
+                  className="w-full h-full"
+                  src={`https://www.youtube.com/embed/${youtubeVideoId}?autoplay=1&playlist=${youtubeVideoId}&loop=1`}
+                  title="YouTube video player"
+                  frameBorder="0"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                  onLoad={() => {
+                    handleVideoLoad();
+                  }}
+                ></iframe>
               </div>
             )}
           </div>
