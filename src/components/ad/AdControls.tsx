@@ -14,10 +14,7 @@ interface AdControlsProps {
 }
 
 export function AdControls({ 
-  adPlaying, 
-  completed, 
-  timeRemaining, 
-  adLoaded, 
+  completed,
   points,
   onStartAd, 
   onClaim,
@@ -37,24 +34,20 @@ export function AdControls({
   return (
     <>
       <Button 
-        onClick={adPlaying ? undefined : onStartAd}
-        disabled={adPlaying} 
+        onClick={onStartAd}
         className="w-full"
-        variant={adPlaying ? "outline" : "default"}
       >
-        {adPlaying ? (adLoaded ? `Watching content (${timeRemaining}s)...` : "Loading content...") : "Watch Content"}
+        Get Points Instantly
       </Button>
       
-      {!adPlaying && (
-        <Button 
-          onClick={onSkip}
-          variant="ghost" 
-          className="mt-2 text-fipt-muted"
-          size="sm"
-        >
-          Skip <X className="ml-1 w-3 h-3" />
-        </Button>
-      )}
+      <Button 
+        onClick={onSkip}
+        variant="ghost" 
+        className="mt-2 text-fipt-muted"
+        size="sm"
+      >
+        Skip <X className="ml-1 w-3 h-3" />
+      </Button>
     </>
   );
 }
