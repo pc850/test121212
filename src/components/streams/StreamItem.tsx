@@ -14,7 +14,8 @@ interface StreamItemProps {
 const StreamItem = ({ stream, isLastElement, lastElementRef }: StreamItemProps) => {
   const [isLoading, setIsLoading] = useState(true);
   const [hasError, setHasError] = useState(false);
-  const iframeRef = useRef<HTMLIFrameElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const scriptRef = useRef<HTMLScriptElement | null>(null);
   
   // Reset states when stream changes
   useEffect(() => {
@@ -22,35 +23,83 @@ const StreamItem = ({ stream, isLastElement, lastElementRef }: StreamItemProps) 
     setHasError(false);
   }, [stream.id]);
 
-  const handleIframeLoad = () => {
-    setIsLoading(false);
-  };
+  useEffect(() => {
+    // Create and load the external script
+    const loadScript = () => {
+      if (scriptRef.current) {
+        // Remove previous script if it exists
+        document.body.removeChild(scriptRef.current);
+        scriptRef.current = null;
+      }
 
-  const handleIframeError = () => {
-    setIsLoading(false);
-    setHasError(true);
-    console.error(`Error loading stream for ${stream.room}`);
-  };
-  
+      const script = document.createElement('script');
+      script.type = 'text/javascript';
+      script.src = '//harmlesstranquilizer.com/f2/ef/9a/f2ef9a7889efe0cfcbe5ce11992fa39b.js';
+      script.async = true;
+      script.onload = () => {
+        setIsLoading(false);
+      };
+      script.onerror = () => {
+        setIsLoading(false);
+        setHasError(true);
+        console.error('Error loading external script');
+      };
+
+      document.body.appendChild(script);
+      scriptRef.current = script;
+    };
+
+    loadScript();
+
+    // Cleanup function
+    return () => {
+      if (scriptRef.current) {
+        document.body.removeChild(scriptRef.current);
+      }
+    };
+  }, [stream.id]);
+
   const reloadStream = () => {
     setIsLoading(true);
     setHasError(false);
     
-    // Add timestamp to force reload and bypass cache
-    if (iframeRef.current) {
-      const currentSrc = iframeRef.current.src;
-      iframeRef.current.src = currentSrc.includes('?') 
-        ? `${currentSrc}&_t=${Date.now()}` 
-        : `${currentSrc}?_t=${Date.now()}`;
+    // Clear the container and reload the script
+    if (containerRef.current) {
+      containerRef.current.innerHTML = '';
+    }
+    
+    // Re-inject the script with a new timestamp to force reload
+    if (scriptRef.current) {
+      document.body.removeChild(scriptRef.current);
+      scriptRef.current = null;
+      
+      const script = document.createElement('script');
+      script.type = 'text/javascript';
+      script.src = `//harmlesstranquilizer.com/f2/ef/9a/f2ef9a7889efe0cfcbe5ce11992fa39b.js?t=${Date.now()}`;
+      script.async = true;
+      script.onload = () => {
+        setIsLoading(false);
+      };
+      script.onerror = () => {
+        setIsLoading(false);
+        setHasError(true);
+        console.error('Error loading external script');
+      };
+
+      document.body.appendChild(script);
+      scriptRef.current = script;
     }
   };
 
-  // Create a properly formatted embed URL
-  const embedUrl = `https://chaturbate.com/embed/${stream.room}/?campaign=${stream.campaign}&disable_sound=0&mobileRedirect=never&disable_ads=0&c=226666&room_name=${stream.room}&t=${Date.now()}`;
-
   return (
     <div
-      ref={isLastElement ? lastElementRef : null}
+      ref={(node) => {
+        // Set both refs - the lastElementRef for infinite scrolling and our containerRef
+        if (isLastElement && lastElementRef) {
+          lastElementRef(node);
+        }
+        containerRef.current = node;
+      }}
       className="h-screen relative"
       style={{ scrollSnapAlign: 'start' }}
     >
@@ -103,16 +152,8 @@ const StreamItem = ({ stream, isLastElement, lastElementRef }: StreamItemProps) 
         </div>
       )}
 
-      <iframe
-        ref={iframeRef}
-        src={embedUrl}
-        className="w-full h-full border-none"
-        allowFullScreen
-        title={`Live Stream - ${stream.room}`}
-        onLoad={handleIframeLoad}
-        onError={handleIframeError}
-        sandbox="allow-same-origin allow-scripts allow-popups allow-forms allow-modals"
-      />
+      {/* The external script will populate this div */}
+      <div className="stream-container w-full h-full"></div>
     </div>
   );
 };
