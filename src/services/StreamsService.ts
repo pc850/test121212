@@ -14,7 +14,7 @@ export const generateFallbackStreams = (count: number, startId: number): Stream[
 // Initial stream data - removed duplicates and integrated new YouTube shorts
 export const initialStreams: Stream[] = [
   { room: 'Travel Adventures', campaign: 'Sponsored Content', id: 'youtube-HNXdKlrXli8', image: 'https://img.youtube.com/vi/HNXdKlrXli8/hqdefault.jpg', youtubeId: 'HNXdKlrXli8' },
-  { room: 'Wildlife Documentary', campaign: 'Premium Content', id: 'youtube-sSwYuPnnyuo', image: 'https://img.youtube.com/vi/sSwYuPnnyuo/hqdefault.jpg', youtubeId: 'sSwYuPnnyuo' },
+  { room: 'Trending Content', campaign: 'Featured Video', id: 'youtube-dQw4w9WgXcQ', image: 'https://img.youtube.com/vi/dQw4w9WgXcQ/hqdefault.jpg', youtubeId: 'dQw4w9WgXcQ' },
   { room: 'Tech Review', campaign: 'Tech Channel', id: 'youtube-fZqw72eyul8', image: 'https://img.youtube.com/vi/fZqw72eyul8/hqdefault.jpg', youtubeId: 'fZqw72eyul8' },
   { room: 'Fashion Trends', campaign: 'Style Shorts', id: 'youtube-de8k7B4cH-c', image: 'https://img.youtube.com/vi/de8k7B4cH-c/hqdefault.jpg', youtubeId: 'de8k7B4cH-c' },
   { room: 'Dancing Tutorial', campaign: 'Dance Shorts', id: 'youtube-wrF05hhjiiE', image: 'https://img.youtube.com/vi/wrF05hhjiiE/hqdefault.jpg', youtubeId: 'wrF05hhjiiE' },
