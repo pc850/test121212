@@ -46,17 +46,23 @@ const FeedCard = ({
     setIsLoading(false);
   };
 
+  const handleMediaClick = () => {
+    window.open("https://onlyfans.com/", "_blank", "noopener,noreferrer");
+  };
+
   return (
     <div className="w-full max-w-md h-full rounded-xl overflow-hidden bg-white shadow-md border border-gray-100 flex flex-col animate-fade-in relative">
       <div className="relative flex-grow overflow-hidden">
-        <CardMedia
-          image={image}
-          video={video}
-          youtubeVideoId={youtubeVideoId}
-          performerId={performerId}
-          isActive={isActive}
-          onMediaLoad={handleMediaLoad}
-        />
+        <div className="cursor-pointer" onClick={handleMediaClick}>
+          <CardMedia
+            image={image}
+            video={video}
+            youtubeVideoId={youtubeVideoId}
+            performerId={performerId}
+            isActive={isActive}
+            onMediaLoad={handleMediaLoad}
+          />
+        </div>
 
         <div className="absolute inset-0 flex flex-col justify-between p-4 bg-gradient-to-b from-black/20 via-transparent to-black/40">
           <CardHeader username={username} userAvatar={userAvatar} />
