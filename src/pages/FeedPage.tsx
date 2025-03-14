@@ -76,6 +76,17 @@ const mockFeedData = [
     shares: 22
   },
   {
+    id: "youtube-shorts-6",
+    username: "travel_shorts",
+    userAvatar: "https://i.pravatar.cc/150?img=11",
+    content: "Beautiful travel destinations you must see! ✈️",
+    youtubeVideoId: "dbr8c4SmatA",
+    video: false,
+    likes: 412,
+    comments: 63,
+    shares: 35
+  },
+  {
     id: "1",
     username: "alex_crypto",
     userAvatar: "https://i.pravatar.cc/150?img=1",
