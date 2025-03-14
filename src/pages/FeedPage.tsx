@@ -25,7 +25,7 @@ const mockFeedData = [
     username: "shorts_creator",
     userAvatar: "https://i.pravatar.cc/150?img=6",
     content: "Watch this cool YouTube Short! 📱",
-    youtubeVideoId: "FwNCUA2N6Q0",
+    youtubeVideoId: "nBIQJ7WOjYE",
     video: false,
     likes: 578,
     comments: 122,
