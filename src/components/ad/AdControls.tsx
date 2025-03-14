@@ -14,6 +14,7 @@ interface AdControlsProps {
 }
 
 export function AdControls({ 
+  adPlaying,
   completed,
   points,
   onStartAd, 
@@ -36,8 +37,9 @@ export function AdControls({
       <Button 
         onClick={onStartAd}
         className="w-full"
+        disabled={adPlaying}
       >
-        Get Points Instantly
+        Watch Ad to Claim FIPT
       </Button>
       
       <Button 

@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { AdContent } from "./AdContent";
@@ -67,7 +66,7 @@ export function AdDialog({ open, onOpenChange, points, onSuccess, onSkip }: AdDi
           <DialogDescription className="text-center">
             {completed 
               ? `You've earned ${points} FIPT points!` 
-              : `Watch video for 15 seconds to claim ${points} FIPT points`}
+              : `Watch ad to claim ${points} FIPT points`}
           </DialogDescription>
         </DialogHeader>
         

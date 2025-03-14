@@ -19,6 +19,14 @@ export function AdVideoPlayer({ adPlaying, adLoaded, setAdLoaded }: AdVideoPlaye
     }
   }, [adPlaying, setAdLoaded]);
 
+  useEffect(() => {
+    // Force reload the iframe when adPlaying changes to ensure autoplay works
+    if (adPlaying && videoRef.current) {
+      const currentSrc = videoRef.current.src;
+      videoRef.current.src = currentSrc;
+    }
+  }, [adPlaying]);
+
   if (!adPlaying) return null;
 
   return (
