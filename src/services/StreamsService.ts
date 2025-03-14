@@ -17,6 +17,10 @@ export const initialStreams: Stream[] = [
   { room: 'Content Item 2', campaign: '', id: 'initial-2', image: 'https://images.unsplash.com/photo-1488590528505-98d2b5aba04b?w=300&h=200&fit=crop' },
   { room: 'Featured Video', campaign: 'Exclusive Content', id: 'youtube-bwukjjetnsg', image: 'https://img.youtube.com/vi/bwukjjetnsg/hqdefault.jpg', youtubeId: 'bwukjjetnsg' },
   { room: 'Travel Adventures', campaign: 'Sponsored Content', id: 'youtube-HNXdKlrXli8', image: 'https://img.youtube.com/vi/HNXdKlrXli8/hqdefault.jpg', youtubeId: 'HNXdKlrXli8' },
+  { room: 'Wildlife Documentary', campaign: 'Premium Content', id: 'youtube-sSwYuPnnyuo', image: 'https://img.youtube.com/vi/sSwYuPnnyuo/hqdefault.jpg', youtubeId: 'sSwYuPnnyuo' },
+  { room: 'Tech Review', campaign: 'Tech Channel', id: 'youtube-fZqw72eyul8', image: 'https://img.youtube.com/vi/fZqw72eyul8/hqdefault.jpg', youtubeId: 'fZqw72eyul8' },
+  { room: 'Quick Tip', campaign: 'Shorts Content', id: 'youtube-_HW95U9no6s', image: 'https://img.youtube.com/vi/_HW95U9no6s/hqdefault.jpg', youtubeId: '_HW95U9no6s' },
+  { room: 'Funny Moment', campaign: 'Entertainment', id: 'youtube-KdDp-aFDRkc', image: 'https://img.youtube.com/vi/KdDp-aFDRkc/hqdefault.jpg', youtubeId: 'KdDp-aFDRkc' },
 ];
 
 // Generate a list of content items
