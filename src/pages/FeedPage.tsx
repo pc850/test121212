@@ -21,6 +21,17 @@ const mockFeedData = [
     shares: 28
   },
   {
+    id: "youtube-shorts-1",
+    username: "shorts_creator",
+    userAvatar: "https://i.pravatar.cc/150?img=6",
+    content: "Watch this cool YouTube Short! 📱",
+    youtubeVideoId: "FwNCUA2N6Q0",
+    video: false,
+    likes: 578,
+    comments: 122,
+    shares: 89
+  },
+  {
     id: "1",
     username: "alex_crypto",
     userAvatar: "https://i.pravatar.cc/150?img=1",
