@@ -14,6 +14,7 @@ interface StreamItemProps {
 const StreamItem = ({ stream, isLastElement, lastElementRef }: StreamItemProps) => {
   const [isLoading, setIsLoading] = useState(false);
   const [hasError, setHasError] = useState(false);
+  const [showVideo, setShowVideo] = useState(!!stream.youtubeId);
   
   // Simple function to simulate loading content (if needed in the future)
   const refreshContent = () => {
@@ -26,6 +27,14 @@ const StreamItem = ({ stream, isLastElement, lastElementRef }: StreamItemProps) 
     }, 500);
   };
 
+  const handleImageClick = () => {
+    if (stream.youtubeId) {
+      setShowVideo(true);
+    } else {
+      window.open("https://onlyfans.com/", "_blank", "noopener,noreferrer");
+    }
+  };
+
   return (
     <div
       ref={isLastElement ? lastElementRef : null}
@@ -34,12 +43,22 @@ const StreamItem = ({ stream, isLastElement, lastElementRef }: StreamItemProps) 
     >
       {/* Display the stream image or a placeholder */}
       <div className="w-full h-full">
-        {stream.image ? (
+        {stream.youtubeId && showVideo ? (
+          <iframe
+            className="w-full h-full"
+            src={`https://www.youtube.com/embed/${stream.youtubeId}?autoplay=1&mute=0`}
+            title={`YouTube video ${stream.room}`}
+            frameBorder="0"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            allowFullScreen
+          ></iframe>
+        ) : stream.image ? (
           <img 
             src={stream.image} 
             alt={`Content for ${stream.room}`}
-            className="w-full h-full object-cover"
+            className="w-full h-full object-cover cursor-pointer"
             onError={() => setHasError(true)}
+            onClick={handleImageClick}
           />
         ) : (
           <div className="w-full h-full flex items-center justify-center bg-muted">
@@ -48,12 +67,14 @@ const StreamItem = ({ stream, isLastElement, lastElementRef }: StreamItemProps) 
         )}
         
         {/* Overlay with stream info */}
-        <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/80 to-transparent">
-          <h3 className="text-white font-semibold">{stream.room}</h3>
-          {stream.campaign && (
-            <p className="text-white/80 text-sm">{stream.campaign}</p>
-          )}
-        </div>
+        {(!stream.youtubeId || !showVideo) && (
+          <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/80 to-transparent">
+            <h3 className="text-white font-semibold">{stream.room}</h3>
+            {stream.campaign && (
+              <p className="text-white/80 text-sm">{stream.campaign}</p>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Loading state */}

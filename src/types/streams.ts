@@ -4,6 +4,7 @@ export interface Stream {
   campaign: string;
   id: string;
   image?: string; // Optional preview image
+  youtubeId?: string; // YouTube video ID for embedded videos
 }
 
 export interface ChaturbateRoom {
