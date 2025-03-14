@@ -47,7 +47,7 @@ const mockFeedData = [
     username: "tech_shorts",
     userAvatar: "https://i.pravatar.cc/150?img=8",
     content: "Amazing tech demo short! 💻",
-    youtubeVideoId: "5JJoZG6ih5Y",
+    youtubeVideoId: "G8jdGOF7Wg8",
     video: false,
     likes: 315,
     comments: 42,
