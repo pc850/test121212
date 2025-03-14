@@ -14,7 +14,7 @@ const mockFeedData = [
     username: "official_music",
     userAvatar: "https://i.pravatar.cc/150?img=5",
     content: "Check out this amazing music video! 🎵",
-    youtubeVideoId: "phmlFk9D8p4",
+    youtubeVideoId: "Ot35fFp44xo",
     video: false,
     likes: 342,
     comments: 57,
