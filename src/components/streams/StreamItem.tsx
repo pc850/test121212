@@ -74,7 +74,7 @@ const StreamItem = ({ stream, isLastElement, lastElementRef }: StreamItemProps) 
         {stream.youtubeId && showVideo ? (
           <iframe
             className="w-full h-full"
-            src={`https://www.youtube.com/embed/${stream.youtubeId}?autoplay=1&mute=0`}
+            src={`https://www.youtube.com/embed/${stream.youtubeId}?autoplay=1&mute=0&playsinline=1&controls=1&loop=1&rel=0`}
             title={`YouTube video ${stream.room}`}
             frameBorder="0"
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
