@@ -12,17 +12,34 @@ interface StreamItemProps {
 }
 
 const StreamItem = ({ stream, isLastElement, lastElementRef }: StreamItemProps) => {
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [hasError, setHasError] = useState(false);
-  const [showVideo, setShowVideo] = useState(!!stream.youtubeId);
+  const [showVideo, setShowVideo] = useState(false);
   
-  // Simple function to simulate loading content (if needed in the future)
+  // Reset loading state when stream changes
+  React.useEffect(() => {
+    setIsLoading(true);
+    setHasError(false);
+    
+    // For YouTube videos, we'll handle loading in the iframe onLoad
+    if (!stream.youtubeId) {
+      // For images, we'll start with loading state
+      setShowVideo(false);
+    } else {
+      // For YouTube videos, we'll initialize to show the video
+      setShowVideo(true);
+    }
+  }, [stream.id]);
+
   const refreshContent = () => {
     setIsLoading(true);
     setHasError(false);
     
-    // Simulate a loading delay
+    // Reset loading state after a short delay
     setTimeout(() => {
+      if (stream.youtubeId) {
+        setShowVideo(true);
+      }
       setIsLoading(false);
     }, 500);
   };
@@ -35,13 +52,24 @@ const StreamItem = ({ stream, isLastElement, lastElementRef }: StreamItemProps) 
     }
   };
 
+  const handleMediaLoad = () => {
+    setIsLoading(false);
+    console.log(`Media loaded for stream ${stream.id}`);
+  };
+
+  const handleMediaError = () => {
+    setIsLoading(false);
+    setHasError(true);
+    console.error(`Error loading media for stream ${stream.id}`);
+  };
+
   return (
     <div
       ref={isLastElement ? lastElementRef : null}
       className="h-screen relative"
       style={{ scrollSnapAlign: 'start' }}
     >
-      {/* Display the stream image or a placeholder */}
+      {/* Display the stream content */}
       <div className="w-full h-full">
         {stream.youtubeId && showVideo ? (
           <iframe
@@ -51,13 +79,16 @@ const StreamItem = ({ stream, isLastElement, lastElementRef }: StreamItemProps) 
             frameBorder="0"
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
             allowFullScreen
+            onLoad={handleMediaLoad}
+            onError={handleMediaError}
           ></iframe>
         ) : stream.image ? (
           <img 
             src={stream.image} 
             alt={`Content for ${stream.room}`}
             className="w-full h-full object-cover cursor-pointer"
-            onError={() => setHasError(true)}
+            onLoad={handleMediaLoad}
+            onError={handleMediaError}
             onClick={handleImageClick}
           />
         ) : (
@@ -80,7 +111,7 @@ const StreamItem = ({ stream, isLastElement, lastElementRef }: StreamItemProps) 
       {/* Loading state */}
       {isLoading && (
         <div className="absolute inset-0 z-10 flex items-center justify-center bg-background/90">
-          <Skeleton className="w-16 h-16 rounded-full" />
+          <div className="w-16 h-16 border-2 border-fipt-blue border-t-transparent rounded-full animate-spin"></div>
           <div className="mt-4 text-center">
             <p className="text-sm text-muted-foreground">Loading content...</p>
           </div>

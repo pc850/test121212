@@ -37,11 +37,15 @@ const TikTokScrollFeed = () => {
         }
       }
       
-      // Even if there's an error, we'll still show fallback streams
+      // Always show initialStreams first (YouTube videos), then append new streams
       if (pageNumber === 1) {
-        setStreams(result.streams);
+        setStreams(initialStreams); // We always show initialStreams first
       } else {
-        setStreams(prevStreams => [...prevStreams, ...result.streams]);
+        const newStreams = result.streams.filter(
+          // Filter out any duplicate IDs
+          newStream => !streams.some(existingStream => existingStream.id === newStream.id)
+        );
+        setStreams(prevStreams => [...prevStreams, ...newStreams]);
       }
       
       // If no new streams returned or error occurred, we've reached the end
@@ -91,6 +95,7 @@ const TikTokScrollFeed = () => {
     
     if (newIndex !== currentIndex) {
       setCurrentIndex(newIndex);
+      console.log(`Current stream index: ${newIndex}`);
     }
   };
 
@@ -114,7 +119,7 @@ const TikTokScrollFeed = () => {
   return (
     <div
       ref={scrollContainerRef}
-      className="h-screen overflow-y-auto scroll-smooth"
+      className="h-screen overflow-y-auto scroll-smooth scrollbar-hide"
       style={{
         scrollSnapType: 'y mandatory'
       }}
@@ -148,7 +153,7 @@ const TikTokScrollFeed = () => {
       {isLoading && <LoadingIndicator />}
       
       {!hasMore && streams.length > 0 && !error && (
-        <div className="py-8 text-center text-fipt-muted">
+        <div className="py-8 text-center text-muted-foreground">
           No more streams to load
         </div>
       )}
