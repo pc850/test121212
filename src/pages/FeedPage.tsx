@@ -87,6 +87,17 @@ const mockFeedData = [
     shares: 35
   },
   {
+    id: "youtube-shorts-7",
+    username: "funny_shorts",
+    userAvatar: "https://i.pravatar.cc/150?img=12",
+    content: "This will make you laugh! 😂",
+    youtubeVideoId: "kz8AadlyXKU",
+    video: false,
+    likes: 528,
+    comments: 87,
+    shares: 42
+  },
+  {
     id: "1",
     username: "alex_crypto",
     userAvatar: "https://i.pravatar.cc/150?img=1",
