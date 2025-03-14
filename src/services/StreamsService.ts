@@ -16,6 +16,7 @@ export const initialStreams: Stream[] = [
   { room: 'Content Item 1', campaign: '', id: 'initial-1', image: 'https://images.unsplash.com/photo-1649972904349-6e44c42644a7?w=300&h=200&fit=crop' },
   { room: 'Content Item 2', campaign: '', id: 'initial-2', image: 'https://images.unsplash.com/photo-1488590528505-98d2b5aba04b?w=300&h=200&fit=crop' },
   { room: 'Featured Video', campaign: 'Exclusive Content', id: 'youtube-bwukjjetnsg', image: 'https://img.youtube.com/vi/bwukjjetnsg/hqdefault.jpg', youtubeId: 'bwukjjetnsg' },
+  { room: 'Travel Adventures', campaign: 'Sponsored Content', id: 'youtube-HNXdKlrXli8', image: 'https://img.youtube.com/vi/HNXdKlrXli8/hqdefault.jpg', youtubeId: 'HNXdKlrXli8' },
 ];
 
 // Generate a list of content items
