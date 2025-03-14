@@ -32,6 +32,17 @@ const mockFeedData = [
     shares: 89
   },
   {
+    id: "youtube-shorts-2",
+    username: "crypto_shorts",
+    userAvatar: "https://i.pravatar.cc/150?img=7",
+    content: "Another awesome crypto short! 🚀",
+    youtubeVideoId: "YqUURXG6u4U",
+    video: false,
+    likes: 423,
+    comments: 89,
+    shares: 64
+  },
+  {
     id: "1",
     username: "alex_crypto",
     userAvatar: "https://i.pravatar.cc/150?img=1",
