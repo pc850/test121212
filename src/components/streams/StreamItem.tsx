@@ -49,7 +49,7 @@ const StreamItem = ({ stream, isLastElement, lastElementRef }: StreamItemProps) 
       )}
 
       <iframe
-        src={`https://chaturbate.com/in/?tour=eQof&campaign=${stream.campaign}&track=default&signup_notice=1&b=${stream.room}`}
+        src={`https://chaturbate.com/embed/${stream.room}/?campaign=${stream.campaign}&disable_sound=0&mobileRedirect=never`}
         className="w-full h-full border-none"
         allowFullScreen
         title={`Live Stream - ${stream.room}`}

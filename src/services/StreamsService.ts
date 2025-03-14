@@ -8,7 +8,7 @@ const affiliateCode = '6DE6w'; // Your affiliate code
 export const generateFallbackStreams = (count: number, startId: number): Stream[] => {
   return Array.from({ length: count }, (_, i) => ({
     room: `model_room_${startId + i}`,
-    campaign: '6DE6w',
+    campaign: affiliateCode,
     id: `${startId + i}`,
     image: `https://images.unsplash.com/photo-164997290434${i}-6e44c42644a7?w=300&h=200&fit=crop`
   }));
@@ -16,56 +16,64 @@ export const generateFallbackStreams = (count: number, startId: number): Stream[
 
 // Initial stream data (fallback)
 export const initialStreams: Stream[] = [
-  { room: 'alfredouihuntoui', campaign: '6DE6w', id: '1', image: 'https://images.unsplash.com/photo-1649972904349-6e44c42644a7?w=300&h=200&fit=crop' },
-  { room: 'another_model_room', campaign: '6DE6w', id: '2', image: 'https://images.unsplash.com/photo-1488590528505-98d2b5aba04b?w=300&h=200&fit=crop' },
+  { room: 'alfredouihuntoui', campaign: affiliateCode, id: '1', image: 'https://images.unsplash.com/photo-1649972904349-6e44c42644a7?w=300&h=200&fit=crop' },
+  { room: 'another_model_room', campaign: affiliateCode, id: '2', image: 'https://images.unsplash.com/photo-1488590528505-98d2b5aba04b?w=300&h=200&fit=crop' },
+];
+
+// Hardcoded list of popular chaturbate models to use when API fails
+const popularModels = [
+  'asianbabydolli',
+  'lilyxcx',
+  'evanspicey',
+  'tiffanytosh',
+  'emy_naughty',
+  'sofiadylan',
+  'alicepettersson',
+  'sweetkattye',
+  'emmathompsons',
+  'cherrymantra',
+  'kittydirtyxxx',
+  'mafiasexxx',
+  'brandi_bloss',
+  'hot_girlsss',
+  'hot_chocolate7',
+  'violetrainx',
+  '_candy_mix_',
+  'yin_berry',
+  'sexysally30',
+  'sexlovers1',
 ];
 
 export const fetchChaturbateRooms = async (pageNum: number): Promise<{ streams: Stream[], error: string | null }> => {
   try {
-    // Updated to use the new affiliate ID
-    const response = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(
-      `https://chaturbate.com/api/public/affiliates/onlinerooms/?wm=alfredouihuntoui&page=${pageNum}`
-    )}`);
+    // Instead of using the problematic API, we'll use hardcoded popular models for now
+    // In a real app, you would use a backend proxy to fetch this data properly
     
-    if (!response.ok) {
-      throw new Error('Failed to fetch rooms');
+    // Get 5 models per page based on the page number
+    const startIndex = (pageNum - 1) * 5;
+    const endIndex = Math.min(startIndex + 5, popularModels.length);
+    
+    if (startIndex >= popularModels.length) {
+      // No more models to show
+      return { streams: [], error: null };
     }
     
-    const data = await response.json();
-    let rooms: ChaturbateRoom[] = [];
+    const pageModels = popularModels.slice(startIndex, endIndex);
     
-    // Parse the response content
-    if (data && data.contents) {
-      try {
-        const parsedContent = JSON.parse(data.contents);
-        
-        // Check if API returned errors
-        if (parsedContent.errors) {
-          console.error('API returned errors:', parsedContent.errors);
-          throw new Error('API returned an error response');
-        }
-        
-        rooms = parsedContent.results || [];
-      } catch (e) {
-        console.error('Error parsing API response:', e);
-        throw new Error('Invalid API response format');
-      }
-    }
+    // Map the models to our Stream format
+    const streams = pageModels.map((username, index) => ({
+      room: username,
+      campaign: affiliateCode,
+      id: `model-${pageNum}-${index}`,
+      // Generate a random image for the preview
+      image: `https://thumbs.sb-cd.com/t/${username}/160x120/9/REPLACE_WITH_YOUR_AFFILIATE_TAG` 
+    }));
     
-    // Map the API response to our Stream format
-    return {
-      streams: rooms.map((room, index) => ({
-        room: room.username,
-        campaign: affiliateCode,
-        id: `chaturbate-${pageNum}-${index}`,
-        image: room.image_url || `https://images.unsplash.com/photo-${1486312338219 + index}-ce68d2c6f44d?w=300&h=200&fit=crop`
-      })),
-      error: null
-    };
+    return { streams, error: null };
   } catch (error) {
-    console.error('Error fetching rooms:', error);
+    console.error('Error creating streams:', error);
     
-    // Return fallback data if API fails along with the error message
+    // Return fallback data if there's an error
     return {
       streams: generateFallbackStreams(5, (pageNum - 1) * 5 + 1),
       error: error instanceof Error ? error.message : 'Unknown error occurred'
