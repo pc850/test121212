@@ -20,7 +20,7 @@ export const initialStreams: Stream[] = [
   { room: 'Dancing Tutorial', campaign: 'Dance Shorts', id: 'youtube-wrF05hhjiiE', image: 'https://img.youtube.com/vi/wrF05hhjiiE/hqdefault.jpg', youtubeId: 'wrF05hhjiiE' },
   { room: 'DIY Crafts', campaign: 'Creative Shorts', id: 'youtube-JCO8fLhZEP4', image: 'https://img.youtube.com/vi/JCO8fLhZEP4/hqdefault.jpg', youtubeId: 'JCO8fLhZEP4' },
   { room: 'Cooking Tips', campaign: 'Food Shorts', id: 'youtube-htKEAY7_fag', image: 'https://img.youtube.com/vi/htKEAY7_fag/hqdefault.jpg', youtubeId: 'htKEAY7_fag' },
-  { room: 'Quick Tip', campaign: 'Shorts Content', id: 'youtube-_HW95U9no6s', image: 'https://img.youtube.com/vi/_HW95U9no6s/hqdefault.jpg', youtubeId: '_HW95U9no6s' },
+  { room: 'Trending Short', campaign: 'New Content', id: 'youtube-0huzABsMTS8', image: 'https://img.youtube.com/vi/0huzABsMTS8/hqdefault.jpg', youtubeId: '0huzABsMTS8' },
   { room: 'Funny Moment', campaign: 'Entertainment', id: 'youtube-KdDp-aFDRkc', image: 'https://img.youtube.com/vi/KdDp-aFDRkc/hqdefault.jpg', youtubeId: 'KdDp-aFDRkc' },
 ];
 
