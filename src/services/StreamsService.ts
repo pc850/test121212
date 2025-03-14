@@ -1,3 +1,4 @@
+
 import { Stream } from "@/types/streams";
 
 // Function to generate streams for the feed
@@ -20,6 +21,7 @@ export const initialStreams: Stream[] = [
   { room: 'Cooking Tips', campaign: 'Food Shorts', id: 'youtube-htKEAY7_fag', image: 'https://img.youtube.com/vi/htKEAY7_fag/hqdefault.jpg', youtubeId: 'htKEAY7_fag' },
   { room: 'Trending Short', campaign: 'New Content', id: 'youtube-0huzABsMTS8', image: 'https://img.youtube.com/vi/0huzABsMTS8/hqdefault.jpg', youtubeId: '0huzABsMTS8' },
   { room: 'Funny Moment', campaign: 'Entertainment', id: 'youtube-KdDp-aFDRkc', image: 'https://img.youtube.com/vi/KdDp-aFDRkc/hqdefault.jpg', youtubeId: 'KdDp-aFDRkc' },
+  { room: 'Music Video', campaign: 'Entertainment', id: 'youtube-9bZkp7q19f0', image: 'https://img.youtube.com/vi/9bZkp7q19f0/hqdefault.jpg', youtubeId: '9bZkp7q19f0' },
 ];
 
 // Get 5 content items per page based on the page number
