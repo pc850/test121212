@@ -57,9 +57,9 @@ export const fetchChaturbateRooms = async (pageNum: number): Promise<{ streams: 
     
     const pageModels = popularModels.slice(startIndex, endIndex);
     
-    // Map the models to our Stream format with correct thumbnail URLs
+    // Map the models to our Stream format with correct thumbnail URLs and timestamp to prevent caching
     const streams = pageModels.map((username, index) => {
-      // Generate a proper thumbnail URL
+      // Generate a proper thumbnail URL with a timestamp to prevent caching
       const thumbnailUrl = `https://roomimg.stream.highwebmedia.com/ri/${username}.jpg?${Date.now()}`;
       
       return {
