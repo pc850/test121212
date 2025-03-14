@@ -11,40 +11,37 @@ export const generateFallbackStreams = (count: number, startId: number): Stream[
   }));
 };
 
-// Initial stream data
+// Initial stream data - removed duplicates and integrated new YouTube shorts
 export const initialStreams: Stream[] = [
-  { room: 'Content Item 1', campaign: '', id: 'initial-1', image: 'https://images.unsplash.com/photo-1649972904349-6e44c42644a7?w=300&h=200&fit=crop' },
-  { room: 'Content Item 2', campaign: '', id: 'initial-2', image: 'https://images.unsplash.com/photo-1488590528505-98d2b5aba04b?w=300&h=200&fit=crop' },
-  { room: 'Featured Video', campaign: 'Exclusive Content', id: 'youtube-bwukjjetnsg', image: 'https://img.youtube.com/vi/bwukjjetnsg/hqdefault.jpg', youtubeId: 'bwukjjetnsg' },
   { room: 'Travel Adventures', campaign: 'Sponsored Content', id: 'youtube-HNXdKlrXli8', image: 'https://img.youtube.com/vi/HNXdKlrXli8/hqdefault.jpg', youtubeId: 'HNXdKlrXli8' },
   { room: 'Wildlife Documentary', campaign: 'Premium Content', id: 'youtube-sSwYuPnnyuo', image: 'https://img.youtube.com/vi/sSwYuPnnyuo/hqdefault.jpg', youtubeId: 'sSwYuPnnyuo' },
   { room: 'Tech Review', campaign: 'Tech Channel', id: 'youtube-fZqw72eyul8', image: 'https://img.youtube.com/vi/fZqw72eyul8/hqdefault.jpg', youtubeId: 'fZqw72eyul8' },
+  { room: 'Fashion Trends', campaign: 'Style Shorts', id: 'youtube-de8k7B4cH-c', image: 'https://img.youtube.com/vi/de8k7B4cH-c/hqdefault.jpg', youtubeId: 'de8k7B4cH-c' },
+  { room: 'Dancing Tutorial', campaign: 'Dance Shorts', id: 'youtube-wrF05hhjiiE', image: 'https://img.youtube.com/vi/wrF05hhjiiE/hqdefault.jpg', youtubeId: 'wrF05hhjiiE' },
+  { room: 'DIY Crafts', campaign: 'Creative Shorts', id: 'youtube-JCO8fLhZEP4', image: 'https://img.youtube.com/vi/JCO8fLhZEP4/hqdefault.jpg', youtubeId: 'JCO8fLhZEP4' },
+  { room: 'Cooking Tips', campaign: 'Food Shorts', id: 'youtube-htKEAY7_fag', image: 'https://img.youtube.com/vi/htKEAY7_fag/hqdefault.jpg', youtubeId: 'htKEAY7_fag' },
   { room: 'Quick Tip', campaign: 'Shorts Content', id: 'youtube-_HW95U9no6s', image: 'https://img.youtube.com/vi/_HW95U9no6s/hqdefault.jpg', youtubeId: '_HW95U9no6s' },
   { room: 'Funny Moment', campaign: 'Entertainment', id: 'youtube-KdDp-aFDRkc', image: 'https://img.youtube.com/vi/KdDp-aFDRkc/hqdefault.jpg', youtubeId: 'KdDp-aFDRkc' },
 ];
 
-// Generate a list of content items
-const contentItems = Array.from({ length: 20 }, (_, i) => `Content Item ${i + 1}`);
-
+// Get 5 content items per page based on the page number
 export const fetchChaturbateRooms = async (pageNum: number): Promise<{ streams: Stream[], error: string | null }> => {
   try {
     // Get 5 content items per page based on the page number
     const startIndex = (pageNum - 1) * 5;
-    const endIndex = Math.min(startIndex + 5, contentItems.length);
+    const endIndex = Math.min(startIndex + 5, 20); // Limiting to 20 items total
     
-    if (startIndex >= contentItems.length) {
+    if (startIndex >= 20) {
       // No more content items to show
       return { streams: [], error: null };
     }
     
-    const pageItems = contentItems.slice(startIndex, endIndex);
-    
     // Map the items to our Stream format
-    const streams = pageItems.map((item, index) => ({
-      room: item,
+    const streams = Array.from({ length: endIndex - startIndex }, (_, i) => ({
+      room: `Content Item ${startIndex + i + 1}`,
       campaign: '',
-      id: `page-${pageNum}-${index}`,
-      image: `https://source.unsplash.com/random/300x200?sig=${startIndex + index}`
+      id: `page-${pageNum}-${i}`,
+      image: `https://source.unsplash.com/random/300x200?sig=${startIndex + i}`
     }));
     
     return { streams, error: null };

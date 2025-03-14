@@ -71,17 +71,31 @@ const StreamItem = ({ stream, isLastElement, lastElementRef }: StreamItemProps) 
     >
       {/* Display the stream content */}
       <div className="w-full h-full">
-        {/* Always show the YouTube video (replacing the image) */}
-        <iframe
-          className="w-full h-full"
-          src={`https://www.youtube.com/embed/7UyJseUaJB8?autoplay=1&mute=0&playsinline=1&controls=1&loop=1&rel=0`}
-          title={`YouTube video ${stream.room}`}
-          frameBorder="0"
-          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-          allowFullScreen
-          onLoad={handleMediaLoad}
-          onError={handleMediaError}
-        ></iframe>
+        {stream.youtubeId ? (
+          <iframe
+            className="w-full h-full"
+            src={`https://www.youtube.com/embed/${stream.youtubeId}?autoplay=1&mute=0&playsinline=1&controls=1&loop=1&rel=0`}
+            title={`YouTube video ${stream.room}`}
+            frameBorder="0"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            allowFullScreen
+            onLoad={handleMediaLoad}
+            onError={handleMediaError}
+          ></iframe>
+        ) : stream.image ? (
+          <img 
+            src={stream.image} 
+            alt={`Content for ${stream.room}`}
+            className="w-full h-full object-cover cursor-pointer"
+            onLoad={handleMediaLoad}
+            onError={handleMediaError}
+            onClick={handleImageClick}
+          />
+        ) : (
+          <div className="w-full h-full flex items-center justify-center bg-muted">
+            <p className="text-lg text-muted-foreground">No preview available</p>
+          </div>
+        )}
         
         {/* Overlay with stream info */}
         {(!stream.youtubeId || !showVideo) && (
