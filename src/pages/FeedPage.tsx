@@ -43,6 +43,17 @@ const mockFeedData = [
     shares: 64
   },
   {
+    id: "youtube-shorts-3",
+    username: "tech_shorts",
+    userAvatar: "https://i.pravatar.cc/150?img=8",
+    content: "Amazing tech demo short! 💻",
+    youtubeVideoId: "5JJoZG6ih5Y",
+    video: false,
+    likes: 315,
+    comments: 42,
+    shares: 18
+  },
+  {
     id: "1",
     username: "alex_crypto",
     userAvatar: "https://i.pravatar.cc/150?img=1",
