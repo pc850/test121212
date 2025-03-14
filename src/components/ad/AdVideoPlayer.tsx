@@ -1,5 +1,6 @@
 
 import { useRef, useEffect } from "react";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface AdVideoPlayerProps {
   adPlaying: boolean;
@@ -9,6 +10,7 @@ interface AdVideoPlayerProps {
 
 export function AdVideoPlayer({ adPlaying, adLoaded, setAdLoaded }: AdVideoPlayerProps) {
   const videoRef = useRef<HTMLIFrameElement>(null);
+  const isMobile = useIsMobile();
 
   useEffect(() => {
     if (adPlaying) {

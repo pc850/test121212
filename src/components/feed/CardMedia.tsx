@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import { Video } from "lucide-react";
 import { cn } from "@/lib/utils";
 import VideoPlayer from "../VideoPlayer";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface CardMediaProps {
   image?: string;
@@ -24,6 +25,7 @@ const CardMedia = ({
   const [isLoading, setIsLoading] = useState(!!(image || video || youtubeVideoId));
   const [videoReady, setVideoReady] = useState(false);
   const playerId = `player_container_${performerId || youtubeVideoId || "default"}`;
+  const isMobile = useIsMobile();
 
   useEffect(() => {
     if (isActive && (image || video || youtubeVideoId)) {
@@ -90,7 +92,7 @@ const CardMedia = ({
         )}>
           <iframe
             className="w-full h-full"
-            src={`https://www.youtube.com/embed/${youtubeVideoId}?autoplay=1&playlist=${youtubeVideoId}&loop=1`}
+            src={`https://www.youtube.com/embed/${youtubeVideoId}?autoplay=1&mute=${isMobile ? 1 : 0}&playsinline=1&controls=1&loop=1&playlist=${youtubeVideoId}&enablejsapi=1`}
             title="YouTube video player"
             frameBorder="0"
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"

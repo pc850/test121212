@@ -4,6 +4,7 @@ import { Stream } from "@/types/streams";
 import { Skeleton } from "@/components/ui/skeleton";
 import { AlertCircle, RefreshCcw } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface StreamItemProps {
   stream: Stream;
@@ -15,6 +16,7 @@ const StreamItem = ({ stream, isLastElement, lastElementRef }: StreamItemProps) 
   const [isLoading, setIsLoading] = useState(true);
   const [hasError, setHasError] = useState(false);
   const [showVideo, setShowVideo] = useState(false);
+  const isMobile = useIsMobile();
   
   // Reset loading state when stream changes
   React.useEffect(() => {
@@ -74,7 +76,7 @@ const StreamItem = ({ stream, isLastElement, lastElementRef }: StreamItemProps) 
         {stream.youtubeId ? (
           <iframe
             className="w-full h-full"
-            src={`https://www.youtube.com/embed/${stream.youtubeId}?autoplay=1&mute=0&playsinline=1&controls=1&loop=1&rel=0`}
+            src={`https://www.youtube.com/embed/${stream.youtubeId}?autoplay=1&mute=${isMobile ? 1 : 0}&playsinline=1&controls=1&loop=1&rel=0&enablejsapi=1`}
             title={`YouTube video ${stream.room}`}
             frameBorder="0"
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
