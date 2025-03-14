@@ -1,10 +1,9 @@
 
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState } from "react";
 import { Stream } from "@/types/streams";
 import { Skeleton } from "@/components/ui/skeleton";
 import { AlertCircle, RefreshCcw } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { toast } from "@/hooks/use-toast";
 
 interface StreamItemProps {
   stream: Stream;
@@ -13,163 +12,76 @@ interface StreamItemProps {
 }
 
 const StreamItem = ({ stream, isLastElement, lastElementRef }: StreamItemProps) => {
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
   const [hasError, setHasError] = useState(false);
-  const containerRef = useRef<HTMLDivElement>(null);
-  const scriptRef = useRef<HTMLScriptElement | null>(null);
   
-  // Function to create ad container with unique ID
-  const createAdContainer = () => {
-    if (!containerRef.current) return;
-    
-    // Clear previous content
-    containerRef.current.innerHTML = '';
-    
-    // Create a unique ID for this ad container
-    const containerId = `ad-container-${stream.id}`;
-    const adContainer = document.createElement('div');
-    adContainer.id = containerId;
-    adContainer.className = 'w-full h-full flex items-center justify-center';
-    
-    // Append the container
-    containerRef.current.appendChild(adContainer);
-    
-    return containerId;
-  };
-  
-  // Function to load the Adsterra script
-  const loadAdsterraScript = () => {
+  // Simple function to simulate loading content (if needed in the future)
+  const refreshContent = () => {
     setIsLoading(true);
     setHasError(false);
     
-    // Create fresh ad container
-    createAdContainer();
-    
-    // Clean up existing script if any
-    if (scriptRef.current) {
-      try {
-        document.body.removeChild(scriptRef.current);
-      } catch (e) {
-        console.log("Script already removed or not in document body");
-      }
-      scriptRef.current = null;
-    }
-    
-    // Create and inject the script
-    const script = document.createElement('script');
-    script.type = 'text/javascript';
-    script.src = '//harmlesstranquilizer.com/f2/ef/9a/f2ef9a7889efe0cfcbe5ce11992fa39b.js';
-    script.async = true;
-    
-    script.onload = () => {
-      console.log(`Ad script loaded for stream ${stream.id}`);
+    // Simulate a loading delay
+    setTimeout(() => {
       setIsLoading(false);
-    };
-    
-    script.onerror = (error) => {
-      console.error(`Error loading ad script for stream ${stream.id}:`, error);
-      setIsLoading(false);
-      setHasError(true);
-      toast({
-        title: "Ad failed to load",
-        description: "Please try refreshing the page",
-        variant: "destructive"
-      });
-    };
-    
-    // Store the script reference
-    scriptRef.current = script;
-    
-    // Inject the script into the document body
-    document.body.appendChild(script);
-  };
-  
-  // Load script when component mounts or stream changes
-  useEffect(() => {
-    loadAdsterraScript();
-    
-    // Cleanup function
-    return () => {
-      if (scriptRef.current && document.body.contains(scriptRef.current)) {
-        try {
-          document.body.removeChild(scriptRef.current);
-        } catch (e) {
-          console.log("Script already removed or not in document body");
-        }
-      }
-    };
-  }, [stream.id]);
-  
-  // Function to reload the ad
-  const reloadAd = () => {
-    loadAdsterraScript();
+    }, 500);
   };
 
   return (
     <div
-      ref={(node) => {
-        // Set both refs - the lastElementRef for infinite scrolling and our containerRef
-        if (isLastElement && lastElementRef) {
-          lastElementRef(node);
-        }
-        if (node) {
-          containerRef.current = node;
-        }
-      }}
+      ref={isLastElement ? lastElementRef : null}
       className="h-screen relative"
       style={{ scrollSnapAlign: 'start' }}
     >
+      {/* Display the stream image or a placeholder */}
+      <div className="w-full h-full">
+        {stream.image ? (
+          <img 
+            src={stream.image} 
+            alt={`Content for ${stream.room}`}
+            className="w-full h-full object-cover"
+            onError={() => setHasError(true)}
+          />
+        ) : (
+          <div className="w-full h-full flex items-center justify-center bg-muted">
+            <p className="text-lg text-muted-foreground">No preview available</p>
+          </div>
+        )}
+        
+        {/* Overlay with stream info */}
+        <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/80 to-transparent">
+          <h3 className="text-white font-semibold">{stream.room}</h3>
+          {stream.campaign && (
+            <p className="text-white/80 text-sm">{stream.campaign}</p>
+          )}
+        </div>
+      </div>
+
       {/* Loading state */}
       {isLoading && (
-        <div className="absolute inset-0 z-10 flex items-center justify-center bg-background">
-          {stream.image ? (
-            <div className="relative w-full h-full">
-              <img 
-                src={stream.image} 
-                alt={`Ad content loading`}
-                className="w-full h-full object-cover"
-                onError={(e) => {
-                  // If image fails, set a fallback
-                  e.currentTarget.src = "https://via.placeholder.com/400x300?text=Loading+Ad";
-                }}
-              />
-              <div className="absolute inset-0 flex items-center justify-center">
-                <div className="bg-black/60 text-white px-4 py-2 rounded-md flex items-center gap-2">
-                  <div className="w-3 h-3 bg-red-500 rounded-full animate-pulse"></div>
-                  <span>Loading ad content...</span>
-                </div>
-              </div>
-            </div>
-          ) : (
-            <div className="w-full h-full flex items-center justify-center bg-muted">
-              <Skeleton className="w-16 h-16 rounded-full" />
-              <div className="mt-4 text-center">
-                <p className="text-sm text-muted-foreground">Loading ad content...</p>
-              </div>
-            </div>
-          )}
+        <div className="absolute inset-0 z-10 flex items-center justify-center bg-background/90">
+          <Skeleton className="w-16 h-16 rounded-full" />
+          <div className="mt-4 text-center">
+            <p className="text-sm text-muted-foreground">Loading content...</p>
+          </div>
         </div>
       )}
 
       {/* Error state */}
-      {hasError && !isLoading && (
+      {hasError && (
         <div className="absolute inset-0 z-10 flex items-center justify-center bg-background/90">
           <div className="max-w-xs p-6 bg-card rounded-lg shadow-lg text-center">
             <AlertCircle className="w-12 h-12 text-destructive mx-auto mb-4" />
-            <h3 className="text-lg font-semibold mb-2">Ad Unavailable</h3>
+            <h3 className="text-lg font-semibold mb-2">Content Unavailable</h3>
             <p className="text-sm text-muted-foreground mb-4">
-              The ad content could not be loaded at this time.
+              The content could not be loaded at this time.
             </p>
-            <Button variant="outline" size="sm" onClick={reloadAd} className="inline-flex gap-2">
+            <Button variant="outline" size="sm" onClick={refreshContent} className="inline-flex gap-2">
               <RefreshCcw className="w-4 h-4" />
               Try Again
             </Button>
           </div>
         </div>
       )}
-
-      {/* Ad container - the script will populate this div */}
-      <div className="w-full h-full"></div>
     </div>
   );
 };
