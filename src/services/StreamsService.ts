@@ -39,8 +39,8 @@ export const fetchChaturbateRooms = async (pageNum: number): Promise<{ streams: 
       return {
         room: slot,
         campaign: '',
-        id: `ad-${pageNum}-${index}`,
-        image: `https://source.unsplash.com/random/300x200?sig=${startIndex + index}`
+        id: `ad-${pageNum}-${index}-${Date.now()}`, // Add timestamp to ensure uniqueness
+        image: `https://source.unsplash.com/random/300x200?sig=${startIndex + index}-${Date.now()}` // Add timestamp to prevent image caching
       };
     });
     

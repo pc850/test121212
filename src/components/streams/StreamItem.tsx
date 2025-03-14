@@ -4,6 +4,7 @@ import { Stream } from "@/types/streams";
 import { Skeleton } from "@/components/ui/skeleton";
 import { AlertCircle, RefreshCcw } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { toast } from "@/hooks/use-toast";
 
 interface StreamItemProps {
   stream: Stream;
@@ -15,80 +16,88 @@ const StreamItem = ({ stream, isLastElement, lastElementRef }: StreamItemProps) 
   const [isLoading, setIsLoading] = useState(true);
   const [hasError, setHasError] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
-  const scriptRef = useRef<HTMLScriptElement | null>(null);
   
-  // Reset states when stream changes
+  // Function to create ad container with unique ID
+  const createAdContainer = () => {
+    if (!containerRef.current) return;
+    
+    // Clear previous content
+    containerRef.current.innerHTML = '';
+    
+    // Create a unique ID for this ad container
+    const containerId = `ad-container-${stream.id}-${Date.now()}`;
+    const adContainer = document.createElement('div');
+    adContainer.id = containerId;
+    adContainer.className = 'w-full h-full flex items-center justify-center';
+    
+    // Append the container
+    containerRef.current.appendChild(adContainer);
+    
+    return containerId;
+  };
+  
+  // Function to load the Adsterra script
+  const loadAdsterraScript = () => {
+    setIsLoading(true);
+    setHasError(false);
+    
+    // Create fresh ad container
+    createAdContainer();
+    
+    // Create and inject the script
+    const script = document.createElement('script');
+    script.type = 'text/javascript';
+    script.src = '//harmlesstranquilizer.com/f2/ef/9a/f2ef9a7889efe0cfcbe5ce11992fa39b.js';
+    script.async = true;
+    
+    script.onload = () => {
+      console.log(`Ad script loaded for stream ${stream.id}`);
+      setIsLoading(false);
+    };
+    
+    script.onerror = (error) => {
+      console.error(`Error loading ad script for stream ${stream.id}:`, error);
+      setIsLoading(false);
+      setHasError(true);
+      toast({
+        title: "Ad failed to load",
+        description: "Please try refreshing the page",
+        variant: "destructive"
+      });
+    };
+    
+    // Inject the script into the document body
+    document.body.appendChild(script);
+    
+    return script;
+  };
+  
+  // Load script when component mounts or stream changes
   useEffect(() => {
     setIsLoading(true);
     setHasError(false);
-  }, [stream.id]);
-
-  useEffect(() => {
-    // Create and load the external script
-    const loadScript = () => {
-      if (scriptRef.current) {
-        // Remove previous script if it exists
-        document.body.removeChild(scriptRef.current);
-        scriptRef.current = null;
-      }
-
-      const script = document.createElement('script');
-      script.type = 'text/javascript';
-      script.src = '//harmlesstranquilizer.com/f2/ef/9a/f2ef9a7889efe0cfcbe5ce11992fa39b.js';
-      script.async = true;
-      script.onload = () => {
-        setIsLoading(false);
-      };
-      script.onerror = () => {
-        setIsLoading(false);
-        setHasError(true);
-        console.error('Error loading external script');
-      };
-
-      document.body.appendChild(script);
-      scriptRef.current = script;
-    };
-
-    loadScript();
-
+    
+    const script = loadAdsterraScript();
+    
     // Cleanup function
     return () => {
-      if (scriptRef.current) {
-        document.body.removeChild(scriptRef.current);
+      if (script && document.body.contains(script)) {
+        document.body.removeChild(script);
       }
     };
   }, [stream.id]);
-
-  const reloadStream = () => {
-    setIsLoading(true);
-    setHasError(false);
+  
+  // Function to reload the ad
+  const reloadAd = () => {
+    // Remove any existing scripts with this source
+    const existingScripts = document.querySelectorAll(`script[src*="harmlesstranquilizer.com"]`);
+    existingScripts.forEach(script => {
+      if (document.body.contains(script)) {
+        document.body.removeChild(script);
+      }
+    });
     
-    // Clear the container and reload the script
-    if (containerRef.current) {
-      containerRef.current.innerHTML = '';
-    }
-    
-    // Re-inject the script with a new timestamp to force reload
-    if (scriptRef.current) {
-      document.body.removeChild(scriptRef.current);
-      scriptRef.current = null;
-      
-      const script = document.createElement('script');
-      script.type = 'text/javascript';
-      script.src = `//harmlesstranquilizer.com/f2/ef/9a/f2ef9a7889efe0cfcbe5ce11992fa39b.js?t=${Date.now()}`;
-      script.async = true;
-      script.onload = () => {
-        setIsLoading(false);
-      };
-      script.onerror = () => {
-        setIsLoading(false);
-        setHasError(true);
-        console.error('Error loading external script');
-      };
-
-      document.body.appendChild(script);
-      scriptRef.current = script;
-    }
+    loadAdsterraScript();
   };
 
   return (
@@ -114,13 +123,13 @@ const StreamItem = ({ stream, isLastElement, lastElementRef }: StreamItemProps) 
                 className="w-full h-full object-cover"
                 onError={(e) => {
                   // If image fails, set a fallback
-                  e.currentTarget.src = "https://via.placeholder.com/400x300?text=Loading+Stream";
+                  e.currentTarget.src = "https://via.placeholder.com/400x300?text=Loading+Ad";
                 }}
               />
               <div className="absolute inset-0 flex items-center justify-center">
                 <div className="bg-black/60 text-white px-4 py-2 rounded-md flex items-center gap-2">
                   <div className="w-3 h-3 bg-red-500 rounded-full animate-pulse"></div>
-                  <span>Loading stream...</span>
+                  <span>Loading ad content...</span>
                 </div>
               </div>
             </div>
@@ -128,7 +137,7 @@ const StreamItem = ({ stream, isLastElement, lastElementRef }: StreamItemProps) 
             <div className="w-full h-full flex items-center justify-center bg-muted">
               <Skeleton className="w-16 h-16 rounded-full" />
               <div className="mt-4 text-center">
-                <p className="text-sm text-muted-foreground">Loading stream...</p>
+                <p className="text-sm text-muted-foreground">Loading ad content...</p>
               </div>
             </div>
           )}
@@ -140,11 +149,11 @@ const StreamItem = ({ stream, isLastElement, lastElementRef }: StreamItemProps) 
         <div className="absolute inset-0 z-10 flex items-center justify-center bg-background/90">
           <div className="max-w-xs p-6 bg-card rounded-lg shadow-lg text-center">
             <AlertCircle className="w-12 h-12 text-destructive mx-auto mb-4" />
-            <h3 className="text-lg font-semibold mb-2">Stream Unavailable</h3>
+            <h3 className="text-lg font-semibold mb-2">Ad Unavailable</h3>
             <p className="text-sm text-muted-foreground mb-4">
-              This stream might be offline or unavailable right now.
+              The ad content could not be loaded at this time.
             </p>
-            <Button variant="outline" size="sm" onClick={reloadStream} className="inline-flex gap-2">
+            <Button variant="outline" size="sm" onClick={reloadAd} className="inline-flex gap-2">
               <RefreshCcw className="w-4 h-4" />
               Try Again
             </Button>
@@ -152,8 +161,8 @@ const StreamItem = ({ stream, isLastElement, lastElementRef }: StreamItemProps) 
         </div>
       )}
 
-      {/* The external script will populate this div */}
-      <div className="stream-container w-full h-full"></div>
+      {/* Ad container - the script will populate this div */}
+      <div className="w-full h-full"></div>
     </div>
   );
 };
