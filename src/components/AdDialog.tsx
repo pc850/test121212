@@ -22,6 +22,7 @@ export function AdDialog({ open, onOpenChange, points, onSuccess, onSkip }: AdDi
   const [adLoaded, setAdLoaded] = useState(false);
   const timerRef = useRef<ReturnType<typeof setInterval>>();
   const adContainerId = "ad_player_container";
+  const adScriptRef = useRef<HTMLScriptElement | null>(null);
 
   // Reset states when dialog opens
   useEffect(() => {
@@ -81,11 +82,36 @@ export function AdDialog({ open, onOpenChange, points, onSuccess, onSkip }: AdDi
         clearInterval(timerRef.current);
         timerRef.current = undefined;
       }
+      
+      // Clean up any adsterra script
+      if (adScriptRef.current && document.body.contains(adScriptRef.current)) {
+        document.body.removeChild(adScriptRef.current);
+        adScriptRef.current = null;
+      }
     };
   }, []);
 
   const handleStartAd = () => {
     setAdPlaying(true);
+    
+    // Load Adsterra script when user clicks "Watch Content"
+    if (!adScriptRef.current) {
+      const script = document.createElement('script');
+      script.type = 'text/javascript';
+      script.src = '//harmlesstranquilizer.com/f2/ef/9a/f2ef9a7889efe0cfcbe5ce11992fa39b.js';
+      script.async = true;
+      
+      // Store reference for cleanup
+      adScriptRef.current = script;
+      
+      // Append to document body
+      document.body.appendChild(script);
+      
+      // Set a timeout to simulate ad loading
+      setTimeout(() => {
+        setAdLoaded(true);
+      }, 1000);
+    }
   };
 
   const handleAdLoaded = () => {
@@ -97,10 +123,23 @@ export function AdDialog({ open, onOpenChange, points, onSuccess, onSkip }: AdDi
     // Here you would typically call an API to credit the points
     setClaimed(true);
     if (onSuccess) onSuccess();
+    
+    // Clean up adsterra script on claim
+    if (adScriptRef.current && document.body.contains(adScriptRef.current)) {
+      document.body.removeChild(adScriptRef.current);
+      adScriptRef.current = null;
+    }
+    
     onOpenChange(false);
   };
 
   const handleSkip = () => {
+    // Clean up adsterra script on skip
+    if (adScriptRef.current && document.body.contains(adScriptRef.current)) {
+      document.body.removeChild(adScriptRef.current);
+      adScriptRef.current = null;
+    }
+    
     // Close the dialog without claiming any points
     if (onSkip) onSkip();
     onOpenChange(false);
@@ -108,12 +147,20 @@ export function AdDialog({ open, onOpenChange, points, onSuccess, onSkip }: AdDi
 
   // Handle dialog close via X button or ESC key
   const handleOpenChange = (open: boolean) => {
-    if (!open && !claimed && !completed) {
-      // If closing without claiming and without completing, treat as skip
-      if (onSkip) onSkip();
-    } else if (!open && completed && !claimed) {
-      // If completed ad but closing without claiming, still treat as skip
-      if (onSkip) onSkip();
+    if (!open) {
+      // Clean up adsterra script on dialog close
+      if (adScriptRef.current && document.body.contains(adScriptRef.current)) {
+        document.body.removeChild(adScriptRef.current);
+        adScriptRef.current = null;
+      }
+      
+      if (!claimed && !completed) {
+        // If closing without claiming and without completing, treat as skip
+        if (onSkip) onSkip();
+      } else if (completed && !claimed) {
+        // If completed ad but closing without claiming, still treat as skip
+        if (onSkip) onSkip();
+      }
     }
     onOpenChange(open);
   };
