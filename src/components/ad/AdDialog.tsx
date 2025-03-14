@@ -1,8 +1,10 @@
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { AdContent } from "./AdContent";
 import { AdControls } from "./AdControls";
+import { AdVideoPlayer } from "./AdVideoPlayer";
+import { AdCountdown } from "./AdCountdown";
 
 interface AdDialogProps {
   open: boolean;
@@ -17,8 +19,6 @@ export function AdDialog({ open, onOpenChange, points, onSuccess, onSkip }: AdDi
   const [timeRemaining, setTimeRemaining] = useState(15); // 15 seconds
   const [completed, setCompleted] = useState(false);
   const [adLoaded, setAdLoaded] = useState(false);
-  const timerRef = useRef<ReturnType<typeof setInterval>>();
-  const videoRef = useRef<HTMLIFrameElement>(null);
 
   // Reset states when dialog opens
   useEffect(() => {
@@ -27,66 +27,11 @@ export function AdDialog({ open, onOpenChange, points, onSuccess, onSkip }: AdDi
       setTimeRemaining(15);
       setCompleted(false);
       setAdLoaded(false);
-      
-      // Clear any existing timer
-      if (timerRef.current) {
-        clearInterval(timerRef.current);
-        timerRef.current = undefined;
-      }
     }
   }, [open]);
 
-  // Handle countdown when ad is playing
-  useEffect(() => {
-    // Clear any existing timer
-    if (timerRef.current) {
-      clearInterval(timerRef.current);
-      timerRef.current = undefined;
-    }
-    
-    if (adPlaying && timeRemaining > 0 && adLoaded) {
-      // Only start countdown after video is loaded
-      timerRef.current = setInterval(() => {
-        setTimeRemaining((prev) => {
-          if (prev <= 1) {
-            setAdPlaying(false);
-            setCompleted(true);
-            if (timerRef.current) {
-              clearInterval(timerRef.current);
-              timerRef.current = undefined;
-            }
-            return 0;
-          }
-          return prev - 1;
-        });
-      }, 1000);
-    }
-    
-    return () => {
-      if (timerRef.current) {
-        clearInterval(timerRef.current);
-        timerRef.current = undefined;
-      }
-    };
-  }, [adPlaying, timeRemaining, adLoaded]);
-
-  // Clean up timer on unmount
-  useEffect(() => {
-    return () => {
-      if (timerRef.current) {
-        clearInterval(timerRef.current);
-        timerRef.current = undefined;
-      }
-    };
-  }, []);
-
   const handleStartAd = () => {
     setAdPlaying(true);
-    // Mark video as loaded immediately to start the timer
-    // In a real implementation, you might want to listen for the iframe's load event
-    setTimeout(() => {
-      setAdLoaded(true);
-    }, 1000);
   };
 
   const handleClaim = () => {
@@ -129,22 +74,19 @@ export function AdDialog({ open, onOpenChange, points, onSuccess, onSkip }: AdDi
         <div className="flex flex-col items-center justify-center p-4">
           {adPlaying ? (
             <div className="w-full max-w-md h-96 mb-4 relative bg-black">
-              {!adLoaded && (
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <div className="w-8 h-8 border-2 border-fipt-blue border-t-transparent rounded-full animate-spin"></div>
-                </div>
-              )}
-              <iframe 
-                ref={videoRef}
-                src="https://www.tiktok.com/embed/v2/7338609783458565382"
-                className="w-full h-full"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                allowFullScreen
-                title="TikTok Video"
-              ></iframe>
-              <div className="absolute top-2 right-2 bg-black/70 text-white px-2 py-1 rounded-full text-xs">
-                {adLoaded ? timeRemaining : "Loading..."}s
-              </div>
+              <AdVideoPlayer 
+                adPlaying={adPlaying} 
+                adLoaded={adLoaded} 
+                setAdLoaded={setAdLoaded} 
+              />
+              <AdCountdown 
+                timeRemaining={timeRemaining}
+                adPlaying={adPlaying}
+                adLoaded={adLoaded}
+                setTimeRemaining={setTimeRemaining}
+                setAdPlaying={setAdPlaying}
+                setCompleted={setCompleted}
+              />
             </div>
           ) : (
             <AdContent 
