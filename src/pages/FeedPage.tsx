@@ -65,6 +65,17 @@ const mockFeedData = [
     shares: 31
   },
   {
+    id: "youtube-shorts-5",
+    username: "gaming_shorts",
+    userAvatar: "https://i.pravatar.cc/150?img=10",
+    content: "Check out this awesome gaming moment! 🎮",
+    youtubeVideoId: "diVyjXePZ08",
+    video: false,
+    likes: 367,
+    comments: 54,
+    shares: 22
+  },
+  {
     id: "1",
     username: "alex_crypto",
     userAvatar: "https://i.pravatar.cc/150?img=1",
