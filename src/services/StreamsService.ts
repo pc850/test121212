@@ -22,10 +22,9 @@ export const initialStreams: Stream[] = [
 
 export const fetchChaturbateRooms = async (pageNum: number): Promise<{ streams: Stream[], error: string | null }> => {
   try {
-    // For demonstration purposes, we're using a proxy URL. In production, this should be a backend endpoint
-    // that makes the API call with proper authentication.
+    // Updated to use the new affiliate ID
     const response = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(
-      `https://chaturbate.com/api/public/affiliates/onlinerooms/?wm=fiptonton&page=${pageNum}`
+      `https://chaturbate.com/api/public/affiliates/onlinerooms/?wm=alfredouihuntoui&page=${pageNum}`
     )}`);
     
     if (!response.ok) {
