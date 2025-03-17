@@ -10,6 +10,8 @@ import ExchangeRateInfo from "@/components/swap/ExchangeRateInfo";
 import SlippageSelector from "@/components/swap/SlippageSelector";
 import SwapButton from "@/components/swap/SwapButton";
 import TransactionDetails from "@/components/swap/TransactionDetails";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
 
 const SwapPage = () => {
   // Set page title
@@ -40,7 +42,9 @@ const SwapPage = () => {
     handleSwapPositions,
     handleFromAmountChange,
     handleToAmountChange,
-    handleSubmit
+    handleSubmit,
+    useStonFi,
+    setUseStonFi
   } = useSwapForm(address);
 
   return (
@@ -113,6 +117,19 @@ const SwapPage = () => {
             options={["0.5", "1", "2"]}
             disabled={isLoading}
           />
+          
+          {/* StonFi Switch */}
+          <div className="flex items-center space-x-2 mt-4">
+            <Switch
+              id="stonfi-mode"
+              checked={useStonFi}
+              onCheckedChange={setUseStonFi}
+              disabled={isLoading}
+            />
+            <Label htmlFor="stonfi-mode" className="text-sm text-fipt-muted">
+              Use StonFi Direct (Testnet)
+            </Label>
+          </div>
           
           <Separator className="my-4" />
           
