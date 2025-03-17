@@ -27,6 +27,8 @@ const SwapButton = ({
         <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Swapping...</>
       ) : !connected ? (
         "Connect Wallet to Swap"
+      ) : !fromAmount || !toAmount ? (
+        "Enter an amount"
       ) : (
         "Swap Tokens"
       )}

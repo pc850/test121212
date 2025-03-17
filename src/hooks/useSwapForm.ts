@@ -22,7 +22,7 @@ export const useSwapForm = (address?: string) => {
   const [tokens, setTokens] = useState<TokenWithBalance[]>([]);
   const [exchangeRate, setExchangeRate] = useState(0);
 
-  // Fetch token balances
+  // Fetch token balances when address changes
   useEffect(() => {
     const fetchBalances = async () => {
       try {
@@ -136,7 +136,7 @@ export const useSwapForm = (address?: string) => {
     setIsLoading(true);
     
     try {
-      // Execute the swap
+      // Execute the swap using Tonswap API
       const result = await executeSwap(
         fromToken,
         toToken,

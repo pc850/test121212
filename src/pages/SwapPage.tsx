@@ -10,6 +10,7 @@ import ExchangeRateInfo from "@/components/swap/ExchangeRateInfo";
 import SlippageSelector from "@/components/swap/SlippageSelector";
 import SwapButton from "@/components/swap/SwapButton";
 import TransactionDetails from "@/components/swap/TransactionDetails";
+import TonConnectButton from "@/components/TonConnectButton";
 
 const SwapPage = () => {
   // Set page title
@@ -46,9 +47,12 @@ const SwapPage = () => {
   return (
     <div className="min-h-screen flex flex-col animate-fade-in">
       {/* Page Header */}
-      <div className="p-4 bg-white border-b border-gray-100">
-        <h1 className="text-xl font-bold text-fipt-dark">Swap</h1>
-        <p className="text-sm text-fipt-muted">Exchange tokens seamlessly</p>
+      <div className="p-4 bg-white border-b border-gray-100 flex justify-between items-center">
+        <div>
+          <h1 className="text-xl font-bold text-fipt-dark">Swap</h1>
+          <p className="text-sm text-fipt-muted">Exchange tokens seamlessly on Tonswap DEX</p>
+        </div>
+        <TonConnectButton />
       </div>
       
       {/* Swap Container */}
@@ -133,6 +137,14 @@ const SwapPage = () => {
           toToken={toTokenData}
           priceImpact={priceImpact}
         />
+
+        {/* Wallet connection notice */}
+        {!connected && (
+          <div className="mt-4 p-4 bg-blue-50 rounded-lg border border-blue-100 text-sm text-blue-800">
+            <p className="font-medium">Connect your TON wallet to start swapping</p>
+            <p className="mt-1">Click the "Connect Wallet" button in the top-right corner to connect your Tonkeeper wallet and access the Tonswap DEX.</p>
+          </div>
+        )}
       </div>
     </div>
   );
