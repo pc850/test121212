@@ -1,4 +1,3 @@
-
 "use client"; // For Next.js App Router client-side rendering
 
 import React, { useState, useEffect } from "react";
@@ -21,6 +20,7 @@ const TonConnectButton: React.FC = () => {
   const { storeWalletAddress } = useWalletStorage();
   const [walletInfo, setWalletInfo] = useState<string>("No wallet info available");
   const [telegramUser, setTelegramUser] = useState<TelegramUser | null>(null);
+  const [isTonkeeperBrowser, setIsTonkeeperBrowser] = useState(false);
   
   const { 
     dialogOpen, 
@@ -30,8 +30,12 @@ const TonConnectButton: React.FC = () => {
   } = useWalletDialog(connected, isConnecting, isMobile, isTelegramMiniApp);
 
   useEffect(() => {
+    // Check if we're inside Tonkeeper browser
+    const checkTonkeeperBrowser = /Tonkeeper/i.test(navigator.userAgent);
+    setIsTonkeeperBrowser(checkTonkeeperBrowser);
+    
     if (wallet) {
-      const info = `Wallet initialized: ${!!wallet}, Connected: ${connected}, Address: ${address}, Available wallets: ${available.length}, Mobile: ${isMobile}, TG Mini App: ${isTelegramMiniApp}`;
+      const info = `Wallet initialized: ${!!wallet}, Connected: ${connected}, Address: ${address}, Available wallets: ${available.length}, Mobile: ${isMobile}, TG Mini App: ${isTelegramMiniApp}, Tonkeeper Browser: ${checkTonkeeperBrowser}`;
       console.log(info);
       setWalletInfo(info);
     }
@@ -77,7 +81,12 @@ const TonConnectButton: React.FC = () => {
       
       console.log("Available wallets:", available.map(w => w.name).join(', '));
       
-      if (isMobile || isTelegramMiniApp) {
+      if (isTonkeeperBrowser) {
+        toast({
+          title: "Connecting to Tonkeeper",
+          description: "Using in-app connection. Please approve the request.",
+        });
+      } else if (isMobile || isTelegramMiniApp) {
         toast({
           title: "Opening Tonkeeper",
           description: "Opening Tonkeeper wallet. Please approve the connection request.",
@@ -118,6 +127,14 @@ const TonConnectButton: React.FC = () => {
       });
     }
   };
+
+  // If we're inside Tonkeeper browser and not connected, auto-connect
+  useEffect(() => {
+    if (isTonkeeperBrowser && !connected && !isConnecting && available.length > 0) {
+      console.log("Auto-connecting in Tonkeeper browser");
+      handleConnect();
+    }
+  }, [isTonkeeperBrowser, connected, isConnecting, available]);
 
   return (
     <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>

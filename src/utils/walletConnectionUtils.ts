@@ -1,4 +1,3 @@
-
 import { TonConnect } from "@tonconnect/sdk";
 import { detectMobileDevice, isTelegramMiniAppEnvironment } from "./environmentUtils";
 import { clearConnectionTimeout, setupConnectionTimeout } from "./timeoutUtils";
@@ -8,7 +7,6 @@ import {
   handleMobileConnection, 
   handleDesktopConnection 
 } from "./wallet";
-// Import toast directly instead of using require()
 import { toast as showToast } from "@/hooks/use-toast";
 
 export { 
@@ -32,6 +30,13 @@ export const connectToTonkeeper = async (
   console.log("Environment:", { isMobile, isTelegramMiniApp });
   console.log("Available wallets:", available.map(w => w.name));
   
+  // Check if running inside Tonkeeper browser
+  const isTonkeeperBrowser = /Tonkeeper/i.test(navigator.userAgent);
+  if (isTonkeeperBrowser) {
+    console.log("★★★ Running inside Tonkeeper browser! Using direct connection method");
+    isMobile = true; // Force mobile mode
+  }
+  
   // Force Telegram Mini App detection
   const forceTelegramCheck = window.Telegram && window.Telegram.WebApp;
   if (forceTelegramCheck && !isTelegramMiniApp) {
@@ -45,7 +50,7 @@ export const connectToTonkeeper = async (
   // Force mobile detection for iOS/Android devices - this is critical
   const userAgent = navigator.userAgent || '';
   const forceMobile = /iPhone|iPad|iPod|Android/i.test(userAgent);
-  if ((forceMobile || isTelegramMiniApp) && !isMobile) {
+  if ((forceMobile || isTelegramMiniApp || isTonkeeperBrowser) && !isMobile) {
     console.log("⚠️ Forcing mobile environment detection based on user agent or Telegram");
     isMobile = true;
   }
@@ -71,7 +76,8 @@ export const connectToTonkeeper = async (
       name: tonkeeper.name,
       universalUrl: tonkeeper.universalUrl ? tonkeeper.universalUrl : "Not available",
       deepLink: tonkeeper.deepLink ? tonkeeper.deepLink : "Not available",
-      bridgeCount: tonkeeper.bridge?.length || 0
+      bridgeCount: tonkeeper.bridge?.length || 0,
+      injected: tonkeeper.injected
     });
 
     // Set up a connection timeout - longer for mobile to account for app switching
@@ -87,6 +93,19 @@ export const connectToTonkeeper = async (
 
     // Log user agent for debugging mobile issues
     console.log("User agent:", navigator.userAgent);
+    
+    // Special handling for Tonkeeper browser
+    if (isTonkeeperBrowser) {
+      console.log("Using Tonkeeper browser connection method");
+      try {
+        await wallet.connect({ jsBridgeKey: "tonkeeper" });
+        console.log("Connected via Tonkeeper browser");
+        return;
+      } catch (e) {
+        console.error("Error connecting in Tonkeeper browser:", e);
+        // Fall through to mobile method
+      }
+    }
     
     // Determine and execute the appropriate connection method based on environment
     if (isTelegramMiniApp) {

@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { TonConnect, WalletInfo } from "@tonconnect/sdk";
 import { detectMobileDevice, isTelegramMiniAppEnvironment } from "@/utils/environmentUtils";
@@ -16,8 +15,15 @@ export const useWalletConnectionState = (wallet: TonConnect | null) => {
   const [isTelegramMiniApp, setIsTelegramMiniApp] = useState(false);
 
   useEffect(() => {
-    // Check if device is mobile
-    setIsMobile(detectMobileDevice());
+    // Check if we're inside Tonkeeper browser
+    const isTonkeeperBrowser = /Tonkeeper/i.test(navigator.userAgent);
+    if (isTonkeeperBrowser) {
+      console.log("★★★ Detected Tonkeeper browser in wallet connection state!");
+      setIsMobile(true);
+    } else {
+      // Check if device is mobile
+      setIsMobile(detectMobileDevice());
+    }
     
     // Check if running in Telegram Mini App
     setIsTelegramMiniApp(isTelegramMiniAppEnvironment());

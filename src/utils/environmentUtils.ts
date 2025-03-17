@@ -9,7 +9,7 @@
 export const detectMobileDevice = (): boolean => {
   if (typeof window === 'undefined') return false;
   
-  // Force mobile detection for common mobile devices
+  // Force mobile detection for common mobile devices - this is the most reliable check
   const userAgent = navigator.userAgent || '';
   if (/iPhone|iPad|iPod|Android/i.test(userAgent)) {
     console.log("Mobile device detected via user agent");

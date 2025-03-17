@@ -1,4 +1,3 @@
-
 import { TonConnect } from "@tonconnect/sdk";
 
 /**
@@ -24,6 +23,20 @@ export const handleMobileConnection = async (
   
   // On iOS, try the universal URL first as it's more reliable
   const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
+  
+  // For Tonkeeper Browser specifically
+  const isTonkeeperBrowser = /Tonkeeper/i.test(navigator.userAgent);
+  if (isTonkeeperBrowser) {
+    console.log("Detected Tonkeeper browser - using direct connection");
+    try {
+      await wallet.connect({ jsBridgeKey: "tonkeeper" });
+      console.log("Connected via direct bridge in Tonkeeper browser");
+      return;
+    } catch (e) {
+      console.error("Failed to use direct connection in Tonkeeper browser:", e);
+      // Fall through to other methods
+    }
+  }
   
   if (isIOS && tonkeeper.universalUrl) {
     console.log("iOS detected - using universal URL first");
