@@ -7,6 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import TelegramLoginButton, { TelegramUser } from "@/components/TelegramLoginButton";
 import UserProfileSection from "@/components/UserProfileSection";
 import { useToast } from "@/hooks/use-toast";
+import { useTelegramAuth } from "@/hooks/useTelegramAuth";
 
 const EarnPage = () => {
   const [balance, setBalance] = useState(() => {
@@ -16,6 +17,7 @@ const EarnPage = () => {
   });
   const [telegramUser, setTelegramUser] = useState<TelegramUser | null>(null);
   const { toast } = useToast();
+  const { autoLogin } = useTelegramAuth();
   
   useEffect(() => {
     // Set page title
@@ -30,8 +32,19 @@ const EarnPage = () => {
         console.error('Failed to parse stored user:', e);
         localStorage.removeItem('telegramUser');
       }
+    } else {
+      // Try auto-login if coming from Telegram WebApp
+      autoLogin().then(user => {
+        if (user) {
+          setTelegramUser(user);
+          toast({
+            title: 'Login Successful',
+            description: `Welcome, ${user.first_name}!`,
+          });
+        }
+      });
     }
-  }, []);
+  }, [toast, autoLogin]);
 
   useEffect(() => {
     // Save balance to localStorage whenever it changes
@@ -41,6 +54,18 @@ const EarnPage = () => {
     if (telegramUser) {
       const updateBalanceInSupabase = async () => {
         try {
+          // Look for a default wallet address for this user
+          const { data: walletLinks } = await supabase
+            .from('user_wallet_links')
+            .select('wallet_address')
+            .eq('telegram_id', telegramUser.id)
+            .eq('is_primary', true)
+            .limit(1);
+            
+          const defaultWalletAddress = walletLinks && walletLinks.length > 0 
+            ? walletLinks[0].wallet_address 
+            : 'telegram-user-' + telegramUser.id; // Fallback wallet address
+          
           // First check if this telegram user has a balance record
           const { data } = await supabase
             .from('wallet_balances')
@@ -55,12 +80,13 @@ const EarnPage = () => {
               .update({ fipt_balance: balance })
               .eq('telegram_id', telegramUser.id);
           } else {
-            // Insert new balance record
+            // Insert new balance record with the fallback wallet address
             await supabase
               .from('wallet_balances')
               .insert({
                 telegram_id: telegramUser.id,
-                fipt_balance: balance
+                fipt_balance: balance,
+                wallet_address: defaultWalletAddress
               });
           }
         } catch (err) {
@@ -86,6 +112,7 @@ const EarnPage = () => {
   // Handle logout
   const handleLogout = () => {
     setTelegramUser(null);
+    localStorage.removeItem('telegramUser');
   };
 
   return (

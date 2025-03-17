@@ -30,6 +30,18 @@ const FeedHeader = ({ balance }: FeedHeaderProps) => {
     if (telegramUser) {
       const updateBalanceInSupabase = async () => {
         try {
+          // Look for a default wallet address for this user
+          const { data: walletLinks } = await supabase
+            .from('user_wallet_links')
+            .select('wallet_address')
+            .eq('telegram_id', telegramUser.id)
+            .eq('is_primary', true)
+            .limit(1);
+            
+          const defaultWalletAddress = walletLinks && walletLinks.length > 0 
+            ? walletLinks[0].wallet_address 
+            : 'telegram-user-' + telegramUser.id; // Fallback wallet address
+          
           // First check if this telegram user has a balance record
           const { data } = await supabase
             .from('wallet_balances')
@@ -44,12 +56,13 @@ const FeedHeader = ({ balance }: FeedHeaderProps) => {
               .update({ fipt_balance: balance })
               .eq('telegram_id', telegramUser.id);
           } else {
-            // Insert new balance record
+            // Insert new balance record with the fallback wallet address
             await supabase
               .from('wallet_balances')
               .insert({
                 telegram_id: telegramUser.id,
-                fipt_balance: balance
+                fipt_balance: balance,
+                wallet_address: defaultWalletAddress
               });
           }
         } catch (err) {

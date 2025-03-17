@@ -127,7 +127,19 @@ const UserProfileSection = ({ onLogout }: UserProfileSectionProps) => {
                 fipt_balance: parsedBalance
               });
           } else {
-            // Just check if we have an entry for this telegram user
+            // Check if there's a default wallet address for this user
+            const { data: walletLinks } = await supabase
+              .from('user_wallet_links')
+              .select('wallet_address')
+              .eq('telegram_id', telegramUser.id)
+              .eq('is_primary', true)
+              .limit(1);
+              
+            const defaultWalletAddress = walletLinks && walletLinks.length > 0 
+              ? walletLinks[0].wallet_address 
+              : 'telegram-user-' + telegramUser.id; // Fallback wallet address
+            
+            // First check if we have an entry for this telegram user
             const { data } = await supabase
               .from('wallet_balances')
               .select('id')
@@ -141,12 +153,13 @@ const UserProfileSection = ({ onLogout }: UserProfileSectionProps) => {
                 .update({ fipt_balance: parsedBalance })
                 .eq('telegram_id', telegramUser.id);
             } else {
-              // Create a new entry without wallet_address
+              // Create a new entry with the fallback wallet address
               await supabase
                 .from('wallet_balances')
                 .insert({
                   telegram_id: telegramUser.id,
-                  fipt_balance: parsedBalance
+                  fipt_balance: parsedBalance,
+                  wallet_address: defaultWalletAddress
                 });
             }
           }
