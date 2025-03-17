@@ -50,6 +50,7 @@ const EarnButton = ({ onEarn, disabled = false }: EarnButtonProps) => {
       setShowAnimation(false);
     }, 700);
     
+    // Check if we need to show the ad (after 10 clicks)
     if ((points + 1) % 10 === 0) {
       setPendingPoints(10);
       setShowAdDialog(true);
@@ -132,7 +133,7 @@ const EarnButton = ({ onEarn, disabled = false }: EarnButtonProps) => {
           "absolute inset-2 rounded-full flex items-center justify-center",
           disabled ? "bg-gray-100" : "bg-white"
         )}>
-          <div className="flex flex-col items-center justify-center gap-3">
+          <div className="flex flex-col items-center justify-center gap-3 pointer-events-none">
             <Sparkles className={cn(
               "w-10 h-10", 
               disabled ? "text-gray-400" : "text-fipt-blue"
