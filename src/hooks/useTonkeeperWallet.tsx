@@ -1,12 +1,9 @@
-
 import { useEffect, useState } from "react";
 import { TonConnect, WalletInfo } from "@tonconnect/sdk";
-import { Address } from "@ton/core";
 
 export const useTonkeeperWallet = () => {
   const [wallet, setWallet] = useState<TonConnect | null>(null);
   const [address, setAddress] = useState<string | null>(null);
-  const [rawAddress, setRawAddress] = useState<string | null>(null);
   const [connected, setConnected] = useState(false);
   const [available, setAvailable] = useState<WalletInfo[]>([]);
 
@@ -39,19 +36,7 @@ export const useTonkeeperWallet = () => {
           const walletInfo = connector.wallet;
           console.log("Already connected to wallet:", walletInfo);
           if (walletInfo?.account.address) {
-            const rawAddr = walletInfo.account.address;
-            setRawAddress(rawAddr);
-            
-            // Convert raw address to user-friendly format
-            try {
-              const userFriendlyAddress = Address.parseRaw(rawAddr).toString();
-              console.log("Formatted address:", userFriendlyAddress);
-              setAddress(userFriendlyAddress);
-            } catch (error) {
-              console.error("Failed to format address:", error);
-              setAddress(rawAddr); // Fallback to raw address
-            }
-            
+            setAddress(walletInfo.account.address);
             setConnected(true);
           }
         } else {
@@ -66,26 +51,12 @@ export const useTonkeeperWallet = () => {
         console.log("Wallet status changed:", walletInfo);
         if (walletInfo && walletInfo.account) {
           console.log("Connected with address:", walletInfo.account.address);
-          
-          const rawAddr = walletInfo.account.address;
-          setRawAddress(rawAddr);
-          
-          // Convert raw address to user-friendly format
-          try {
-            const userFriendlyAddress = Address.parseRaw(rawAddr).toString();
-            console.log("Formatted address:", userFriendlyAddress);
-            setAddress(userFriendlyAddress);
-          } catch (error) {
-            console.error("Failed to format address:", error);
-            setAddress(rawAddr); // Fallback to raw address
-          }
-          
           setConnected(true);
+          setAddress(walletInfo.account.address);
         } else {
           console.log("Disconnected");
           setConnected(false);
           setAddress(null);
-          setRawAddress(null);
         }
       });
 
@@ -122,13 +93,9 @@ export const useTonkeeperWallet = () => {
       // Connect to the wallet using the TonConnect API
       // The properties will depend on the wallet type
       const result = wallet.connect({
-        // Using the required properties based on wallet type
+        // Use type-safe way to connect based on wallet info
         jsBridgeKey: 'tonkeeper', // Default fallback value
-        universalLink: tonkeeperWallet.hasOwnProperty('universalLink') 
-          ? (tonkeeperWallet as any).universalLink 
-          : (tonkeeperWallet.hasOwnProperty('bridgeUrl') 
-            ? (tonkeeperWallet as any).bridgeUrl 
-            : undefined)
+        universalLink: tonkeeperWallet.universalLink || tonkeeperWallet.bridgeUrl // Try both possible properties
       });
       
       console.log("Connection initiated:", result);
@@ -146,5 +113,5 @@ export const useTonkeeperWallet = () => {
     }
   };
 
-  return { connectWallet, disconnectWallet, connected, address, rawAddress, wallet, available };
+  return { connectWallet, disconnectWallet, connected, address, wallet, available };
 };
