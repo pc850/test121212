@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import { TonConnect, WalletInfo } from "@tonconnect/sdk";
 
@@ -80,7 +81,8 @@ export const useTonkeeperWallet = () => {
       // Get tonkeeper from available wallets
       const tonkeeperWallet = available.find(w => 
         w.name.toLowerCase().includes('tonkeeper') || 
-        w.id.toLowerCase().includes('tonkeeper')
+        (w as any).appName?.toLowerCase().includes('tonkeeper') || 
+        (typeof w === 'object' && 'id' in w && (w as any).id.toLowerCase().includes('tonkeeper'))
       );
       
       if (!tonkeeperWallet) {
