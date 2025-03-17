@@ -1,7 +1,8 @@
+
 import { TelegramUser } from "@/types/telegram";
 import { supabase } from "@/integrations/supabase/client";
 
-// The Telegram bot username we're using (https://t.me/Chicktok_bot)
+// The Telegram bot username we're using (https://t.me/Chicktok_bot?profile)
 const TELEGRAM_BOT_NAME = 'Chicktok_bot';
 
 export const verifyTelegramLogin = async (user: TelegramUser): Promise<boolean> => {

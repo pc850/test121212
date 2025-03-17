@@ -4,8 +4,8 @@ import { TelegramLoginButtonProps } from '@/types/telegramLogin';
 import { useTelegramLogin } from '@/hooks/useTelegramLogin';
 import TelegramLoginButtonUI from './telegram/TelegramLoginButtonUI';
 
-// Default to Chicktok_bot which is https://t.me/Chicktok_bot
 const TelegramLoginButton: React.FC<TelegramLoginButtonProps> = (props) => {
+  // Default bot name is Chicktok_bot which is https://t.me/Chicktok_bot?profile
   const { telegramBtnRef, scriptLoaded, handleTelegramAuth } = useTelegramLogin({
     onAuth: props.onAuth
   });
@@ -13,6 +13,7 @@ const TelegramLoginButton: React.FC<TelegramLoginButtonProps> = (props) => {
   return (
     <TelegramLoginButtonUI
       {...props}
+      botName={props.botName || 'Chicktok_bot'}
       btnRef={telegramBtnRef}
       scriptLoaded={scriptLoaded}
       onAuthCallback={handleTelegramAuth}

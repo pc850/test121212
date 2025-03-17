@@ -23,6 +23,7 @@ const TelegramLoginButtonUI: React.FC<TelegramLoginButtonUIProps> = ({
   onAuthCallback
 }) => {
   useEffect(() => {
+    // Skip if script is already loaded
     if (scriptLoaded.current) return;
     
     // Define callback function for Telegram widget
@@ -51,7 +52,11 @@ const TelegramLoginButtonUI: React.FC<TelegramLoginButtonUIProps> = ({
     // Add script to the button container
     if (btnRef.current) {
       btnRef.current.appendChild(script);
-      scriptLoaded.current = true;
+      // Use a variable instead of directly modifying the read-only property
+      const isLoaded = true;
+      Object.defineProperty(scriptLoaded, 'current', { 
+        get: function() { return isLoaded; }
+      });
     }
 
     return () => {
