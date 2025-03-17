@@ -1,5 +1,4 @@
-
-"use client"; // If you're using Next.js App Router and need client-side rendering
+"use client"; // If using Next.js App Router and need client-side rendering
 
 import React, { useState } from "react";
 import { Wallet } from "lucide-react";
@@ -18,9 +17,10 @@ import { toast } from "@/hooks/use-toast";
 import { TonConnect } from "@tonconnect/sdk";
 
 // 2) Supabase client import
-import { supabase } from "@/integrations/supabase/client";
+import { supabase } from "@/lib/supabase"; 
+// Make sure you have a supabase.ts (or similar) exporting your configured client
 
-// 3) Initialize TonConnect
+// 3) Initialize TonConnect using your domain’s manifest
 const tonConnect = new TonConnect({
   manifestUrl: "https://fipt-wonderland.lovable.app/tonconnect-manifest.json",
 });
@@ -46,10 +46,10 @@ const TonConnectButton: React.FC = () => {
           description: `Wallet address: ${address}`,
         });
 
-        // 4) Store the wallet address in Supabase
+        // 4) Store the wallet address in Supabase (replace table/column names as needed)
         const { data, error } = await supabase
-          .from("connected_wallets")               // Using the table name from your Supabase schema
-          .insert({ wallet_address: address }); 
+          .from("wallets") // Your table name
+          .insert({ wallet_address: address }); // Your column name
 
         if (error) {
           console.error("Supabase insertion error:", error);
