@@ -70,8 +70,9 @@ export const useTonkeeperWallet = () => {
       console.log("Available wallets:", wallets);
       
       // Connect using mobile-friendly parameters
+      // Fixing the property name from 'universalUrl' to 'universalLink'
       const result = await wallet.connect({
-        universalUrl: "https://app.tonkeeper.com/ton-connect",
+        universalLink: "https://app.tonkeeper.com/ton-connect",
         bridgeUrl: "https://bridge.tonapi.io/bridge"
       });
       
