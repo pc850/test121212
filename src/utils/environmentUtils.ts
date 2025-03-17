@@ -9,10 +9,27 @@
 export const detectMobileDevice = (): boolean => {
   if (typeof window === 'undefined') return false;
   
-  const userAgent = navigator.userAgent || navigator.vendor || (window as any).opera || '';
-  const mobileRegex = /android|webos|iphone|ipad|ipod|blackberry|iemobile|opera mini/i;
+  // Check for touch capabilities
+  const hasTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
   
-  return mobileRegex.test(userAgent.toLowerCase());
+  // Check user agent for common mobile strings
+  const userAgent = navigator.userAgent || navigator.vendor || (window as any).opera || '';
+  const mobileRegex = /android|webos|iphone|ipad|ipod|blackberry|iemobile|opera mini|mobile|tablet|mobi/i;
+  
+  // Check screen size
+  const smallScreen = window.innerWidth < 768;
+  
+  // If at least two conditions match, it's likely a mobile device
+  const mobileConditions = [
+    hasTouch,
+    mobileRegex.test(userAgent.toLowerCase()),
+    smallScreen
+  ];
+  
+  // Count how many conditions match
+  const matchCount = mobileConditions.filter(Boolean).length;
+  
+  return matchCount >= 2 || /iPhone|Android/i.test(userAgent); // Force true for common mobile devices
 };
 
 /**
@@ -30,7 +47,10 @@ export const isTelegramMiniAppEnvironment = (): boolean => {
                            urlParams.has('tgWebAppStartParam') || 
                            urlParams.has('tgWebAppPlatform');
   
-  return hasTelegramWebApp || hasTelegramParams;
+  // Check local storage for explicit flags
+  const storedFlag = localStorage.getItem('isTelegramMiniApp') === 'true';
+  
+  return hasTelegramWebApp || hasTelegramParams || storedFlag;
 };
 
 /**
@@ -46,6 +66,8 @@ export const getEnvironmentInfo = () => {
     userAgent: typeof window !== 'undefined' ? navigator.userAgent : '',
     platform: typeof window !== 'undefined' ? navigator.platform : '',
     isIOS: typeof window !== 'undefined' ? /iPhone|iPad|iPod/.test(navigator.userAgent) : false,
-    isAndroid: typeof window !== 'undefined' ? /Android/.test(navigator.userAgent) : false
+    isAndroid: typeof window !== 'undefined' ? /Android/.test(navigator.userAgent) : false,
+    screenWidth: typeof window !== 'undefined' ? window.innerWidth : 0,
+    screenHeight: typeof window !== 'undefined' ? window.innerHeight : 0
   };
 };

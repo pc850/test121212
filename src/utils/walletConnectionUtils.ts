@@ -29,7 +29,7 @@ export const connectToTonkeeper = async (
   console.log("Environment:", { isMobile, isTelegramMiniApp });
   console.log("Available wallets:", available.map(w => w.name));
   
-  // Double-check Telegram environment to be absolutely sure
+  // Double-check environment detection to be absolutely sure
   const forceTelegramCheck = window.Telegram && window.Telegram.WebApp;
   if (forceTelegramCheck && !isTelegramMiniApp) {
     console.log("Forcing Telegram Mini App environment detection based on window.Telegram.WebApp");
@@ -55,13 +55,19 @@ export const connectToTonkeeper = async (
     if (!tonkeeper) {
       console.error("No Tonkeeper wallet found in available wallets");
       setIsConnecting(false);
-      return;
+      throw new Error("Tonkeeper wallet not found");
     }
 
-    // Set up appropriate timeouts based on environment
-    // Mobile connections need longer timeouts especially when app switching is involved
-    const timeoutDuration = isTelegramMiniApp ? 180000 : // 3 minutes for Telegram
-                           (isMobile ? 120000 : 30000);  // 2 minutes for mobile, 30s for desktop
+    // Enhanced logging of the wallet details for debugging
+    console.log("Found Tonkeeper wallet:", {
+      name: tonkeeper.name,
+      universalUrl: tonkeeper.universalUrl ? "Available" : "Not available",
+      deepLink: tonkeeper.deepLink ? "Available" : "Not available",
+      bridgeCount: tonkeeper.bridge?.length || 0
+    });
+
+    // Set up a connection timeout - longer for mobile to account for app switching
+    const timeoutDuration = isMobile ? 180000 : 30000; // 3 min for mobile, 30s for desktop
     
     console.log(`Setting up connection timeout for ${timeoutDuration}ms`);
     const timeout = setupConnectionTimeout(timeoutDuration, () => {
@@ -71,42 +77,51 @@ export const connectToTonkeeper = async (
     
     setConnectionTimeout(timeout);
 
-    // Log additional debugging information
-    if (isTelegramMiniApp) {
-      console.log("Telegram WebApp info:", 
-        window.Telegram ? "Available" : "Not available",
-        window.Telegram?.WebApp ? "WebApp available" : "WebApp not available"
-      );
-      
-      if (window.Telegram?.WebApp) {
-        console.log("Telegram platform:", window.Telegram.WebApp.platform || "unknown");
-        console.log("Telegram version:", window.Telegram.WebApp.version || "unknown");
-      }
-    }
-
+    // Log user agent for debugging mobile issues
+    console.log("User agent:", navigator.userAgent);
+    
     // Determine and execute the appropriate connection method based on environment
-    try {
-      if (isTelegramMiniApp) {
-        await handleTelegramMiniAppConnection(wallet, tonkeeper);
-      } else if (isMobile) {
-        await handleMobileConnection(wallet, tonkeeper);
-      } else {
-        await handleDesktopConnection(wallet, tonkeeper);
-      }
-      
-      console.log("Connection attempt completed without errors");
-    } catch (error) {
-      console.error("Error during connection attempt:", error);
-      // Don't immediately clear connecting state as connection might still complete
-      // after navigation on mobile devices
+    if (isTelegramMiniApp) {
+      toast({
+        title: "Opening Tonkeeper",
+        description: "This will open Tonkeeper outside of Telegram. Please approve the connection request and return to this app.",
+      });
+      await handleTelegramMiniAppConnection(wallet, tonkeeper);
+    } else if (isMobile) {
+      toast({
+        title: "Opening Tonkeeper",
+        description: "Launching Tonkeeper app. If the app doesn't open automatically, you may need to install it.",
+      });
+      await handleMobileConnection(wallet, tonkeeper);
+    } else {
+      toast({
+        title: "Connecting to Tonkeeper",
+        description: "Please check your browser extension or desktop app to approve the connection.",
+      });
+      await handleDesktopConnection(wallet, tonkeeper);
     }
     
+    console.log("Connection initiation completed");
     return;
   } catch (error) {
     console.error("Error connecting to wallet:", error);
     setIsConnecting(false);
     clearConnectionTimeout(connectionTimeout);
     setConnectionTimeout(null);
+    
+    toast({
+      title: "Connection Error",
+      description: "Failed to connect to Tonkeeper. Please ensure the app is installed and try again.",
+      variant: "destructive"
+    });
+    
     throw error;
   }
+};
+
+// Helper for showing toast messages without repeating code
+const toast = (options: { title: string; description: string; variant?: "default" | "destructive" }) => {
+  // Import at runtime to avoid circular dependencies
+  const { toast: showToast } = require("@/hooks/use-toast");
+  showToast(options);
 };

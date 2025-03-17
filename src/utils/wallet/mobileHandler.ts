@@ -19,57 +19,72 @@ export const handleMobileConnection = async (
   };
   console.log("Wallet details:", walletInfo);
   
-  // For mobile connections, deep links work better than universal URLs in most cases
+  // Add unique ID to prevent caching and improve tracking
+  const uniqueId = `${Date.now()}-${Math.floor(Math.random() * 1000000)}`;
+  
+  // Try deep link first - this is most reliable on mobile
   if (tonkeeper.deepLink) {
     console.log("Using deep link for mobile:", tonkeeper.deepLink);
     
     try {
-      // Add a timestamp to prevent caching issues
-      const timestamp = Date.now();
-      const deepLinkWithParam = `${tonkeeper.deepLink}?t=${timestamp}`;
+      // Format URL with universal app link format
+      let deepLinkUrl = tonkeeper.deepLink;
       
-      // Force a direct location change instead of window.open for better mobile handling
-      window.location.href = deepLinkWithParam;
-      console.log("Redirected to deep link with timestamp");
-      return; // Return early as we've navigated away
+      // Add connection parameters & unique ID to prevent caching
+      const paramChar = deepLinkUrl.includes('?') ? '&' : '?';
+      deepLinkUrl = `${deepLinkUrl}${paramChar}t=${uniqueId}`;
+      
+      console.log("Final deep link URL:", deepLinkUrl);
+      
+      // Force direct navigation for best mobile compatibility
+      window.location.href = deepLinkUrl;
+      console.log("Redirected to Tonkeeper deep link");
+      
+      // Return early as we're navigating away
+      return;
     } catch (e) {
-      console.error("Error redirecting to deep link:", e);
-      // Continue to try other methods if deep link fails
+      console.error("Failed to redirect to deep link:", e);
     }
-  } 
+  }
   
-  // If no deep link or it failed, try universal URL
+  // Try universal URL as fallback if deep link fails
   if (tonkeeper.universalUrl) {
-    console.log("Using universal URL for mobile:", tonkeeper.universalUrl);
+    console.log("Using universal URL as fallback:", tonkeeper.universalUrl);
     
     try {
-      // Add a timestamp to prevent caching issues
-      const timestamp = Date.now();
-      const universalUrlWithParam = `${tonkeeper.universalUrl}${tonkeeper.universalUrl.includes('?') ? '&' : '?'}t=${timestamp}`;
+      // Add unique ID to prevent caching
+      const paramChar = tonkeeper.universalUrl.includes('?') ? '&' : '?';
+      const universalUrl = `${tonkeeper.universalUrl}${paramChar}t=${uniqueId}`;
       
-      // Force a direct location change for better mobile handling
-      window.location.href = universalUrlWithParam;
-      console.log("Redirected to universal URL with timestamp");
-      return; // Return early as we've navigated away
+      console.log("Final universal URL:", universalUrl);
+      
+      // Force direct navigation
+      window.location.href = universalUrl;
+      console.log("Redirected to universal URL");
+      
+      // Return early as we're navigating away
+      return;
     } catch (e) {
-      console.error("Error redirecting to universal URL:", e);
-      // Try window.open as fallback
+      console.error("Failed to redirect to universal URL:", e);
+      
+      // One more attempt with window.open as last resort
       try {
-        window.open(tonkeeper.universalUrl, '_blank', 'noreferrer');
+        window.open(tonkeeper.universalUrl, '_blank');
         console.log("Opened universal URL in new window");
+        return;
       } catch (e2) {
-        console.error("Window.open fallback failed:", e2);
+        console.error("Window.open fallback also failed:", e2);
       }
     }
-  } 
+  }
   
-  // Last resort: try the standard connection method
-  console.log("No deep link or universal URL worked, using standard connect");
+  // Last resort: try standard connect method if all else fails
+  console.log("All direct connection methods failed, attempting standard connect");
   try {
     await wallet.connect({ jsBridgeKey: "tonkeeper" });
-    console.log("Standard connect method called");
+    console.log("Standard connect method executed");
   } catch (e) {
-    console.error("Error in standard connect:", e);
+    console.error("Standard connect also failed:", e);
     throw e; // Rethrow so caller knows connection failed
   }
 };

@@ -63,11 +63,17 @@ export const useTonkeeperWallet = () => {
       console.error("Wallet instance is not initialized");
       return;
     }
+    
+    // Always use forceMobile=true if on mobile according to user agent
+    const forceMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+    if (forceMobile && !isMobile) {
+      console.log("Force setting mobile mode based on user agent");
+    }
 
     return connectToTonkeeper(
       wallet,
       available,
-      isMobile,
+      forceMobile || isMobile,
       isTelegramMiniApp,
       setIsConnecting,
       setConnectionTimeout,

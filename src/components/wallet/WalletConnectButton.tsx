@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui";
 import { TelegramUser } from "@/types/telegram";
-import { ExternalLink, AlertTriangle, RefreshCw } from "lucide-react";
+import { ExternalLink, AlertTriangle, RefreshCw, Smartphone } from "lucide-react";
 
 interface WalletConnectButtonProps {
   isConnecting: boolean;
