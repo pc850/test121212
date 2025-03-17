@@ -1,21 +1,4 @@
 
-// Polyfills for WalletConnect
-window.global = window;
-window.Buffer = window.Buffer || require('buffer').Buffer;
-
-// Create a type-safe process polyfill
-interface ProcessEnv {
-  [key: string]: string | undefined;
-}
-
-interface ProcessPolyfill {
-  env: ProcessEnv;
-}
-
-// Apply the process polyfill with correct typing
-// Use a double type assertion to bypass TypeScript's strict type checking
-window.process = window.process || ({ env: {} } as any);
-
 import { createRoot } from 'react-dom/client'
 import App from './App.tsx'
 import './index.css'
