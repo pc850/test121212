@@ -1,7 +1,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { getTonClient } from "@ton/ton";
+import { TonClient } from "@ton/ton";
 import { Address } from "@ton/core";
 
 export function useTonConnect() {
