@@ -31,9 +31,9 @@ const TonConnectButton: React.FC = () => {
   const connectWallet = async () => {
     try {
       // Connect only to Tonkeeper
-      const wallets = await tonConnect.connect([{ id: "tonkeeper" }]);
-      if (wallets && wallets.length > 0) {
-        const address = wallets[0].account.address;
+      const wallets = await tonConnect.connect([{ bridgeUrl: 'https://bridge.tonapi.io/bridge' }]);
+      if (wallets && typeof wallets === 'object') {
+        const address = wallets.toString();
 
         // Update local state
         setWalletAddress(address);

@@ -6,6 +6,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Award, ChevronRight, BarChart3, Settings, Users } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Separator } from "@/components/ui/separator";
+import TonConnectButton from "@/components/TonConnectButton";
 
 const ProfilePage = () => {
   useEffect(() => {
@@ -16,14 +17,21 @@ const ProfilePage = () => {
   return (
     <div className="min-h-screen flex flex-col animate-fade-in">
       {/* Profile Header */}
-      <ProfileHeader 
-        username="crypto_user"
-        userAvatar="https://i.pravatar.cc/150?img=5"
-        points={1250}
-        followers={142}
-        following={35}
-        bio="FIPT enthusiast | Crypto lover | Web3 explorer"
-      />
+      <div className="flex flex-col">
+        <ProfileHeader 
+          username="crypto_user"
+          userAvatar="https://i.pravatar.cc/150?img=5"
+          points={1250}
+          followers={142}
+          following={35}
+          bio="FIPT enthusiast | Crypto lover | Web3 explorer"
+        />
+        
+        {/* Connect Wallet Button - Added below the profile header */}
+        <div className="px-6 pb-2 flex justify-end -mt-2">
+          <TonConnectButton />
+        </div>
+      </div>
       
       {/* Tabs Section */}
       <div className="flex-1 px-4 mt-4">
