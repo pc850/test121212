@@ -1,3 +1,4 @@
+
 "use client"; // For Next.js App Router client-side rendering
 
 import React, { useState, useEffect } from "react";
@@ -18,7 +19,7 @@ import { useTonkeeperWallet } from "@/hooks/useTonkeeperWallet";
 import { supabase } from "@/integrations/supabase/client";
 
 const TonConnectButton: React.FC = () => {
-  const { connectWallet, disconnectWallet, connected, address, wallet, available } = useTonkeeperWallet();
+  const { connectWallet, disconnectWallet, connected, address, rawAddress, wallet, available } = useTonkeeperWallet();
   const [isConnecting, setIsConnecting] = useState(false);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [walletInfo, setWalletInfo] = useState<string>("No wallet info available");
@@ -151,6 +152,14 @@ const TonConnectButton: React.FC = () => {
               <p className="text-xs text-muted-foreground break-all">
                 {address}
               </p>
+              {rawAddress && (
+                <>
+                  <p className="text-sm font-medium mt-2">Raw Address</p>
+                  <p className="text-xs text-muted-foreground break-all">
+                    {rawAddress}
+                  </p>
+                </>
+              )}
             </div>
             <Button
               variant="destructive"
