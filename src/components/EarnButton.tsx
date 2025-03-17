@@ -51,6 +51,7 @@ const EarnButton = ({ onEarn, disabled = false }: EarnButtonProps) => {
     }, 700);
     
     if ((points + 1) % 10 === 0) {
+      console.log("Showing ad dialog after 10 clicks");
       setPendingPoints(10);
       setShowAdDialog(true);
     }
