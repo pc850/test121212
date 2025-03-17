@@ -1,4 +1,3 @@
-
 "use client"; // For Next.js App Router client-side rendering
 
 import React, { useState, useEffect } from "react";
@@ -15,12 +14,13 @@ import {
 import { toast } from "@/hooks/use-toast";
 import { useTonkeeperWallet } from "@/hooks/useTonkeeperWallet";
 import { TelegramUser } from "@/components/TelegramLoginButton";
-
-// Import Supabase client
-import { supabase } from "@/integrations/supabase/client";
+import { useWalletStorage } from "@/hooks/useWalletStorage";
+import WalletInfoDisplay from "@/components/wallet/WalletInfoDisplay";
+import WalletConnectButton from "@/components/wallet/WalletConnectButton";
 
 const TonConnectButton: React.FC = () => {
   const { connectWallet, disconnectWallet, connected, address, wallet, available } = useTonkeeperWallet();
+  const { storeWalletAddress } = useWalletStorage();
   const [isConnecting, setIsConnecting] = useState(false);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [walletInfo, setWalletInfo] = useState<string>("No wallet info available");
@@ -86,43 +86,6 @@ const TonConnectButton: React.FC = () => {
     }
   };
 
-  const storeWalletAddress = async (address: string) => {
-    try {
-      // Store wallet address in connected_wallets
-      const { error } = await supabase
-        .from("connected_wallets")
-        .insert({ wallet_address: address });
-
-      if (error) {
-        console.error("Supabase insertion error:", error);
-        toast({
-          title: "Database error",
-          description: "Failed to store wallet address",
-        });
-      } else {
-        console.log("Wallet address stored in Supabase successfully");
-      }
-      
-      // If user is logged in with Telegram, link the wallet to the telegram user
-      if (telegramUser) {
-        await supabase
-          .from("user_wallet_links")
-          .upsert(
-            {
-              telegram_id: telegramUser.id,
-              wallet_address: address,
-              is_primary: true
-            },
-            { onConflict: 'telegram_id, wallet_address' }
-          );
-          
-        console.log("Wallet linked to Telegram user");
-      }
-    } catch (dbError) {
-      console.error("Database operation failed:", dbError);
-    }
-  };
-
   // Disconnect function to end the session
   const handleDisconnect = async () => {
     try {
@@ -164,21 +127,10 @@ const TonConnectButton: React.FC = () => {
         
         {connected ? (
           <div className="space-y-4">
-            <div className="p-4 bg-muted rounded-md">
-              <p className="text-sm font-medium">Wallet Address</p>
-              <p className="text-xs text-muted-foreground break-all">
-                {address}
-              </p>
-              
-              {telegramUser && (
-                <div className="mt-2 pt-2 border-t border-muted-foreground/10">
-                  <p className="text-sm font-medium">Linked to Telegram</p>
-                  <p className="text-xs text-muted-foreground">
-                    @{telegramUser.username || telegramUser.first_name}
-                  </p>
-                </div>
-              )}
-            </div>
+            <WalletInfoDisplay 
+              address={address} 
+              telegramUser={telegramUser} 
+            />
             <Button
               variant="destructive"
               className="w-full"
@@ -188,36 +140,13 @@ const TonConnectButton: React.FC = () => {
             </Button>
           </div>
         ) : (
-          <div className="grid gap-4">
-            <Button
-              variant="outline"
-              className="justify-start gap-2"
-              onClick={handleConnect}
-              disabled={isConnecting}
-            >
-              <img
-                src="https://tonkeeper.com/assets/tonconnect-icon.png"
-                alt="Tonkeeper"
-                className="h-5 w-5"
-              />
-              {isConnecting ? "Connecting..." : "Tonkeeper"}
-            </Button>
-            
-            {telegramUser && (
-              <div className="p-2 bg-muted rounded-md text-xs text-muted-foreground">
-                <p>Connecting will link your wallet to your Telegram account:</p>
-                <p className="font-medium mt-1">@{telegramUser.username || telegramUser.first_name}</p>
-              </div>
-            )}
-            
-            {/* Debug info */}
-            <div className="text-xs text-muted-foreground p-2 bg-muted rounded-md">
-              <p className="font-medium">Debug Info:</p>
-              <p className="break-all">{walletInfo}</p>
-              <p className="font-medium mt-2">Available Wallets:</p>
-              <p className="break-all">{available.length > 0 ? available.map(w => w.name).join(', ') : 'None found'}</p>
-            </div>
-          </div>
+          <WalletConnectButton
+            isConnecting={isConnecting}
+            telegramUser={telegramUser}
+            walletInfo={walletInfo}
+            available={available}
+            onConnect={handleConnect}
+          />
         )}
       </DialogContent>
     </Dialog>
