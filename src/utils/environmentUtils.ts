@@ -44,9 +44,49 @@ export const detectMobileDevice = (): boolean => {
 };
 
 /**
- * Detects if the app is running in Telegram Mini App environment
+ * Waits for Telegram WebApp to be available
+ * Returns a promise that resolves when WebApp is ready or rejects after timeout
  */
-export const isTelegramMiniAppEnvironment = (): boolean => {
+export const waitForTelegramWebApp = (timeoutMs = 3000): Promise<boolean> => {
+  return new Promise((resolve, reject) => {
+    // If already available, resolve immediately
+    if (window.Telegram && window.Telegram.WebApp) {
+      console.log("Telegram WebApp already available");
+      resolve(true);
+      return;
+    }
+    
+    // Set a timeout for the maximum wait time
+    const timeout = setTimeout(() => {
+      console.log(`Telegram WebApp detection timed out after ${timeoutMs}ms`);
+      resolve(false);
+    }, timeoutMs);
+    
+    // Check every 100ms for WebApp availability
+    const checkInterval = setInterval(() => {
+      if (window.Telegram && window.Telegram.WebApp) {
+        clearInterval(checkInterval);
+        clearTimeout(timeout);
+        console.log("Telegram WebApp became available");
+        resolve(true);
+      }
+    }, 100);
+    
+    // Also listen for the custom event that might be fired by the bridge script
+    window.addEventListener('telegramWebAppInitialized', () => {
+      clearInterval(checkInterval);
+      clearTimeout(timeout);
+      console.log("Telegram WebApp initialized event detected");
+      resolve(true);
+    }, { once: true });
+  });
+};
+
+/**
+ * Detects if the app is running in Telegram Mini App environment
+ * Can optionally wait for WebApp to be available before returning
+ */
+export const isTelegramMiniAppEnvironment = (wait = false): boolean => {
   if (typeof window === 'undefined') return false;
   
   // Most reliable check: Telegram WebApp object exists

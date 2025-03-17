@@ -1,7 +1,6 @@
-
 import { useState, useEffect } from "react";
 import { TonConnect, WalletInfo } from "@tonconnect/sdk";
-import { detectMobileDevice, isTelegramMiniAppEnvironment } from "@/utils/environmentUtils";
+import { detectMobileDevice, isTelegramMiniAppEnvironment, waitForTelegramWebApp } from "@/utils/environmentUtils";
 
 /**
  * Hook to manage wallet connection state
@@ -14,29 +13,52 @@ export const useWalletConnectionState = (wallet: TonConnect | null) => {
   const [isConnecting, setIsConnecting] = useState(false);
   const [connectionTimeout, setConnectionTimeout] = useState<NodeJS.Timeout | null>(null);
   const [isTelegramMiniApp, setIsTelegramMiniApp] = useState(false);
+  const [environmentDetected, setEnvironmentDetected] = useState(false);
 
+  // Initial environment detection
   useEffect(() => {
-    // Check if we're inside Tonkeeper browser
-    const isTonkeeperBrowser = /Tonkeeper/i.test(navigator.userAgent);
-    if (isTonkeeperBrowser) {
-      console.log("★★★ Detected Tonkeeper browser in wallet connection state!");
-      setIsMobile(true);
-    } else {
-      // Check if device is mobile
-      setIsMobile(detectMobileDevice());
-    }
+    const detectEnvironment = async () => {
+      // Check if we're inside Tonkeeper browser
+      const isTonkeeperBrowser = /Tonkeeper/i.test(navigator.userAgent);
+      if (isTonkeeperBrowser) {
+        console.log("★★★ Detected Tonkeeper browser in wallet connection state!");
+        setIsMobile(true);
+      } else {
+        // Check if device is mobile
+        setIsMobile(detectMobileDevice());
+      }
+      
+      // First check for Quick Telegram detection
+      const quickTelegramCheck = isTelegramMiniAppEnvironment(false);
+      if (quickTelegramCheck) {
+        console.log("★★★ Quick Telegram Mini App detection succeeded!");
+        setIsTelegramMiniApp(true);
+      } else {
+        console.log("Quick Telegram Mini App detection failed, waiting for WebApp initialization...");
+        
+        // Wait for Telegram WebApp to be available (with timeout)
+        const telegramAvailable = await waitForTelegramWebApp(3000);
+        
+        if (telegramAvailable) {
+          console.log("★★★ Telegram WebApp became available after waiting!");
+          setIsTelegramMiniApp(true);
+          localStorage.setItem('isTelegramMiniApp', 'true');
+          localStorage.setItem('tonconnect_in_telegram', 'true');
+        } else {
+          // Final check - might have been set by bridge scripts after our initial check
+          const storedFlag = localStorage.getItem('isTelegramMiniApp') === 'true';
+          if (storedFlag) {
+            console.log("★★★ Detected Telegram Mini App from localStorage flag!");
+            setIsTelegramMiniApp(true);
+          }
+        }
+      }
+      
+      // Mark environment detection as complete
+      setEnvironmentDetected(true);
+    };
     
-    // Check if running in Telegram Mini App
-    const tgMiniApp = isTelegramMiniAppEnvironment();
-    setIsTelegramMiniApp(tgMiniApp);
-    
-    // Force checking for Telegram WebApp object (most reliable indicator)
-    if (window.Telegram && window.Telegram.WebApp && !tgMiniApp) {
-      console.log("★★★ Found Telegram.WebApp but isTelegramMiniAppEnvironment returned false! Forcing true.");
-      setIsTelegramMiniApp(true);
-      localStorage.setItem('isTelegramMiniApp', 'true');
-      localStorage.setItem('tonconnect_in_telegram', 'true');
-    }
+    detectEnvironment();
     
     // Clear any timeouts when unmounting
     return () => {
@@ -69,6 +91,7 @@ export const useWalletConnectionState = (wallet: TonConnect | null) => {
     connectionTimeout,
     setConnectionTimeout,
     isTelegramMiniApp,
+    environmentDetected,
     updateConnectionState
   };
 };
