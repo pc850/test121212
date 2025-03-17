@@ -4,15 +4,16 @@ import TonConnectButton from "@/components/TonConnectButton";
 
 interface FeedHeaderProps {
   balance: number;
+  isLoading?: boolean;
 }
 
-const FeedHeader = ({ balance }: FeedHeaderProps) => {
+const FeedHeader = ({ balance, isLoading = false }: FeedHeaderProps) => {
   return (
     <div className="absolute top-0 left-0 right-0 z-10 py-3 px-4 flex items-center justify-between glass">
       <h1 className="text-xl font-bold text-fipt-dark">FIPT Feed</h1>
       <div className="flex items-center gap-3">
         <span className="px-3 py-1 rounded-full bg-fipt-blue/10 text-sm font-medium text-fipt-blue">
-          {balance} FIPT
+          {isLoading ? "..." : `${balance} FIPT`}
         </span>
         <TonConnectButton />
         <div className="relative">
