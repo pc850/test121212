@@ -27,11 +27,11 @@ const TonConnectButton: React.FC = () => {
   useEffect(() => {
     // Debug info
     if (wallet) {
-      const info = `Wallet initialized: ${!!wallet}, Connected: ${connected}, Address: ${address}, Raw Address: ${rawAddress}, Available wallets: ${available.length}`;
+      const info = `Wallet initialized: ${!!wallet}, Connected: ${connected}, Address: ${address}, Available wallets: ${available.length}`;
       console.log(info);
       setWalletInfo(info);
     }
-  }, [wallet, connected, address, rawAddress, available]);
+  }, [wallet, connected, address, available]);
 
   // Store wallet address in Supabase when connected
   useEffect(() => {
@@ -152,6 +152,14 @@ const TonConnectButton: React.FC = () => {
               <p className="text-xs text-muted-foreground break-all">
                 {address}
               </p>
+              {rawAddress && (
+                <>
+                  <p className="text-sm font-medium mt-2">Raw Address</p>
+                  <p className="text-xs text-muted-foreground break-all">
+                    {rawAddress}
+                  </p>
+                </>
+              )}
             </div>
             <Button
               variant="destructive"
