@@ -9,11 +9,16 @@
 export const detectMobileDevice = (): boolean => {
   if (typeof window === 'undefined') return false;
   
+  // Force mobile detection for common mobile devices
+  const userAgent = navigator.userAgent || '';
+  if (/iPhone|iPad|iPod|Android/i.test(userAgent)) {
+    return true;
+  }
+  
   // Check for touch capabilities
   const hasTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
   
   // Check user agent for common mobile strings
-  const userAgent = navigator.userAgent || navigator.vendor || (window as any).opera || '';
   const mobileRegex = /android|webos|iphone|ipad|ipod|blackberry|iemobile|opera mini|mobile|tablet|mobi/i;
   
   // Check screen size
@@ -29,7 +34,7 @@ export const detectMobileDevice = (): boolean => {
   // Count how many conditions match
   const matchCount = mobileConditions.filter(Boolean).length;
   
-  return matchCount >= 2 || /iPhone|Android/i.test(userAgent); // Force true for common mobile devices
+  return matchCount >= 2;
 };
 
 /**

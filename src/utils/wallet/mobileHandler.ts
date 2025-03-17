@@ -22,21 +22,42 @@ export const handleMobileConnection = async (
   // Add unique ID to prevent caching and improve tracking
   const uniqueId = `${Date.now()}-${Math.floor(Math.random() * 1000000)}`;
   
-  // Try deep link first - this is most reliable on mobile
+  // On iOS, try the universal URL first as it's more reliable
+  const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
+  
+  if (isIOS && tonkeeper.universalUrl) {
+    console.log("iOS detected - using universal URL first");
+    try {
+      // Format universal URL with unique parameter
+      const paramChar = tonkeeper.universalUrl.includes('?') ? '&' : '?';
+      const universalUrl = `${tonkeeper.universalUrl}${paramChar}t=${uniqueId}`;
+      
+      console.log("Opening Tonkeeper with iOS universal URL:", universalUrl);
+      
+      // iOS needs direct window.location for best results
+      window.location.href = universalUrl;
+      return;
+    } catch (e) {
+      console.error("Failed to open iOS universal URL:", e);
+      // Fall through to other methods
+    }
+  }
+  
+  // For Android or if iOS universal URL fails, try deep link
   if (tonkeeper.deepLink) {
-    console.log("Using deep link for mobile:", tonkeeper.deepLink);
+    console.log("Using direct deep link for mobile connection");
     
     try {
-      // Format URL with universal app link format
+      // Format deep link URL with unique parameter to prevent caching
       let deepLinkUrl = tonkeeper.deepLink;
       
-      // Add connection parameters & unique ID to prevent caching
+      // Add connection parameters & unique ID
       const paramChar = deepLinkUrl.includes('?') ? '&' : '?';
       deepLinkUrl = `${deepLinkUrl}${paramChar}t=${uniqueId}`;
       
-      console.log("Final deep link URL:", deepLinkUrl);
+      console.log("Opening deep link URL:", deepLinkUrl);
       
-      // Force direct navigation for best mobile compatibility
+      // Use direct location change for most reliable deep linking
       window.location.href = deepLinkUrl;
       console.log("Redirected to Tonkeeper deep link");
       
@@ -47,35 +68,15 @@ export const handleMobileConnection = async (
     }
   }
   
-  // Try universal URL as fallback if deep link fails
-  if (tonkeeper.universalUrl) {
-    console.log("Using universal URL as fallback:", tonkeeper.universalUrl);
-    
-    try {
-      // Add unique ID to prevent caching
-      const paramChar = tonkeeper.universalUrl.includes('?') ? '&' : '?';
-      const universalUrl = `${tonkeeper.universalUrl}${paramChar}t=${uniqueId}`;
-      
-      console.log("Final universal URL:", universalUrl);
-      
-      // Force direct navigation
-      window.location.href = universalUrl;
-      console.log("Redirected to universal URL");
-      
-      // Return early as we're navigating away
-      return;
-    } catch (e) {
-      console.error("Failed to redirect to universal URL:", e);
-      
-      // One more attempt with window.open as last resort
-      try {
-        window.open(tonkeeper.universalUrl, '_blank');
-        console.log("Opened universal URL in new window");
-        return;
-      } catch (e2) {
-        console.error("Window.open fallback also failed:", e2);
-      }
-    }
+  // Alternative approach - generate app store links if all else fails
+  if (isIOS) {
+    console.log("All methods failed - redirecting to App Store");
+    window.location.href = "https://apps.apple.com/app/tonkeeper/id1587312458";
+    return;
+  } else if (/android/i.test(navigator.userAgent)) {
+    console.log("All methods failed - redirecting to Play Store");
+    window.location.href = "https://play.google.com/store/apps/details?id=com.tonkeeper";
+    return;
   }
   
   // Last resort: try standard connect method if all else fails

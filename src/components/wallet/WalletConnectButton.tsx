@@ -1,7 +1,8 @@
+
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui";
 import { TelegramUser } from "@/types/telegram";
-import { ExternalLink, AlertTriangle, RefreshCw, Smartphone } from "lucide-react";
+import { ExternalLink, AlertTriangle, RefreshCw, Smartphone, Download } from "lucide-react";
 
 interface WalletConnectButtonProps {
   isConnecting: boolean;
@@ -25,6 +26,7 @@ const WalletConnectButton: React.FC<WalletConnectButtonProps> = ({
   const [showRetry, setShowRetry] = useState(false);
   const [connectionAttempts, setConnectionAttempts] = useState(0);
   const [redirectInProgress, setRedirectInProgress] = useState(false);
+  const [showAppStoreLinks, setShowAppStoreLinks] = useState(false);
   
   // Reset retry state when connection state changes
   useEffect(() => {
@@ -42,7 +44,14 @@ const WalletConnectButton: React.FC<WalletConnectButtonProps> = ({
       // Show retry button after a timeout
       const retryTimer = setTimeout(() => {
         setShowRetry(true);
-      }, isMobile || isTelegramMiniApp ? 10000 : 20000);
+        
+        // After longer timeout, show app store links
+        const appStoreTimer = setTimeout(() => {
+          setShowAppStoreLinks(true);
+        }, 5000);
+        
+        return () => clearTimeout(appStoreTimer);
+      }, isMobile || isTelegramMiniApp ? 6000 : 15000);
       
       return () => clearTimeout(retryTimer);
     }
@@ -57,6 +66,7 @@ const WalletConnectButton: React.FC<WalletConnectButtonProps> = ({
   // Handle connect click with appropriate guidance for different environments
   const handleConnectClick = () => {
     setShowRetry(false); // Reset retry state
+    setShowAppStoreLinks(false); // Hide app store links
     setConnectionAttempts(prev => prev + 1);
     
     let message = "";
@@ -71,6 +81,18 @@ const WalletConnectButton: React.FC<WalletConnectButtonProps> = ({
     }
     
     onConnect();
+  };
+
+  // Detect if we're on iOS
+  const isIOS = typeof navigator !== 'undefined' && /iPhone|iPad|iPod/i.test(navigator.userAgent);
+  const isAndroid = typeof navigator !== 'undefined' && /Android/i.test(navigator.userAgent);
+
+  const openAppStore = () => {
+    if (isIOS) {
+      window.location.href = "https://apps.apple.com/app/tonkeeper/id1587312458";
+    } else {
+      window.location.href = "https://play.google.com/store/apps/details?id=com.tonkeeper";
+    }
   };
 
   return (
@@ -108,14 +130,26 @@ const WalletConnectButton: React.FC<WalletConnectButtonProps> = ({
         )}
       </Button>
       
+      {/* App Store links - show if connection takes too long on mobile */}
+      {showAppStoreLinks && isMobile && (
+        <Button 
+          variant="secondary"
+          className="justify-start gap-2 bg-blue-50 border border-blue-200 text-blue-700 hover:bg-blue-100"
+          onClick={openAppStore}
+        >
+          <Download className="h-4 w-4" />
+          {isIOS ? "Get Tonkeeper from App Store" : "Get Tonkeeper from Play Store"}
+        </Button>
+      )}
+      
       {showRetry && (
-        <div className="p-2 bg-red-50 border border-red-200 rounded-md text-xs text-red-700">
-          <p className="font-medium">Connection taking too long?</p>
-          <p>If Tonkeeper didn't open or you were unable to connect, please try these steps:</p>
+        <div className="p-3 bg-yellow-50 border border-yellow-200 rounded-md text-xs text-yellow-700">
+          <p className="font-medium flex items-center"><AlertTriangle className="h-3 w-3 mr-1" /> Connection taking too long</p>
+          <p className="mt-1">If Tonkeeper didn't open, please try these steps:</p>
           <ol className="list-decimal pl-4 mt-1 space-y-1">
-            <li>Make sure you have the Tonkeeper app installed on your device</li>
+            <li>Make sure you have the Tonkeeper app installed</li>
             <li>Tap "Try Again" to make another connection attempt</li>
-            {isMobile && <li>If you're on iOS, check if a popup was blocked</li>}
+            {isMobile && <li>{isIOS ? "On iOS, you may need to open the App Store to install Tonkeeper" : "On Android, you may need to open the Play Store to install Tonkeeper"}</li>}
             {isTelegramMiniApp && <li>After connecting in Tonkeeper, return to this Telegram Mini App</li>}
           </ol>
         </div>
@@ -126,19 +160,18 @@ const WalletConnectButton: React.FC<WalletConnectButtonProps> = ({
           <p className="font-medium">IMPORTANT: Telegram Mini App Notice</p>
           <p><strong>You are using a Telegram Mini App.</strong> Connecting to Tonkeeper will open outside of Telegram.</p>
           <p className="mt-1">When you click the button, you should be redirected to Tonkeeper. After connecting in Tonkeeper, you <strong>must return to Telegram</strong> to complete the process.</p>
-          <p className="mt-1">If nothing happens when you tap the button, please tap "Try Again" or install the Tonkeeper app if you haven't already.</p>
         </div>
       )}
       
       {isMobile && !isTelegramMiniApp && (
         <div className="p-2 bg-yellow-50 border border-yellow-200 rounded-md text-xs text-yellow-700">
-          <p className="font-medium">Mobile Device Instructions</p>
+          <p className="font-medium flex items-center"><Smartphone className="h-3 w-3 mr-1" /> Mobile Device Instructions</p>
           <p><strong>You need the Tonkeeper app installed</strong> on your device.</p>
           <p className="mt-1">Tapping the button will attempt to open the Tonkeeper app. If it doesn't open:</p>
           <ol className="list-decimal pl-4 mt-1 space-y-1">
-            <li>Install Tonkeeper from your app store first</li>
-            <li>Return to this page and tap the button again</li>
-            <li>After connecting in Tonkeeper, return to this browser tab</li>
+            <li>Make sure Tonkeeper is installed</li>
+            <li>{isIOS ? "On iOS, get Tonkeeper from the App Store" : "On Android, get Tonkeeper from the Play Store"}</li>
+            <li>After installing, tap the button again</li>
           </ol>
         </div>
       )}

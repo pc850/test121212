@@ -1,3 +1,4 @@
+
 import { TonConnect } from "@tonconnect/sdk";
 import { detectMobileDevice, isTelegramMiniAppEnvironment } from "./environmentUtils";
 import { clearConnectionTimeout, setupConnectionTimeout } from "./timeoutUtils";
@@ -29,17 +30,19 @@ export const connectToTonkeeper = async (
   console.log("Environment:", { isMobile, isTelegramMiniApp });
   console.log("Available wallets:", available.map(w => w.name));
   
-  // Double-check environment detection to be absolutely sure
+  // Force mobile detection for iOS/Android devices - this is critical
+  const userAgent = navigator.userAgent || '';
+  const forceMobile = /iPhone|iPad|iPod|Android/i.test(userAgent);
+  if (forceMobile && !isMobile) {
+    console.log("⚠️ Forcing mobile environment detection based on user agent");
+    isMobile = true;
+  }
+  
+  // Double-check Telegram Mini App detection
   const forceTelegramCheck = window.Telegram && window.Telegram.WebApp;
   if (forceTelegramCheck && !isTelegramMiniApp) {
     console.log("Forcing Telegram Mini App environment detection based on window.Telegram.WebApp");
     isTelegramMiniApp = true;
-  }
-  
-  // Double-check mobile environment for iOS/Android
-  if (!isMobile && /iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
-    console.log("Forcing mobile environment detection based on user agent");
-    isMobile = true;
   }
 
   // Clean up any existing timeout
