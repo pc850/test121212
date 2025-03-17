@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import { TonConnect } from "@tonconnect/sdk";
 
@@ -7,10 +8,10 @@ export const useTonkeeperWallet = () => {
   const [connected, setConnected] = useState(false);
 
   useEffect(() => {
-    // Creating the connector with correct manifest URL
     try {
+      // Use the relative path to the manifest in the public folder
       const connector = new TonConnect({
-        manifestUrl: 'https://raw.githubusercontent.com/ton-connect/demo-dapp-with-react/main/public/tonconnect-manifest.json',
+        manifestUrl: '/tonconnect-manifest.json'
       });
 
       setWallet(connector);
@@ -64,12 +65,13 @@ export const useTonkeeperWallet = () => {
     try {
       console.log("Attempting to connect wallet...");
       
-      // Use a known-working configuration for Tonkeeper
+      // List available wallets for debugging
       const wallets = await wallet.getWallets();
       console.log("Available wallets:", wallets);
       
+      // Connect using mobile-friendly parameters
       const result = await wallet.connect({
-        universalLink: "https://app.tonkeeper.com/ton-connect",
+        universalUrl: "https://app.tonkeeper.com/ton-connect",
         bridgeUrl: "https://bridge.tonapi.io/bridge"
       });
       

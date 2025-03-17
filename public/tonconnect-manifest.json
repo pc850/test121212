@@ -2,7 +2,7 @@
 {
   "url": "https://fipt-wonderland.lovable.app",
   "name": "Fipt Wonderland",
-  "iconUrl": "https://raw.githubusercontent.com/ton-blockchain/wallet-assets/main/wallet-apps-assets/default.png",
+  "iconUrl": "https://ton.org/download/ton_symbol.png",
   "termsOfUseUrl": "https://fipt-wonderland.lovable.app/terms",
   "privacyPolicyUrl": "https://fipt-wonderland.lovable.app/privacy"
 }
