@@ -1,5 +1,5 @@
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Wallet, Link } from "lucide-react";
 import { 
   Button,
@@ -11,33 +11,98 @@ import {
   DialogTrigger,
 } from "@/components/ui";
 import { toast } from "@/hooks/use-toast";
+import { TonConnect, WalletInfoRemote } from '@tonconnect/sdk';
+
+// Create a connector instance
+const connector = new TonConnect();
 
 const TonConnectButton: React.FC = () => {
   const [isConnected, setIsConnected] = useState(false);
   const [walletAddress, setWalletAddress] = useState("");
+  const [availableWallets, setAvailableWallets] = useState<WalletInfoRemote[]>([]);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
 
-  const mockConnect = (walletType: string) => {
-    // This is a mock connection - in a real app, use a TON Connect SDK
-    const mockAddress = "UQD......" + Math.random().toString(16).slice(2, 8);
-    setWalletAddress(mockAddress);
-    setIsConnected(true);
-    toast({
-      title: `Connected to ${walletType}`,
-      description: `Wallet address: ${mockAddress}`,
+  // Initialize connector and load available wallets
+  useEffect(() => {
+    // Initialize connector with your app manifest (optional)
+    connector.init({
+      manifestUrl: 'https://fipt-app.com/tonconnect-manifest.json',
+      connectButtonOptions: {
+        // If walletNotFound is true, bridge wallet is added in the wallets list
+        walletNotFound: true
+      }
     });
+
+    // Load available wallets
+    const fetchWallets = async () => {
+      try {
+        const wallets = await connector.getWallets();
+        setAvailableWallets(wallets);
+      } catch (error) {
+        console.error("Error fetching wallets:", error);
+      }
+    };
+    
+    fetchWallets();
+
+    // Listen for connection status changes
+    const unsubscribe = connector.onStatusChange(wallet => {
+      if (wallet) {
+        // Format address
+        const address = wallet.account.address;
+        const formattedAddress = address.slice(0, 6) + '...' + address.slice(-6);
+        
+        setWalletAddress(formattedAddress);
+        setIsConnected(true);
+        toast({
+          title: "Wallet Connected",
+          description: `Connected to ${wallet.device.appName || 'wallet'}`,
+        });
+      } else {
+        setWalletAddress("");
+        setIsConnected(false);
+      }
+    });
+
+    // Check if already connected
+    const walletState = connector.wallet;
+    if (walletState) {
+      const address = walletState.account.address;
+      const formattedAddress = address.slice(0, 6) + '...' + address.slice(-6);
+      setWalletAddress(formattedAddress);
+      setIsConnected(true);
+    }
+
+    return () => {
+      unsubscribe();
+    };
+  }, []);
+
+  const connectWallet = async (walletApp: WalletInfoRemote) => {
+    try {
+      await connector.connect({ walletApp });
+      setIsDialogOpen(false);
+    } catch (error) {
+      console.error("Connection error:", error);
+      toast({
+        title: "Connection Error",
+        description: "Failed to connect wallet. Please try again.",
+        variant: "destructive"
+      });
+    }
   };
 
   const disconnect = () => {
-    setIsConnected(false);
-    setWalletAddress("");
+    connector.disconnect();
     toast({
       title: "Wallet disconnected",
       description: "Your wallet has been disconnected",
     });
+    setIsDialogOpen(false);
   };
 
   return (
-    <Dialog>
+    <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
       <DialogTrigger asChild>
         <Button variant="outline" className="gap-2" size="sm">
           <Wallet className="h-4 w-4" />
@@ -72,32 +137,48 @@ const TonConnectButton: React.FC = () => {
           </div>
         ) : (
           <div className="grid gap-4">
-            <Button 
-              variant="outline" 
-              className="justify-start gap-2" 
-              onClick={() => mockConnect("Tonkeeper")}
-            >
-              <img src="https://tonkeeper.com/assets/tonconnect-icon.png" alt="Tonkeeper" className="h-5 w-5" />
-              Tonkeeper
-            </Button>
-            
-            <Button 
-              variant="outline" 
-              className="justify-start gap-2"
-              onClick={() => mockConnect("TonHub")}
-            >
-              <img src="https://ton.org/download/ton_symbol.svg" alt="TonHub" className="h-5 w-5" />
-              TonHub
-            </Button>
-            
-            <Button 
-              variant="outline" 
-              className="justify-start gap-2"
-              onClick={() => mockConnect("OpenMask")}
-            >
-              <Link className="h-5 w-5" />
-              OpenMask
-            </Button>
+            {availableWallets.length > 0 ? (
+              availableWallets.map((wallet) => (
+                <Button 
+                  key={wallet.name}
+                  variant="outline" 
+                  className="justify-start gap-2"
+                  onClick={() => connectWallet(wallet)}
+                >
+                  {wallet.imageUrl && (
+                    <img src={wallet.imageUrl} alt={wallet.name} className="h-5 w-5" />
+                  )}
+                  {!wallet.imageUrl && <Link className="h-5 w-5" />}
+                  {wallet.name}
+                </Button>
+              ))
+            ) : (
+              <>
+                <Button 
+                  variant="outline" 
+                  className="justify-start gap-2" 
+                  onClick={() => toast({
+                    title: "Wallet not available",
+                    description: "Please install a TON wallet to connect",
+                  })}
+                >
+                  <img src="https://tonkeeper.com/assets/tonconnect-icon.png" alt="Tonkeeper" className="h-5 w-5" />
+                  Tonkeeper
+                </Button>
+                
+                <Button 
+                  variant="outline" 
+                  className="justify-start gap-2"
+                  onClick={() => toast({
+                    title: "Wallet not available",
+                    description: "Please install a TON wallet to connect",
+                  })}
+                >
+                  <img src="https://ton.org/download/ton_symbol.svg" alt="TonHub" className="h-5 w-5" />
+                  TonHub
+                </Button>
+              </>
+            )}
           </div>
         )}
       </DialogContent>
