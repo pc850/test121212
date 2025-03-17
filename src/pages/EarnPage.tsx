@@ -17,13 +17,13 @@ const EarnPage = () => {
     return savedBalance ? parseInt(savedBalance, 10) : 0;
   });
   const { toast } = useToast();
-  const { autoLogin, currentUser: telegramUser, isLoggedIn, logout } = useTelegramAuth();
+  const { autoLogin, currentUser: telegramUser, isLoggedIn, supabaseUser, logout } = useTelegramAuth();
   const { connectWallet, isReady } = useTonkeeperWallet();
   
   useEffect(() => {
     document.title = "FIPT - Earn";
     
-    if (!telegramUser) {
+    if (!isLoggedIn) {
       autoLogin().then(user => {
         if (user) {
           toast({
@@ -33,7 +33,7 @@ const EarnPage = () => {
         }
       });
     }
-  }, [toast, autoLogin, telegramUser]);
+  }, [toast, autoLogin, isLoggedIn]);
 
   useEffect(() => {
     const autoConnectHandler = () => {
@@ -126,7 +126,7 @@ const EarnPage = () => {
 
   return (
     <div className="min-h-screen flex flex-col pt-6 px-4 animate-fade-in">
-      {telegramUser ? (
+      {isLoggedIn ? (
         <UserProfileSection onLogout={logout} />
       ) : (
         <div className="mb-6 flex justify-center">
@@ -142,7 +142,7 @@ const EarnPage = () => {
         </div>
       )}
       
-      {!telegramUser && (
+      {!isLoggedIn && (
         <div className="mb-6">
           <Card className="w-full p-4 border border-fipt-blue/20 bg-gradient-to-r from-fipt-blue/10 to-fipt-accent/10">
             <div className="flex items-center justify-between">

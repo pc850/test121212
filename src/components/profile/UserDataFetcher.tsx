@@ -50,7 +50,7 @@ const UserDataFetcher = ({
               .from('wallet_balances')
               .select('fipt_balance')
               .eq('user_id', userId)
-              .maybeSingle(); // Use maybeSingle instead of single to prevent errors
+              .single();
               
             if (data) {
               localStorage.setItem('fiptBalance', data.fipt_balance.toString());
