@@ -7,6 +7,9 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+// Set the Telegram bot token directly
+const TELEGRAM_BOT_TOKEN = "7622575103:AAFNq5Vtl6pPFy0Yyxmi1SzWnaLgcNq8RVo";
+
 serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
@@ -36,10 +39,9 @@ serve(async (req) => {
       );
     }
     
-    // Get the Telegram bot token from environment variables
-    const botToken = Deno.env.get("TELEGRAM_BOT_TOKEN");
-    if (!botToken) {
-      console.error("TELEGRAM_BOT_TOKEN is not set");
+    // Get the Telegram bot token 
+    if (!TELEGRAM_BOT_TOKEN) {
+      console.error("TELEGRAM_BOT_TOKEN is not available");
       return new Response(
         JSON.stringify({ error: "Server configuration error" }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
@@ -58,7 +60,7 @@ serve(async (req) => {
     // Create a secret key using the bot token
     const secretKey = await crypto.subtle.digest(
       "SHA-256",
-      new TextEncoder().encode(botToken)
+      new TextEncoder().encode(TELEGRAM_BOT_TOKEN)
     );
     
     // Create an HMAC using the secret key

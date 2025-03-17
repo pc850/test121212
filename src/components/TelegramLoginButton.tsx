@@ -36,7 +36,7 @@ declare global {
 }
 
 const TelegramLoginButton = ({
-  botName,
+  botName = 'fipt_bot', // Update this to use your bot name
   buttonSize = 'medium',
   cornerRadius = 8,
   requestAccess,

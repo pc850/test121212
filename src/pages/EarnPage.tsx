@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import EarnButton from "@/components/EarnButton";
 import { Card } from "@/components/ui/card";
@@ -11,7 +10,6 @@ import { useTelegramAuth } from "@/hooks/useTelegramAuth";
 
 const EarnPage = () => {
   const [balance, setBalance] = useState(() => {
-    // Initialize balance from localStorage, or 0 if not found
     const savedBalance = localStorage.getItem('fiptBalance');
     return savedBalance ? parseInt(savedBalance, 10) : 0;
   });
@@ -20,10 +18,8 @@ const EarnPage = () => {
   const { autoLogin } = useTelegramAuth();
   
   useEffect(() => {
-    // Set page title
     document.title = "FIPT - Earn";
     
-    // Check if user is already logged in with Telegram
     const storedUser = localStorage.getItem('telegramUser');
     if (storedUser) {
       try {
@@ -33,7 +29,6 @@ const EarnPage = () => {
         localStorage.removeItem('telegramUser');
       }
     } else {
-      // Try auto-login if coming from Telegram WebApp
       autoLogin().then(user => {
         if (user) {
           setTelegramUser(user);
@@ -47,14 +42,11 @@ const EarnPage = () => {
   }, [toast, autoLogin]);
 
   useEffect(() => {
-    // Save balance to localStorage whenever it changes
     localStorage.setItem('fiptBalance', balance.toString());
     
-    // If user is logged in with Telegram, update balance in Supabase
     if (telegramUser) {
       const updateBalanceInSupabase = async () => {
         try {
-          // Look for a default wallet address for this user
           const { data: walletLinks } = await supabase
             .from('user_wallet_links')
             .select('wallet_address')
@@ -64,9 +56,8 @@ const EarnPage = () => {
             
           const defaultWalletAddress = walletLinks && walletLinks.length > 0 
             ? walletLinks[0].wallet_address 
-            : 'telegram-user-' + telegramUser.id; // Fallback wallet address
+            : 'telegram-user-' + telegramUser.id;
           
-          // First check if this telegram user has a balance record
           const { data } = await supabase
             .from('wallet_balances')
             .select('id')
@@ -74,13 +65,11 @@ const EarnPage = () => {
             .limit(1);
             
           if (data && data.length > 0) {
-            // Update existing balance
             await supabase
               .from('wallet_balances')
               .update({ fipt_balance: balance })
               .eq('telegram_id', telegramUser.id);
           } else {
-            // Insert new balance record with the fallback wallet address
             await supabase
               .from('wallet_balances')
               .insert({
@@ -98,18 +87,15 @@ const EarnPage = () => {
     }
   }, [balance, telegramUser]);
 
-  // Function to increase balance with each button tap
   const handleEarnPoints = (points: number) => {
     setBalance(prev => prev + points);
   };
   
-  // Handle Telegram login
   const handleTelegramAuth = (user: TelegramUser) => {
     setTelegramUser(user);
     localStorage.setItem('telegramUser', JSON.stringify(user));
   };
   
-  // Handle logout
   const handleLogout = () => {
     setTelegramUser(null);
     localStorage.removeItem('telegramUser');
@@ -117,7 +103,6 @@ const EarnPage = () => {
 
   return (
     <div className="min-h-screen flex flex-col pt-6 px-4 animate-fade-in">
-      {/* User Profile Section (if logged in) */}
       {telegramUser ? (
         <UserProfileSection onLogout={handleLogout} />
       ) : (
@@ -125,7 +110,7 @@ const EarnPage = () => {
           <Card className="p-4 border border-fipt-blue/20 bg-white">
             <h3 className="text-sm font-medium text-fipt-dark mb-3 text-center">Login to Save Your Progress</h3>
             <TelegramLoginButton 
-              botName="fipt_demo_bot" // Replace with your Telegram bot name
+              botName="fipt_bot" // Replace with your Telegram bot name
               buttonSize="medium"
               onAuth={handleTelegramAuth}
               className="flex justify-center"
@@ -134,7 +119,6 @@ const EarnPage = () => {
         </div>
       )}
       
-      {/* FIPT Balance Section */}
       {!telegramUser && (
         <div className="mb-6">
           <Card className="w-full p-4 border border-fipt-blue/20 bg-gradient-to-r from-fipt-blue/10 to-fipt-accent/10">
@@ -155,7 +139,6 @@ const EarnPage = () => {
         </div>
       )}
       
-      {/* Header */}
       <div className="mb-8 text-center">
         <div className="inline-block px-3 py-1 bg-fipt-blue/10 rounded-full text-xs font-medium text-fipt-blue mb-2">
           Click to Earn
@@ -166,12 +149,10 @@ const EarnPage = () => {
         </p>
       </div>
       
-      {/* Earn Button */}
       <div className="flex-1 flex flex-col items-center justify-center">
         <EarnButton onEarn={handleEarnPoints} />
       </div>
       
-      {/* Stats */}
       <div className="mt-8 grid grid-cols-2 gap-4 mb-4">
         <div className="p-4 rounded-xl bg-white border border-gray-100 shadow-sm">
           <h3 className="text-sm font-medium text-fipt-muted mb-1">Today's Earnings</h3>
