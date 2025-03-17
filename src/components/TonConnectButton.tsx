@@ -18,7 +18,7 @@ import { TonConnect } from "@tonconnect/sdk";
 // Import Supabase client
 import { supabase } from "@/integrations/supabase/client";
 
-// Initialize TonConnect with your manifest URL (ensure the manifest file exists and is accessible)
+// Initialize TonConnect with your manifest URL
 const tonConnect = new TonConnect({
   manifestUrl: "https://fipt-wonderland.lovable.app/tonconnect-manifest.json",
 });
@@ -30,10 +30,11 @@ const TonConnectButton: React.FC = () => {
   // Connect function to trigger Tonkeeper via TonConnect
   const connectWallet = async () => {
     try {
-      // Connect only to Tonkeeper
-      const wallets = await tonConnect.connect([{ bridgeUrl: 'https://bridge.tonapi.io/bridge' }]);
-      if (wallets) {
-        const address = wallets.toString();
+      // Connect specifically to Tonkeeper
+      const wallets = await tonConnect.connect([{ id: "tonkeeper" }]);
+
+      if (wallets && wallets.length > 0) {
+        const address = wallets[0].account.address;
 
         // Update local state
         setWalletAddress(address);
@@ -56,7 +57,7 @@ const TonConnectButton: React.FC = () => {
             description: "Failed to store wallet address",
           });
         } else {
-          console.log("Wallet address stored in Supabase");
+          console.log("Wallet address stored in Supabase successfully");
         }
       }
     } catch (error: any) {
