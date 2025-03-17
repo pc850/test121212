@@ -1,6 +1,5 @@
-"use client"; // If you’re using Next.js App Router and need client-side rendering
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Wallet } from "lucide-react";
 import { 
   Button,
@@ -13,58 +12,76 @@ import {
 } from "@/components/ui";
 import { toast } from "@/hooks/use-toast";
 
-// 1) TonConnect SDK import
-import { TonConnect } from "@tonconnect/sdk";
+// Import TonConnect SDK with correct types
+import { TonConnect, type Wallet as TonWallet } from "@tonconnect/sdk";
 
-// 2) Supabase client import
-import { supabase } from "@/lib/supabase";
-
-// 3) Initialize TonConnect
+// Initialize TonConnect with the correct manifest URL
 const tonConnect = new TonConnect({
-  manifestUrl: "https://your-site.com/tonconnect-manifest.json",
+  manifestUrl: "https://5bc3d506-2efc-40e2-9a59-c8a6ba10c04b.lovableproject.com/tonconnect-manifest.json",
 });
 
 const TonConnectButton: React.FC = () => {
   const [isConnected, setIsConnected] = useState(false);
   const [walletAddress, setWalletAddress] = useState("");
 
-  // Connect function that triggers Tonkeeper via TonConnect
+  // Setup TonConnect on component mount
+  useEffect(() => {
+    // Check if already connected
+    const connectedWallet = tonConnect.wallet;
+    if (connectedWallet) {
+      setIsConnected(true);
+      setWalletAddress(connectedWallet.account.address);
+    }
+
+    // Set up connection event listeners
+    const unsubscribeConnection = tonConnect.onStatusChange((wallet) => {
+      if (wallet) {
+        setIsConnected(true);
+        setWalletAddress(wallet.account.address);
+        toast({
+          title: "Connected to wallet",
+          description: `Wallet connected successfully`,
+        });
+      } else {
+        setIsConnected(false);
+        setWalletAddress("");
+      }
+    });
+
+    // Cleanup listeners on unmount
+    return () => {
+      unsubscribeConnection();
+    };
+  }, []);
+
+  // Connect function that triggers wallet connection
   const connectWallet = async () => {
     try {
-      // Attempt to connect specifically to Tonkeeper
-      const wallets = await tonConnect.connect([{ id: "tonkeeper" }]);
-      if (wallets && wallets.length > 0) {
-        const address = wallets[0].account.address;
-
-        // Update local state
-        setWalletAddress(address);
-        setIsConnected(true);
-
-        toast({
-          title: "Connected to Tonkeeper",
-          description: `Wallet address: ${address}`,
+      // Get a list of available wallets - properly handle the Promise
+      const walletsList = await tonConnect.getWallets();
+      
+      // Properly construct wallet connection options
+      if (walletsList.length > 0) {
+        // Use the first wallet in the list (typically Tonkeeper)
+        const selectedWallet = walletsList[0];
+        
+        // Create a proper universal link
+        tonConnect.connect({ 
+          jsBridgeKey: selectedWallet.jsBridgeKey,
+          universalLink: selectedWallet.universalLink,
+          bridgeUrl: selectedWallet.bridgeUrl,
         });
-
-        // 4) Store the wallet address in Supabase
-        const { data, error } = await supabase
-          .from("wallets")               // <--- Replace with your table name
-          .insert({ wallet_address: address }); // <--- Replace with your column name
-
-        if (error) {
-          console.error("Supabase insertion error:", error);
-          toast({
-            title: "Database error",
-            description: "Failed to store wallet address",
-          });
-        } else {
-          console.log("Wallet address stored in Supabase:", data);
-        }
+      } else {
+        toast({
+          title: "No wallets available",
+          description: "Could not find any compatible wallets",
+        });
       }
-    } catch (error: any) {
+    } catch (error) {
       console.error("Connection error:", error);
       toast({
         title: "Connection error",
-        description: `Failed to connect to wallet: ${error.message || error}`,
+        description: "Failed to connect to wallet",
       });
     }
   };
@@ -75,16 +92,15 @@ const TonConnectButton: React.FC = () => {
       await tonConnect.disconnect();
       setIsConnected(false);
       setWalletAddress("");
-
       toast({
         title: "Wallet disconnected",
         description: "Your wallet has been disconnected",
       });
-    } catch (error: any) {
+    } catch (error) {
       console.error("Disconnect error:", error);
       toast({
         title: "Error",
-        description: `Failed to disconnect wallet: ${error.message || error}`,
+        description: "Failed to disconnect wallet",
       });
     }
   };
