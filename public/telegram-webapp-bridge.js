@@ -23,8 +23,11 @@
       // Create a global access point
       window.telegramWebApp = window.Telegram.WebApp;
       
-      // Set flag for mobile environment
+      // Set flag for Telegram Mini App environment
       localStorage.setItem('isTelegramMiniApp', 'true');
+      
+      // Add a special flag for TonConnect to properly handle Mini App environment
+      localStorage.setItem('tonconnect_in_telegram', 'true');
       
       // Trigger auto-login when WebApp is ready
       if (window.Telegram.WebApp.initDataUnsafe?.user) {
@@ -49,11 +52,34 @@
         }));
       }
       
+      // Add handler for external links to open in browser
+      const originalOpen = window.open;
+      window.open = function(url, target, features) {
+        console.log('Intercepted window.open:', url, target);
+        
+        if (url && (url.startsWith('https://') || url.startsWith('http://'))) {
+          // For external URLs in Telegram Mini App, try to use Telegram's openLink
+          try {
+            if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.openLink) {
+              console.log('Using Telegram.WebApp.openLink for:', url);
+              window.Telegram.WebApp.openLink(url);
+              return null;
+            }
+          } catch (e) {
+            console.error('Failed to use Telegram.WebApp.openLink:', e);
+          }
+        }
+        
+        // Fall back to original behavior
+        return originalOpen.call(window, url, target, features);
+      };
+      
       // Call ready after everything is set up
       window.Telegram.WebApp.ready();
     } else {
       console.log('Not running in Telegram WebApp environment');
       localStorage.removeItem('isTelegramMiniApp');
+      localStorage.removeItem('tonconnect_in_telegram');
       
       // Check if we have WebApp data in the URL for testing
       const urlParams = new URLSearchParams(window.location.search);
@@ -73,7 +99,8 @@
               initData: tgWebAppData,
               initDataUnsafe: data,
               expand: () => {},
-              ready: () => {}
+              ready: () => {},
+              openLink: (url) => { window.open(url, '_blank'); }
             }
           };
           

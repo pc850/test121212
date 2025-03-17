@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Button } from "@/components/ui";
 import { TelegramUser } from "@/types/telegram";
@@ -48,11 +47,11 @@ const WalletConnectButton: React.FC<WalletConnectButtonProps> = ({
               <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
               <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
             </svg>
-            Connecting...
+            Opening Tonkeeper...
           </span>
         ) : (
           isTelegramMiniApp ? (
-            <>Open Tonkeeper Wallet <ExternalLink className="h-4 w-4" /></>
+            <>Open Tonkeeper <ExternalLink className="h-4 w-4" /></>
           ) : isMobile ? (
             <>Open Tonkeeper App <ExternalLink className="h-4 w-4" /></>
           ) : "Connect Tonkeeper"
@@ -61,24 +60,23 @@ const WalletConnectButton: React.FC<WalletConnectButtonProps> = ({
       
       {isTelegramMiniApp && (
         <div className="p-2 bg-yellow-50 border border-yellow-200 rounded-md text-xs text-yellow-700">
-          <p className="font-medium">Telegram Mini App Detected</p>
-          <p>Clicking the button above will open Tonkeeper in a new window. After connecting in Tonkeeper, please return to this app and refresh the page.</p>
-          <p className="mt-1 font-medium">Important: You may need to manually approve the connection in Tonkeeper!</p>
+          <p className="font-medium">Important</p>
+          <p>Clicking will open Tonkeeper outside this app. After connecting, please return here.</p>
+          <p className="mt-1">If nothing happens, please try again or open Tonkeeper manually.</p>
         </div>
       )}
       
       {isMobile && !isTelegramMiniApp && (
         <div className="p-2 bg-yellow-50 border border-yellow-200 rounded-md text-xs text-yellow-700">
-          <p className="font-medium">Mobile Device Detected</p>
-          <p>Clicking the button above will open the Tonkeeper app. You'll need to approve the connection there and then return to this app.</p>
-          <p className="mt-1 font-medium">Important: After approving in Tonkeeper, return to this app to complete the connection!</p>
+          <p className="font-medium">Mobile Device</p>
+          <p>Clicking will open the Tonkeeper app. Approve the connection there and return to this app.</p>
         </div>
       )}
       
       {!hasTonkeeper && !isConnecting && (
         <div className="p-2 bg-red-50 border border-red-200 rounded-md text-xs text-red-700">
           <p className="font-medium">Tonkeeper Not Found</p>
-          <p>Tonkeeper wallet is not available in your browser. You may need to install the Tonkeeper app or extension first.</p>
+          <p>Tonkeeper wallet is not available. You may need to install the Tonkeeper app or extension first.</p>
         </div>
       )}
       

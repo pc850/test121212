@@ -1,4 +1,3 @@
-
 "use client"; // For Next.js App Router client-side rendering
 
 import React, { useState, useEffect } from "react";
@@ -25,6 +24,7 @@ const TonConnectButton: React.FC = () => {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [walletInfo, setWalletInfo] = useState<string>("No wallet info available");
   const [telegramUser, setTelegramUser] = useState<TelegramUser | null>(null);
+  const [connectionAttempted, setConnectionAttempted] = useState(false);
 
   useEffect(() => {
     // Debug info
@@ -59,13 +59,25 @@ const TonConnectButton: React.FC = () => {
       
       // Close dialog after successful connection
       setDialogOpen(false);
+      setConnectionAttempted(false);
     }
   }, [connected, address, storeWalletAddress, telegramUser]);
+
+  // Auto-close the dialog if we're in a Telegram Mini App and have attempted connection
+  useEffect(() => {
+    if (connectionAttempted && (isMobile || isTelegramMiniApp)) {
+      const timer = setTimeout(() => {
+        setDialogOpen(false);
+      }, 500);
+      return () => clearTimeout(timer);
+    }
+  }, [connectionAttempted, isMobile, isTelegramMiniApp]);
 
   // Connect function to trigger Tonkeeper via TonConnect
   const handleConnect = async () => {
     try {
       console.log("Attempting to connect wallet from button...");
+      setConnectionAttempted(true);
       
       // If no wallets are available, show specific error
       if (!available || available.length === 0) {
@@ -80,18 +92,10 @@ const TonConnectButton: React.FC = () => {
       // Display available wallets for debugging
       console.log("Available wallets:", available.map(w => w.name).join(', '));
       
-      // On mobile devices, we'll close the dialog since we're redirecting to another app
       if (isMobile || isTelegramMiniApp) {
-        // Set a short timeout to allow the button click to be processed
-        setTimeout(() => {
-          setDialogOpen(false);
-        }, 300);
-        
         toast({
           title: "Opening Tonkeeper",
-          description: isTelegramMiniApp 
-            ? "We're opening Tonkeeper in a new window. After connecting, please return and refresh this page." 
-            : "We're redirecting you to the Tonkeeper app. Please approve the connection and return to this app.",
+          description: "Opening Tonkeeper wallet. Please approve the connection request.",
         });
       } else {
         toast({
@@ -101,8 +105,10 @@ const TonConnectButton: React.FC = () => {
       }
       
       await connectWallet();
+      
     } catch (error: any) {
       console.error("Connection error:", error);
+      setConnectionAttempted(false);
       toast({
         title: "Connection error",
         description: `Failed to connect to wallet: ${error.message || String(error)}`,
