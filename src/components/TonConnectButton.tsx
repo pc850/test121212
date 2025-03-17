@@ -1,3 +1,4 @@
+
 "use client"; // For Next.js App Router client-side rendering
 
 import React, { useState, useEffect } from "react";
@@ -18,7 +19,7 @@ import { useTonkeeperWallet } from "@/hooks/useTonkeeperWallet";
 import { supabase } from "@/integrations/supabase/client";
 
 const TonConnectButton: React.FC = () => {
-  const { connectWallet, disconnectWallet, connected, address, wallet, available } = useTonkeeperWallet();
+  const { connectWallet, disconnectWallet, connected, address, rawAddress, wallet, available } = useTonkeeperWallet();
   const [isConnecting, setIsConnecting] = useState(false);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [walletInfo, setWalletInfo] = useState<string>("No wallet info available");
@@ -26,11 +27,11 @@ const TonConnectButton: React.FC = () => {
   useEffect(() => {
     // Debug info
     if (wallet) {
-      const info = `Wallet initialized: ${!!wallet}, Connected: ${connected}, Address: ${address}, Available wallets: ${available.length}`;
+      const info = `Wallet initialized: ${!!wallet}, Connected: ${connected}, Address: ${address}, Raw Address: ${rawAddress}, Available wallets: ${available.length}`;
       console.log(info);
       setWalletInfo(info);
     }
-  }, [wallet, connected, address, available]);
+  }, [wallet, connected, address, rawAddress, available]);
 
   // Store wallet address in Supabase when connected
   useEffect(() => {
