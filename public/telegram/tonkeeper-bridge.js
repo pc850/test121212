@@ -1,3 +1,4 @@
+
 (function() {
   // Initialize bridge namespace if not exists
   window.telegramBridge = window.telegramBridge || {};
@@ -41,7 +42,7 @@
         // For Tonkeeper URLs, use very specific approach for Telegram Mini Apps
         try {
           // Try to use the original method first
-          originalOpenLink.call(window.Telegram.WebApp, url);
+          originalOpenLink.call(window.Telegram.WebApp, url, { try_instant_view: false });
           console.log(`[${sessionId}] Opened Tonkeeper URL with Telegram.WebApp.openLink`);
         } catch (e) {
           console.error(`[${sessionId}] Error using Telegram API for Tonkeeper URL:`, e);
@@ -93,7 +94,7 @@
     // Use Telegram's openLink if available
     if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.openLink) {
       try {
-        window.Telegram.WebApp.openLink(enhancedUrl);
+        window.Telegram.WebApp.openLink(enhancedUrl, { try_instant_view: false });
         console.log(`[${sessionId}] Opened with Telegram.WebApp.openLink`);
         return true;
       } catch (e) {

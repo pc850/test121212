@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { TonConnect, WalletInfo } from "@tonconnect/sdk";
 import { detectMobileDevice, isTelegramMiniAppEnvironment } from "@/utils/environmentUtils";
@@ -26,7 +27,16 @@ export const useWalletConnectionState = (wallet: TonConnect | null) => {
     }
     
     // Check if running in Telegram Mini App
-    setIsTelegramMiniApp(isTelegramMiniAppEnvironment());
+    const tgMiniApp = isTelegramMiniAppEnvironment();
+    setIsTelegramMiniApp(tgMiniApp);
+    
+    // Force checking for Telegram WebApp object (most reliable indicator)
+    if (window.Telegram && window.Telegram.WebApp && !tgMiniApp) {
+      console.log("★★★ Found Telegram.WebApp but isTelegramMiniAppEnvironment returned false! Forcing true.");
+      setIsTelegramMiniApp(true);
+      localStorage.setItem('isTelegramMiniApp', 'true');
+      localStorage.setItem('tonconnect_in_telegram', 'true');
+    }
     
     // Clear any timeouts when unmounting
     return () => {

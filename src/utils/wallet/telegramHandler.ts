@@ -20,6 +20,34 @@ export const handleTelegramMiniAppConnection = async (
   // Add timestamp to prevent caching
   const timestamp = Date.now();
   
+  // Try specialized Telegram bridge method first
+  if (window.telegramBridge?.openTonkeeperWallet) {
+    try {
+      console.log(`[${sessionId}] Using telegramBridge.openTonkeeperWallet`);
+      
+      // First try the universal URL if available
+      if (tonkeeper.universalUrl) {
+        const success = window.telegramBridge.openTonkeeperWallet(tonkeeper.universalUrl, { sessionId });
+        if (success) {
+          console.log(`[${sessionId}] Successfully opened Tonkeeper with telegramBridge`);
+          return;
+        }
+      } 
+      
+      // Fall back to deep link if universal URL didn't work
+      else if (tonkeeper.deepLink) {
+        const success = window.telegramBridge.openTonkeeperWallet(tonkeeper.deepLink, { sessionId });
+        if (success) {
+          console.log(`[${sessionId}] Successfully opened Tonkeeper with telegramBridge (deepLink)`);
+          return;
+        }
+      }
+    } catch (e) {
+      console.error(`[${sessionId}] Error using telegramBridge:`, e);
+      // Continue to standard methods
+    }
+  }
+  
   // Check if we have universal URL (preferred for Telegram)
   if (tonkeeper.universalUrl) {
     console.log(`[${sessionId}] Using universal URL:`, tonkeeper.universalUrl);

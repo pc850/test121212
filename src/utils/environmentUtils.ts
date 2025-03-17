@@ -64,14 +64,18 @@ export const isTelegramMiniAppEnvironment = (): boolean => {
   // Fourth check: Telegram web app script in document
   const hasTelegramScript = !!document.querySelector('script[src*="telegram-web-app.js"]');
   
-  const isTelegram = hasTelegramWebApp || hasTelegramParams || storedFlag || hasTelegramScript;
+  // Manual override via URL for testing
+  const forceTelegram = urlParams.get('forceTelegram') === 'true';
+  
+  const isTelegram = hasTelegramWebApp || hasTelegramParams || storedFlag || hasTelegramScript || forceTelegram;
   
   if (isTelegram) {
     console.log("Telegram Mini App environment detected", {
       hasTelegramWebApp,
       hasTelegramParams,
       storedFlag,
-      hasTelegramScript
+      hasTelegramScript,
+      forceTelegram
     });
     
     // If we detect Telegram, ensure our local storage flag is set for future checks
