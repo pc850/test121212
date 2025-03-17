@@ -1,3 +1,4 @@
+
 "use client"; // For Next.js App Router client-side rendering
 
 import React, { useState, useEffect } from "react";
@@ -13,6 +14,7 @@ import {
 } from "@/components/ui";
 import { toast } from "@/hooks/use-toast";
 import { useTonkeeperWallet } from "@/hooks/useTonkeeperWallet";
+import { TelegramUser } from "@/components/TelegramLoginButton";
 
 // Import Supabase client
 import { supabase } from "@/integrations/supabase/client";
@@ -22,6 +24,7 @@ const TonConnectButton: React.FC = () => {
   const [isConnecting, setIsConnecting] = useState(false);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [walletInfo, setWalletInfo] = useState<string>("No wallet info available");
+  const [telegramUser, setTelegramUser] = useState<TelegramUser | null>(null);
 
   useEffect(() => {
     // Debug info
@@ -29,6 +32,16 @@ const TonConnectButton: React.FC = () => {
       const info = `Wallet initialized: ${!!wallet}, Connected: ${connected}, Address: ${address}, Available wallets: ${available.length}`;
       console.log(info);
       setWalletInfo(info);
+    }
+    
+    // Check if user is logged in with Telegram
+    const storedUser = localStorage.getItem('telegramUser');
+    if (storedUser) {
+      try {
+        setTelegramUser(JSON.parse(storedUser));
+      } catch (e) {
+        console.error('Failed to parse stored user:', e);
+      }
     }
   }, [wallet, connected, address, available]);
 
@@ -75,6 +88,7 @@ const TonConnectButton: React.FC = () => {
 
   const storeWalletAddress = async (address: string) => {
     try {
+      // Store wallet address in connected_wallets
       const { error } = await supabase
         .from("connected_wallets")
         .insert({ wallet_address: address });
@@ -87,6 +101,22 @@ const TonConnectButton: React.FC = () => {
         });
       } else {
         console.log("Wallet address stored in Supabase successfully");
+      }
+      
+      // If user is logged in with Telegram, link the wallet to the telegram user
+      if (telegramUser) {
+        await supabase
+          .from("user_wallet_links")
+          .upsert(
+            {
+              telegram_id: telegramUser.id,
+              wallet_address: address,
+              is_primary: true
+            },
+            { onConflict: 'telegram_id, wallet_address' }
+          );
+          
+        console.log("Wallet linked to Telegram user");
       }
     } catch (dbError) {
       console.error("Database operation failed:", dbError);
@@ -139,6 +169,15 @@ const TonConnectButton: React.FC = () => {
               <p className="text-xs text-muted-foreground break-all">
                 {address}
               </p>
+              
+              {telegramUser && (
+                <div className="mt-2 pt-2 border-t border-muted-foreground/10">
+                  <p className="text-sm font-medium">Linked to Telegram</p>
+                  <p className="text-xs text-muted-foreground">
+                    @{telegramUser.username || telegramUser.first_name}
+                  </p>
+                </div>
+              )}
             </div>
             <Button
               variant="destructive"
@@ -163,6 +202,13 @@ const TonConnectButton: React.FC = () => {
               />
               {isConnecting ? "Connecting..." : "Tonkeeper"}
             </Button>
+            
+            {telegramUser && (
+              <div className="p-2 bg-muted rounded-md text-xs text-muted-foreground">
+                <p>Connecting will link your wallet to your Telegram account:</p>
+                <p className="font-medium mt-1">@{telegramUser.username || telegramUser.first_name}</p>
+              </div>
+            )}
             
             {/* Debug info */}
             <div className="text-xs text-muted-foreground p-2 bg-muted rounded-md">

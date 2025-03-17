@@ -1,12 +1,66 @@
 
 import { Search } from "lucide-react";
 import TonConnectButton from "@/components/TonConnectButton";
+import { useState, useEffect } from "react";
+import { TelegramUser } from "@/components/TelegramLoginButton";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { supabase } from "@/integrations/supabase/client";
 
 interface FeedHeaderProps {
   balance: number;
 }
 
 const FeedHeader = ({ balance }: FeedHeaderProps) => {
+  const [telegramUser, setTelegramUser] = useState<TelegramUser | null>(null);
+  
+  useEffect(() => {
+    // Check if user is logged in with Telegram
+    const storedUser = localStorage.getItem('telegramUser');
+    if (storedUser) {
+      try {
+        setTelegramUser(JSON.parse(storedUser));
+      } catch (e) {
+        console.error('Failed to parse stored user:', e);
+      }
+    }
+  }, []);
+  
+  useEffect(() => {
+    // If user is logged in with Telegram, update balance in Supabase
+    if (telegramUser) {
+      const updateBalanceInSupabase = async () => {
+        try {
+          // First check if this telegram user has a balance record
+          const { data } = await supabase
+            .from('wallet_balances')
+            .select('id')
+            .eq('telegram_id', telegramUser.id)
+            .limit(1);
+            
+          if (data && data.length > 0) {
+            // Update existing balance
+            await supabase
+              .from('wallet_balances')
+              .update({ fipt_balance: balance })
+              .eq('telegram_id', telegramUser.id);
+          } else {
+            // Insert new balance record
+            await supabase
+              .from('wallet_balances')
+              .insert({
+                telegram_id: telegramUser.id,
+                fipt_balance: balance
+              });
+          }
+        } catch (err) {
+          console.error('Error updating balance in Supabase:', err);
+        }
+      };
+      
+      updateBalanceInSupabase();
+    }
+  }, [balance, telegramUser]);
+
   return (
     <div className="absolute top-0 left-0 right-0 z-10 py-3 px-4 flex items-center justify-between glass">
       <h1 className="text-xl font-bold text-fipt-dark">FIPT Feed</h1>
@@ -14,7 +68,19 @@ const FeedHeader = ({ balance }: FeedHeaderProps) => {
         <span className="px-3 py-1 rounded-full bg-fipt-blue/10 text-sm font-medium text-fipt-blue">
           {balance} FIPT
         </span>
-        <TonConnectButton />
+        
+        {telegramUser ? (
+          <Avatar className="h-8 w-8 border border-white">
+            {telegramUser.photo_url ? (
+              <AvatarImage src={telegramUser.photo_url} alt={telegramUser.first_name} />
+            ) : (
+              <AvatarFallback>{telegramUser.first_name.charAt(0)}</AvatarFallback>
+            )}
+          </Avatar>
+        ) : (
+          <TonConnectButton />
+        )}
+        
         <div className="relative">
           <input 
             type="text"

@@ -13,19 +13,122 @@ export type Database = {
         Row: {
           created_at: string
           id: number
+          wallet_address: string
+        }
+        Insert: {
+          created_at?: string
+          id?: number
+          wallet_address: string
+        }
+        Update: {
+          created_at?: string
+          id?: number
+          wallet_address?: string
+        }
+        Relationships: []
+      }
+      telegram_users: {
+        Row: {
+          auth_date: number | null
+          created_at: string
+          hash: string | null
+          id: number
+          telegram_first_name: string | null
+          telegram_id: number
+          telegram_last_name: string | null
+          telegram_photo_url: string | null
+          telegram_username: string | null
+          wallet_address: string | null
+        }
+        Insert: {
+          auth_date?: number | null
+          created_at?: string
+          hash?: string | null
+          id?: number
+          telegram_first_name?: string | null
+          telegram_id: number
+          telegram_last_name?: string | null
+          telegram_photo_url?: string | null
+          telegram_username?: string | null
+          wallet_address?: string | null
+        }
+        Update: {
+          auth_date?: number | null
+          created_at?: string
+          hash?: string | null
+          id?: number
+          telegram_first_name?: string | null
+          telegram_id?: number
+          telegram_last_name?: string | null
+          telegram_photo_url?: string | null
+          telegram_username?: string | null
+          wallet_address?: string | null
+        }
+        Relationships: []
+      }
+      user_wallet_links: {
+        Row: {
+          created_at: string
+          id: number
+          is_primary: boolean | null
+          telegram_id: number | null
           wallet_address: string | null
         }
         Insert: {
           created_at?: string
           id?: number
+          is_primary?: boolean | null
+          telegram_id?: number | null
           wallet_address?: string | null
         }
         Update: {
           created_at?: string
           id?: number
+          is_primary?: boolean | null
+          telegram_id?: number | null
           wallet_address?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "user_wallet_links_telegram_id_fkey"
+            columns: ["telegram_id"]
+            isOneToOne: false
+            referencedRelation: "telegram_users"
+            referencedColumns: ["telegram_id"]
+          },
+        ]
+      }
+      wallet_balances: {
+        Row: {
+          fipt_balance: number
+          id: number
+          last_updated: string
+          telegram_id: number | null
+          wallet_address: string
+        }
+        Insert: {
+          fipt_balance?: number
+          id?: number
+          last_updated?: string
+          telegram_id?: number | null
+          wallet_address: string
+        }
+        Update: {
+          fipt_balance?: number
+          id?: number
+          last_updated?: string
+          telegram_id?: number | null
+          wallet_address?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "wallet_balances_telegram_id_fkey"
+            columns: ["telegram_id"]
+            isOneToOne: false
+            referencedRelation: "telegram_users"
+            referencedColumns: ["telegram_id"]
+          },
+        ]
       }
     }
     Views: {
