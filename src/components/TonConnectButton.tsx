@@ -1,3 +1,4 @@
+
 "use client"; // For Next.js App Router client-side rendering
 
 import React, { useState } from "react";
@@ -30,18 +31,20 @@ const TonConnectButton: React.FC = () => {
   // Connect function to trigger Tonkeeper via TonConnect
   const connectWallet = async () => {
     try {
-      // Connect specifically to Tonkeeper
-      const wallets = await tonConnect.connect([{ id: "tonkeeper" }]);
-
-      if (wallets && wallets.length > 0) {
-        const address = wallets[0].account.address;
+      // Connect to wallet using the universal protocol without specifying wallet type
+      // This will show all available wallets or use the default
+      const walletConnectionSource = await tonConnect.connect();
+      
+      if (tonConnect.connected) {
+        const walletInfo = tonConnect.wallet;
+        const address = walletInfo?.account.address || "";
 
         // Update local state
         setWalletAddress(address);
         setIsConnected(true);
 
         toast({
-          title: "Connected to Tonkeeper",
+          title: "Connected to Wallet",
           description: `Wallet address: ${address}`,
         });
 
