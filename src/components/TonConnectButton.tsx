@@ -29,20 +29,20 @@ const TonConnectButton: React.FC = () => {
   // Track whether we're in development mode and should allow mock connections
   const [useMockConnection, setUseMockConnection] = useState(false);
 
-  const handleConnect = async (walletId: string) => {
+  const handleConnect = async (walletName: string) => {
     let address;
     
     // Use real wallet connection if not in development mode
     if (!useMockConnection) {
-      address = await connectToWallet(walletId);
+      address = await connectToWallet(walletName);
     } else {
       // Fallback to mock connection for development
-      address = await mockConnect(walletId);
+      address = await mockConnect(walletName);
     }
     
     if (address) {
       toast({
-        title: `Connected to ${walletId}`,
+        title: `Connected to ${walletName}`,
         description: `Wallet address: ${address}`,
       });
     } else {
@@ -101,15 +101,15 @@ const TonConnectButton: React.FC = () => {
           <div className="grid gap-4">
             {/* Display available wallets from the SDK */}
             {wallets.length > 0 ? (
-              wallets.map((wallet) => (
+              wallets.map((wallet, index) => (
                 <Button 
-                  key={wallet.id}
+                  key={index}
                   variant="outline" 
                   className="justify-start gap-2" 
-                  onClick={() => handleConnect(wallet.id)}
+                  onClick={() => handleConnect(wallet.name)}
                   disabled={isConnecting}
                 >
-                  {wallet.imageUrl ? (
+                  {'imageUrl' in wallet ? (
                     <img src={wallet.imageUrl} alt={wallet.name} className="h-5 w-5" />
                   ) : (
                     <Link className="h-5 w-5" />

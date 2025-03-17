@@ -1,7 +1,8 @@
+
 import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { TonClient } from "@ton/ton";
-import { TonConnect, Wallet, WalletInfo } from "@tonconnect/sdk";
+import { TonConnect, WalletInfo, WalletInfoRemote, WalletInfoInjected } from "@tonconnect/sdk";
 
 // Define TON Connect manifest
 const manifestUrl = 'https://fipt-shop.app/tonconnect-manifest.json';
@@ -112,17 +113,23 @@ export function useTonConnect() {
   }, []);
 
   // Connect to a real wallet using TON Connect
-  const connectToWallet = useCallback(async (walletId: string) => {
+  const connectToWallet = useCallback(async (walletName: string) => {
     if (!tonConnectUI) return null;
     
     setIsConnecting(true);
     try {
-      // Find the wallet by id
-      const walletInfo = availableWallets.find(w => w.id.toLowerCase() === walletId.toLowerCase() || 
-                                               w.name.toLowerCase() === walletId.toLowerCase());
+      // Find the wallet by name
+      const walletInfo = availableWallets.find(w => {
+        // Check both injected and remote wallets
+        if ('jsBridgeKey' in w) {
+          return w.name.toLowerCase() === walletName.toLowerCase();
+        } else {
+          return w.name.toLowerCase() === walletName.toLowerCase();
+        }
+      });
       
       if (!walletInfo) {
-        console.error(`Wallet ${walletId} not found`);
+        console.error(`Wallet ${walletName} not found`);
         return null;
       }
       
