@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -6,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import TelegramLoginButton from "@/components/TelegramLoginButton";
 import { supabase } from "@/integrations/supabase/client";
-import { Mail, Lock, Google } from "lucide-react";
+import { Mail, Lock, Globe } from "lucide-react";
 
 interface TelegramLoginOptionsProps {
   onSuccess?: () => void;
