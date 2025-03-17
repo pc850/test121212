@@ -19,18 +19,22 @@ export const handleMobileConnection = async (
   };
   console.log("Wallet details:", walletInfo);
   
-  // For mobile, prioritize deep links
+  // For mobile connections, deep links work better than universal URLs in most cases
   if (tonkeeper.deepLink) {
     console.log("Using deep link for mobile:", tonkeeper.deepLink);
     
     try {
-      // Direct navigation is more reliable on mobile
-      window.location.href = tonkeeper.deepLink;
-      console.log("Redirected to deep link");
+      // Add a timestamp to prevent caching issues
+      const timestamp = Date.now();
+      const deepLinkWithParam = `${tonkeeper.deepLink}?t=${timestamp}`;
+      
+      // Force a direct location change instead of window.open for better mobile handling
+      window.location.href = deepLinkWithParam;
+      console.log("Redirected to deep link with timestamp");
       return; // Return early as we've navigated away
     } catch (e) {
       console.error("Error redirecting to deep link:", e);
-      // Continue to try other methods
+      // Continue to try other methods if deep link fails
     }
   } 
   
@@ -39,15 +43,19 @@ export const handleMobileConnection = async (
     console.log("Using universal URL for mobile:", tonkeeper.universalUrl);
     
     try {
-      // Direct navigation works better on mobile than window.open
-      window.location.href = tonkeeper.universalUrl;
-      console.log("Redirected to universal URL");
+      // Add a timestamp to prevent caching issues
+      const timestamp = Date.now();
+      const universalUrlWithParam = `${tonkeeper.universalUrl}${tonkeeper.universalUrl.includes('?') ? '&' : '?'}t=${timestamp}`;
+      
+      // Force a direct location change for better mobile handling
+      window.location.href = universalUrlWithParam;
+      console.log("Redirected to universal URL with timestamp");
       return; // Return early as we've navigated away
     } catch (e) {
       console.error("Error redirecting to universal URL:", e);
       // Try window.open as fallback
       try {
-        window.open(tonkeeper.universalUrl, '_blank');
+        window.open(tonkeeper.universalUrl, '_blank', 'noreferrer');
         console.log("Opened universal URL in new window");
       } catch (e2) {
         console.error("Window.open fallback failed:", e2);
@@ -56,7 +64,7 @@ export const handleMobileConnection = async (
   } 
   
   // Last resort: try the standard connection method
-  console.log("No deep link or universal URL, using standard connect");
+  console.log("No deep link or universal URL worked, using standard connect");
   try {
     await wallet.connect({ jsBridgeKey: "tonkeeper" });
     console.log("Standard connect method called");

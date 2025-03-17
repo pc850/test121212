@@ -35,6 +35,12 @@ export const connectToTonkeeper = async (
     console.log("Forcing Telegram Mini App environment detection based on window.Telegram.WebApp");
     isTelegramMiniApp = true;
   }
+  
+  // Double-check mobile environment for iOS/Android
+  if (!isMobile && /iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
+    console.log("Forcing mobile environment detection based on user agent");
+    isMobile = true;
+  }
 
   // Clean up any existing timeout
   clearConnectionTimeout(connectionTimeout);
@@ -52,9 +58,12 @@ export const connectToTonkeeper = async (
       return;
     }
 
-    // Set a timeout to reset the connecting state if it takes too long
-    // Use a longer timeout for Telegram Mini App as it involves app switching
-    const timeoutDuration = isTelegramMiniApp ? 120000 : (isMobile ? 45000 : 30000);
+    // Set up appropriate timeouts based on environment
+    // Mobile connections need longer timeouts especially when app switching is involved
+    const timeoutDuration = isTelegramMiniApp ? 180000 : // 3 minutes for Telegram
+                           (isMobile ? 120000 : 30000);  // 2 minutes for mobile, 30s for desktop
+    
+    console.log(`Setting up connection timeout for ${timeoutDuration}ms`);
     const timeout = setupConnectionTimeout(timeoutDuration, () => {
       console.log("Connection attempt timed out");
       setIsConnecting(false);
@@ -62,7 +71,7 @@ export const connectToTonkeeper = async (
     
     setConnectionTimeout(timeout);
 
-    // Log additional information for debugging
+    // Log additional debugging information
     if (isTelegramMiniApp) {
       console.log("Telegram WebApp info:", 
         window.Telegram ? "Available" : "Not available",
@@ -72,11 +81,10 @@ export const connectToTonkeeper = async (
       if (window.Telegram?.WebApp) {
         console.log("Telegram platform:", window.Telegram.WebApp.platform || "unknown");
         console.log("Telegram version:", window.Telegram.WebApp.version || "unknown");
-        console.log("Telegram initData:", window.Telegram.WebApp.initData ? "Available" : "Not available");
       }
     }
 
-    // Determine connection method based on environment
+    // Determine and execute the appropriate connection method based on environment
     try {
       if (isTelegramMiniApp) {
         await handleTelegramMiniAppConnection(wallet, tonkeeper);
@@ -89,8 +97,8 @@ export const connectToTonkeeper = async (
       console.log("Connection attempt completed without errors");
     } catch (error) {
       console.error("Error during connection attempt:", error);
-      // Don't clear connecting state here since we might have navigated away
-      // on mobile/telegram and the connection might still complete
+      // Don't immediately clear connecting state as connection might still complete
+      // after navigation on mobile devices
     }
     
     return;
