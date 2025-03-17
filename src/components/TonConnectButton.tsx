@@ -1,5 +1,5 @@
 
-import React, { useState } from "react";
+import React from "react";
 import { Wallet, Link } from "lucide-react";
 import { 
   Button,
@@ -11,25 +11,36 @@ import {
   DialogTrigger,
 } from "@/components/ui";
 import { toast } from "@/hooks/use-toast";
+import { useTonConnect } from "@/hooks/useTonConnect";
 
 const TonConnectButton: React.FC = () => {
-  const [isConnected, setIsConnected] = useState(false);
-  const [walletAddress, setWalletAddress] = useState("");
+  const { 
+    isConnecting,
+    isConnected, 
+    walletAddress, 
+    provider,
+    mockConnect, 
+    disconnect 
+  } = useTonConnect();
 
-  const mockConnect = (walletType: string) => {
-    // This is a mock connection - in a real app, use a TON Connect SDK
-    const mockAddress = "UQD......" + Math.random().toString(16).slice(2, 8);
-    setWalletAddress(mockAddress);
-    setIsConnected(true);
-    toast({
-      title: `Connected to ${walletType}`,
-      description: `Wallet address: ${mockAddress}`,
-    });
+  const handleConnect = async (walletType: string) => {
+    const address = await mockConnect(walletType);
+    if (address) {
+      toast({
+        title: `Connected to ${walletType}`,
+        description: `Wallet address: ${address}`,
+      });
+    } else {
+      toast({
+        title: "Connection failed",
+        description: "Could not connect to wallet",
+        variant: "destructive"
+      });
+    }
   };
 
-  const disconnect = () => {
-    setIsConnected(false);
-    setWalletAddress("");
+  const handleDisconnect = async () => {
+    await disconnect();
     toast({
       title: "Wallet disconnected",
       description: "Your wallet has been disconnected",
@@ -50,7 +61,7 @@ const TonConnectButton: React.FC = () => {
           <DialogTitle>{isConnected ? "Wallet Connected" : "Connect your TON wallet"}</DialogTitle>
           <DialogDescription>
             {isConnected 
-              ? "Your wallet is connected to FIPT Shop"
+              ? `Your wallet is connected to FIPT Shop (${provider || "Unknown"})`
               : "Choose your preferred TON wallet to connect"
             }
           </DialogDescription>
@@ -65,7 +76,8 @@ const TonConnectButton: React.FC = () => {
             <Button 
               variant="destructive" 
               className="w-full"
-              onClick={disconnect}
+              onClick={handleDisconnect}
+              disabled={isConnecting}
             >
               Disconnect Wallet
             </Button>
@@ -75,7 +87,8 @@ const TonConnectButton: React.FC = () => {
             <Button 
               variant="outline" 
               className="justify-start gap-2" 
-              onClick={() => mockConnect("Tonkeeper")}
+              onClick={() => handleConnect("Tonkeeper")}
+              disabled={isConnecting}
             >
               <img src="https://tonkeeper.com/assets/tonconnect-icon.png" alt="Tonkeeper" className="h-5 w-5" />
               Tonkeeper
@@ -84,7 +97,8 @@ const TonConnectButton: React.FC = () => {
             <Button 
               variant="outline" 
               className="justify-start gap-2"
-              onClick={() => mockConnect("TonHub")}
+              onClick={() => handleConnect("TonHub")}
+              disabled={isConnecting}
             >
               <img src="https://ton.org/download/ton_symbol.svg" alt="TonHub" className="h-5 w-5" />
               TonHub
@@ -93,7 +107,8 @@ const TonConnectButton: React.FC = () => {
             <Button 
               variant="outline" 
               className="justify-start gap-2"
-              onClick={() => mockConnect("OpenMask")}
+              onClick={() => handleConnect("OpenMask")}
+              disabled={isConnecting}
             >
               <Link className="h-5 w-5" />
               OpenMask
