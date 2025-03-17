@@ -1,5 +1,5 @@
 
-import { Home, Play, ArrowLeftRight, User, ShoppingBag } from "lucide-react";
+import { Home, Play, Bell, User, ShoppingBag } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
 
@@ -9,7 +9,7 @@ const BottomNav = () => {
   const navItems = [
     { icon: Home, title: "Earn", path: "/earn" },
     { icon: Play, title: "Feed", path: "/feed" },
-    { icon: ArrowLeftRight, title: "Swap", path: "/swap" },
+    { icon: Bell, title: "Notifications", path: "/notifications" },
     { icon: ShoppingBag, title: "Shop", path: "/shop" },
     { icon: User, title: "Profile", path: "/profile" },
   ];

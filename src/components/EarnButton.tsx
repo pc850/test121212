@@ -3,7 +3,6 @@ import { useState, useEffect } from "react";
 import { Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { AdDialog } from "@/components/ad/AdDialog";
-import { useToast } from "@/hooks/use-toast";
 
 interface EarnButtonProps {
   onEarn?: (points: number) => void;
@@ -17,7 +16,6 @@ const EarnButton = ({ onEarn, disabled = false }: EarnButtonProps) => {
   const [particles, setParticles] = useState<Array<{ id: number; x: number; y: number; size: number; color: string }>>([]);
   const [showAdDialog, setShowAdDialog] = useState(false);
   const [pendingPoints, setPendingPoints] = useState(0);
-  const { toast } = useToast();
 
   const handleClick = () => {
     if (disabled) return;
@@ -50,38 +48,24 @@ const EarnButton = ({ onEarn, disabled = false }: EarnButtonProps) => {
       setShowAnimation(false);
     }, 700);
     
-    // Check if we need to show the ad (after 10 clicks)
     if ((points + 1) % 10 === 0) {
       setPendingPoints(10);
       setShowAdDialog(true);
     }
   };
   
-  const handleAdSuccess = (claimedPoints: number) => {
-    console.log('Ad completed successfully, claiming points:', claimedPoints);
-    
-    if (onEarn) {
-      onEarn(claimedPoints);
-      
-      toast({
-        title: "Points Claimed!",
-        description: `You've earned ${claimedPoints} FIPT points.`,
-        variant: "default"
-      });
-    }
-    
-    setPendingPoints(0);
+  const handleAdSuccess = () => {
+    // This function is called when an ad is successfully viewed
   };
   
   const handleAdSkip = () => {
-    console.log('Ad skipped, no points awarded');
-    setPendingPoints(0);
+    setPoints(prev => prev - pendingPoints);
     
-    toast({
-      title: "Ad Skipped",
-      description: "No points were awarded.",
-      variant: "default"
-    });
+    if (onEarn) {
+      onEarn(-pendingPoints);
+    }
+    
+    setPendingPoints(0);
   };
   
   useEffect(() => {
@@ -119,21 +103,19 @@ const EarnButton = ({ onEarn, disabled = false }: EarnButtonProps) => {
       <button
         onClick={handleClick}
         disabled={disabled}
-        type="button"
-        aria-label="Earn FIPT points"
         className={cn(
           "relative w-48 h-48 rounded-full flex items-center justify-center shadow-lg transition-all duration-200",
           disabled 
             ? "bg-gray-200 cursor-not-allowed" 
-            : "bg-gradient-to-br from-fipt-blue to-fipt-accent hover:scale-[1.02] cursor-pointer",
+            : "bg-gradient-to-br from-fipt-blue to-fipt-accent hover:scale-[1.02]",
           isPressed && !disabled ? "scale-95 shadow-md" : "scale-100"
         )}
       >
         <div className={cn(
-          "absolute inset-0 rounded-full flex items-center justify-center",
+          "absolute inset-2 rounded-full flex items-center justify-center",
           disabled ? "bg-gray-100" : "bg-white"
         )}>
-          <div className="flex flex-col items-center justify-center gap-3 pointer-events-none">
+          <div className="flex flex-col items-center justify-center gap-3">
             <Sparkles className={cn(
               "w-10 h-10", 
               disabled ? "text-gray-400" : "text-fipt-blue"

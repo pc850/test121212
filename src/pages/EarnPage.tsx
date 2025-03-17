@@ -25,9 +25,7 @@ const EarnPage = () => {
       if (connected && address) {
         setIsLoading(true);
         try {
-          console.log("Loading balance for wallet address:", address);
           const balanceFromDB = await getFiptBalance(address);
-          console.log("Loaded balance from Supabase:", balanceFromDB);
           setBalance(balanceFromDB);
         } catch (error) {
           console.error("Error loading balance:", error);
@@ -55,19 +53,8 @@ const EarnPage = () => {
   const handleEarnPoints = async (points: number) => {
     if (connected && address) {
       try {
-        console.log(`Updating balance for wallet ${address} with ${points} points`);
         const newBalance = await updateFiptBalance(address, points, true);
-        console.log("New balance after update:", newBalance);
         setBalance(newBalance);
-        
-        // Show success toast for larger point earnings
-        if (points >= 10) {
-          toast({
-            title: "Points Earned!",
-            description: `You've earned ${points} FIPT points.`,
-            variant: "default"
-          });
-        }
       } catch (error) {
         console.error("Error updating balance:", error);
         toast({

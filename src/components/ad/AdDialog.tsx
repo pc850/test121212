@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { AdContent } from "./AdContent";
@@ -10,7 +9,7 @@ interface AdDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   points: number;
-  onSuccess?: (points: number) => void;  // Updated to pass points
+  onSuccess?: () => void;
   onSkip?: () => void;
 }
 
@@ -36,7 +35,7 @@ export function AdDialog({ open, onOpenChange, points, onSuccess, onSkip }: AdDi
 
   const handleClaim = () => {
     // Here you would typically call an API to credit the points
-    if (onSuccess) onSuccess(points);  // Pass the points to the success handler
+    if (onSuccess) onSuccess();
     onOpenChange(false);
   };
 
