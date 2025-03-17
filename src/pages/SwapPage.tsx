@@ -2,6 +2,7 @@
 import { useEffect } from "react";
 import TonConnectButton from "@/components/TonConnectButton";
 import { useTonkeeperWallet } from "@/hooks/useTonkeeperWallet";
+import { useTelegramAuth } from "@/hooks/useTelegramAuth";
 
 const SwapPage = () => {
   // Set page title
@@ -9,8 +10,19 @@ const SwapPage = () => {
     document.title = "FIPT - Swap via STON.fi";
   }, []);
 
-  // Connect to wallet
+  // Connect to wallet and check Telegram auth
   const { connected } = useTonkeeperWallet();
+  const { autoLogin, isLoggedIn } = useTelegramAuth();
+  
+  // Try to auto-login with Telegram if available
+  useEffect(() => {
+    autoLogin();
+  }, [autoLogin]);
+
+  // Check if we're in Telegram Mini App
+  const isTelegramMiniApp = 
+    typeof window !== 'undefined' && 
+    (window.Telegram?.WebApp || localStorage.getItem('isTelegramMiniApp') === 'true');
 
   return (
     <div className="min-h-screen flex flex-col animate-fade-in">
