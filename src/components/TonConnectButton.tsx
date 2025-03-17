@@ -45,6 +45,24 @@ const TonConnectButton: React.FC = () => {
     }
   }, [wallet, connected, address, available, isMobile]);
 
+  // When connection status changes, update local storage and Supabase if needed
+  useEffect(() => {
+    if (connected && address) {
+      console.log("Wallet connected, storing address:", address);
+      // Store wallet address in Supabase if user is logged in
+      storeWalletAddress(address, telegramUser);
+      
+      toast({
+        title: "Wallet connected",
+        description: "Your wallet has been successfully connected",
+      });
+      
+      // Close dialog after successful connection
+      setDialogOpen(false);
+      setIsConnecting(false);
+    }
+  }, [connected, address, storeWalletAddress, telegramUser]);
+
   // Connect function to trigger Tonkeeper via TonConnect
   const handleConnect = async () => {
     try {
@@ -58,20 +76,23 @@ const TonConnectButton: React.FC = () => {
           description: "No compatible wallets found. Please install Tonkeeper.",
           variant: "destructive"
         });
+        setIsConnecting(false);
         return;
       }
       
       // Display available wallets for debugging
-      console.log("Available wallets:", JSON.stringify(available, null, 2));
+      console.log("Available wallets:", available.map(w => w.name).join(', '));
       
-      await connectWallet();
-      
-      // Close the dialog on mobile since we're redirecting to another app
+      // On mobile devices, we'll close the dialog since we're redirecting to another app
       if (isMobile) {
-        setDialogOpen(false);
+        // Set a short timeout to allow the button click to be processed
+        setTimeout(() => {
+          setDialogOpen(false);
+        }, 300);
+        
         toast({
           title: "Opening Tonkeeper",
-          description: "We're redirecting you to the Tonkeeper app...",
+          description: "We're redirecting you to the Tonkeeper app. Please approve the connection and return to this app.",
         });
       } else {
         toast({
@@ -80,6 +101,7 @@ const TonConnectButton: React.FC = () => {
         });
       }
       
+      await connectWallet();
     } catch (error: any) {
       console.error("Connection error:", error);
       toast({
@@ -87,11 +109,7 @@ const TonConnectButton: React.FC = () => {
         description: `Failed to connect to wallet: ${error.message || String(error)}`,
         variant: "destructive"
       });
-    } finally {
-      // We'll keep the connecting state for a bit in case the user is completing the process
-      setTimeout(() => {
-        setIsConnecting(false);
-      }, 5000);
+      setIsConnecting(false);
     }
   };
 

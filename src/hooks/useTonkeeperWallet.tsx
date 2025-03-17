@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { TonConnect, WalletInfo } from "@tonconnect/sdk";
 import { useTonConnectManager } from "./useTonConnectManager";
@@ -52,11 +51,13 @@ export const useTonkeeperWallet = () => {
       console.log("Attempting to connect wallet...");
       console.log("Is mobile device:", isMobile);
       
+      // Get all available wallet options
+      console.log("Available wallets:", available.map(w => w.name));
+      
       // Get tonkeeper from available wallets
       const tonkeeperWallet = available.find(w => 
         w.name.toLowerCase().includes('tonkeeper') || 
-        (w as any).appName?.toLowerCase().includes('tonkeeper') || 
-        (typeof w === 'object' && 'id' in w && (w as any).id.toLowerCase().includes('tonkeeper'))
+        ((w as any).appName && (w as any).appName.toLowerCase().includes('tonkeeper'))
       );
       
       if (!tonkeeperWallet) {
@@ -70,34 +71,42 @@ export const useTonkeeperWallet = () => {
       if (isMobile) {
         console.log("Using mobile connection flow");
         
-        // Check if wallet has embedded properties for universal or deep links
-        // TypeScript doesn't know about these properties, so we need to use 'as any'
+        // Cast to any to access properties that might not be in the TypeScript interface
         const walletAny = tonkeeperWallet as any;
         
-        if (walletAny.universalLink) {
-          console.log("Universal link found:", walletAny.universalLink);
-          
-          // For TonConnect SDK v3, we need to pass the correct options structure
-          const result = wallet.connect(tonkeeperWallet, {
-            // Empty object for additional request parameters
-          });
-          
-          console.log("Mobile connection initiated:", result);
-          return result;
-        } else if (walletAny.deepLink) {
-          console.log("Deep link found:", walletAny.deepLink);
-          // Try deep link as fallback by directly navigating to it
-          window.location.href = walletAny.deepLink;
-          return;
-        } else {
-          // If no special links are found, try the standard connection method
+        try {
+          // Standard connection for mobile - this will work for TonConnect v3
           const result = wallet.connect(tonkeeperWallet);
-          console.log("Standard mobile connection initiated:", result);
+          console.log("Mobile connection initiated with standard method:", result);
+          
+          // If we have a universal link and the result doesn't include a redirect URL, 
+          // we might need to handle the redirect manually
+          if (walletAny.universalLink && typeof result !== 'string') {
+            console.log("Using universal link as fallback:", walletAny.universalLink);
+            window.location.href = walletAny.universalLink;
+          }
+          
           return result;
+        } catch (connectionError) {
+          console.error("Standard connection failed, trying fallback methods:", connectionError);
+          
+          // Fallback: try direct URL navigation if available
+          if (walletAny.universalLink) {
+            console.log("Navigating to universal link:", walletAny.universalLink);
+            window.location.href = walletAny.universalLink;
+            return;
+          } else if (walletAny.deepLink) {
+            console.log("Navigating to deep link:", walletAny.deepLink);
+            window.location.href = walletAny.deepLink;
+            return;
+          }
+          
+          throw connectionError;
         }
       }
       
       // Desktop flow - simple connection
+      console.log("Using desktop connection flow");
       const result = wallet.connect(tonkeeperWallet);
       console.log("Desktop connection initiated:", result);
       return result;
