@@ -1,6 +1,5 @@
 
 import { toNano } from "@ton/ton";
-import { DEX, pTON } from "@ston-fi/sdk";
 
 // Initialize mock versions of services for browser compatibility
 // This avoids the Buffer not defined error
