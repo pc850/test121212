@@ -7,7 +7,7 @@ import {
   handleTelegramMiniAppConnection, 
   handleMobileConnection, 
   handleDesktopConnection 
-} from "./tonkeeperUtils";
+} from "./wallet";
 
 export { 
   detectMobileDevice, 
