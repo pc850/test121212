@@ -12,78 +12,115 @@ export const handleTelegramMiniAppConnection = async (
   
   // Check for Telegram WebApp environment
   const tg = window.Telegram?.WebApp;
-  const useTelegramWebApp = tg && typeof tg.openLink === 'function';
   
-  console.log("Telegram WebApp available:", useTelegramWebApp ? "Yes" : "No");
+  // Generate a unique session ID for this connection attempt
+  const sessionId = Math.random().toString(36).substring(2, 15);
+  console.log(`Telegram connection attempt ${sessionId} started`);
   
   // Add timestamp to prevent caching
   const timestamp = Date.now();
   
-  // Try deep link first as it often works better with Telegram
-  if (tonkeeper.deepLink) {
-    console.log("Using deep link for Telegram Mini App:", tonkeeper.deepLink);
+  // Check if we have universal URL (preferred for Telegram)
+  if (tonkeeper.universalUrl) {
+    console.log(`[${sessionId}] Using universal URL:`, tonkeeper.universalUrl);
     
     try {
-      const deepLinkWithParam = `${tonkeeper.deepLink}?t=${timestamp}`;
+      // Add params to track and prevent caching
+      const params = new URLSearchParams({
+        t: timestamp.toString(),
+        session: sessionId,
+        source: 'telegram-mini-app'
+      });
       
-      if (useTelegramWebApp) {
-        console.log("Opening with Telegram.WebApp.openLink");
-        // Use Telegram's API to open external links - needs try/catch as it might throw
-        tg.openLink(deepLinkWithParam, { try_instant_view: false });
-        console.log("Opened deep link with Telegram WebApp API");
+      const universalUrlWithParams = `${tonkeeper.universalUrl}${
+        tonkeeper.universalUrl.includes('?') ? '&' : '?'
+      }${params.toString()}`;
+      
+      console.log(`[${sessionId}] Opening URL with params:`, universalUrlWithParams);
+      
+      if (tg && typeof tg.openLink === 'function') {
+        console.log(`[${sessionId}] Using Telegram.WebApp.openLink API`);
+        
+        // Using try-catch because openLink might throw
+        try {
+          // In Telegram, use their API to open external links
+          tg.openLink(universalUrlWithParams, { try_instant_view: false });
+          console.log(`[${sessionId}] Successfully called Telegram.WebApp.openLink`);
+          return;
+        } catch (e) {
+          console.error(`[${sessionId}] Error using Telegram.WebApp.openLink:`, e);
+          // Continue to fallbacks
+        }
       } else {
-        // Direct navigation fallback for older Telegram versions
-        console.log("Telegram WebApp not available, using direct navigation");
-        window.location.href = deepLinkWithParam;
-        console.log("Redirected to deep link");
+        console.log(`[${sessionId}] Telegram WebApp.openLink not available, using window.open`);
       }
-      return; // Return early as we've navigated away
+      
+      // Fallback: try window.open
+      try {
+        const win = window.open(universalUrlWithParams, '_blank');
+        console.log(`[${sessionId}] Opened with window.open, success:`, !!win);
+        if (win) return;
+      } catch (e) {
+        console.error(`[${sessionId}] Error with window.open fallback:`, e);
+      }
+      
+      // Last resort: direct location change
+      console.log(`[${sessionId}] Using window.location.href as last resort`);
+      window.location.href = universalUrlWithParams;
+      return;
     } catch (e) {
-      console.error("Error opening deep link from Telegram:", e);
-      // Continue to try other methods
+      console.error(`[${sessionId}] Universal URL handling failed:`, e);
+      // Continue to next method
     }
   }
   
-  // If deep link failed or isn't available, try universal URL
-  if (tonkeeper.universalUrl) {
-    console.log("Using universal URL for Telegram Mini App:", tonkeeper.universalUrl);
+  // If universal URL failed or isn't available, try deep link
+  if (tonkeeper.deepLink) {
+    console.log(`[${sessionId}] Trying deep link:`, tonkeeper.deepLink);
     
     try {
-      // Add a timestamp to prevent caching
-      const universalUrlWithParam = `${tonkeeper.universalUrl}${tonkeeper.universalUrl.includes('?') ? '&' : '?'}t=${timestamp}`;
+      // Add params to prevent caching
+      const deepLinkWithParams = `${tonkeeper.deepLink}?t=${timestamp}&session=${sessionId}&source=telegram-mini-app`;
       
-      if (useTelegramWebApp) {
-        console.log("Opening with Telegram.WebApp.openLink");
-        // Use Telegram's API to open external links
-        tg.openLink(universalUrlWithParam, { try_instant_view: false });
-        console.log("Opened universal URL with Telegram WebApp API");
-      } else {
-        // Direct navigation fallback
-        console.log("Telegram WebApp not available, using direct navigation");
-        window.location.href = universalUrlWithParam;
-        console.log("Redirected to universal URL");
+      console.log(`[${sessionId}] Opening deep link with params:`, deepLinkWithParams);
+      
+      if (tg && typeof tg.openLink === 'function') {
+        console.log(`[${sessionId}] Using Telegram.WebApp.openLink for deep link`);
+        
+        try {
+          tg.openLink(deepLinkWithParams, { try_instant_view: false });
+          console.log(`[${sessionId}] Successfully called Telegram.WebApp.openLink for deep link`);
+          return;
+        } catch (e) {
+          console.error(`[${sessionId}] Error using Telegram.WebApp.openLink for deep link:`, e);
+        }
       }
-      return; // Return early as we've navigated away
-    } catch (e) {
-      console.error("Error opening universal URL from Telegram:", e);
       
-      // Try window.open as fallback
+      // Try window.open for deep link
       try {
-        window.open(tonkeeper.universalUrl, '_blank', 'noreferrer');
-        console.log("Opened universal URL in new window");
-      } catch (e2) {
-        console.error("Window.open fallback failed:", e2);
+        const win = window.open(deepLinkWithParams, '_blank');
+        console.log(`[${sessionId}] Opened deep link with window.open, success:`, !!win);
+        if (win) return;
+      } catch (e) {
+        console.error(`[${sessionId}] Error with window.open for deep link:`, e);
       }
+      
+      // Direct navigation as last resort
+      console.log(`[${sessionId}] Using window.location.href for deep link`);
+      window.location.href = deepLinkWithParams;
+      return;
+    } catch (e) {
+      console.error(`[${sessionId}] Deep link handling failed:`, e);
     }
   }
   
   // Last resort: try standard connection
-  console.log("Direct navigation methods failed, trying standard connect");
+  console.log(`[${sessionId}] All redirection methods failed, trying standard connect`);
   try {
     await wallet.connect({ jsBridgeKey: "tonkeeper" });
-    console.log("Standard connect method called");
+    console.log(`[${sessionId}] Standard connect method called`);
   } catch (e) {
-    console.error("Error in standard connect from Telegram:", e);
+    console.error(`[${sessionId}] Error in standard connect:`, e);
     throw e;
   }
 };

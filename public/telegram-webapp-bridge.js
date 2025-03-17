@@ -51,39 +51,41 @@
         }));
       }
       
-      // Enhanced openLink handler specifically for wallet connections
+      // CRITICAL: Enhanced openLink handler specifically for Tonkeeper
       const originalOpenLink = window.Telegram.WebApp.openLink;
       window.Telegram.WebApp.openLink = function(url) {
         console.log('Enhanced openLink called with:', url);
         
-        // Check if this is a Tonkeeper URL
+        // Special handling for Tonkeeper URLs
         const isTonkeeperURL = url.includes('tonkeeper') || 
                               url.includes('ton://') ||
                               url.includes('tc://');
         
         if (isTonkeeperURL) {
           console.log('Detected Tonkeeper URL, using special handling');
-          // For Tonkeeper URLs, try to open in a new window if regular openLink fails
+          
+          // For Tonkeeper URLs, use very specific approach for Telegram Mini Apps
           try {
+            // Try to use the original method first
             originalOpenLink.call(window.Telegram.WebApp, url);
             console.log('Opened Tonkeeper URL with Telegram.WebApp.openLink');
           } catch (e) {
-            console.error('Error opening Tonkeeper URL with Telegram WebApp:', e);
+            console.error('Error using Telegram API for Tonkeeper URL:', e);
             
-            // Fall back to window.open
+            // Try window.open as fallback
             try {
-              window.open(url, '_blank');
-              console.log('Opened Tonkeeper URL with window.open as fallback');
-            } catch (e2) {
-              console.error('Failed to open with window.open:', e2);
+              const win = window.open(url, '_blank');
+              console.log('Opened Tonkeeper URL with window.open', win ? 'successfully' : 'failed');
               
-              // Last resort: direct navigation
-              try {
+              // If window.open didn't work (likely blocked), try direct navigation
+              if (!win) {
+                console.log('window.open failed, trying location.href');
                 window.location.href = url;
-                console.log('Set window.location.href to Tonkeeper URL as last resort');
-              } catch (e3) {
-                console.error('All methods of opening Tonkeeper URL failed:', e3);
               }
+            } catch (e2) {
+              console.error('All methods failed to open Tonkeeper:', e2);
+              // Last resort
+              window.location.href = url;
             }
           }
           return;
@@ -94,115 +96,72 @@
         originalOpenLink.call(window.Telegram.WebApp, url);
       };
       
-      // Add handler for external links to open in browser
-      const originalOpen = window.open;
-      window.open = function(url, target, features) {
-        console.log('Intercepted window.open:', url, target);
-        
-        // Special handling for Tonkeeper URLs
-        const isTonkeeperURL = url && (
-          url.includes('tonkeeper') || 
-          url.includes('ton://') ||
-          url.includes('tc://')
-        );
-        
-        if (isTonkeeperURL) {
-          console.log('Detected Tonkeeper URL in window.open');
-          
-          // Try Telegram WebApp.openLink first for Tonkeeper
-          try {
-            if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.openLink) {
-              console.log('Using Telegram.WebApp.openLink for Tonkeeper URL');
-              window.Telegram.WebApp.openLink(url);
-              return null;
-            }
-          } catch (e) {
-            console.error('Failed to use Telegram.WebApp.openLink for Tonkeeper:', e);
-          }
-          
-          // If openLink fails, try window.location.href
-          try {
-            window.location.href = url;
-            console.log('Set window.location.href to Tonkeeper URL');
-            return null;
-          } catch (e) {
-            console.error('Failed to set location.href for Tonkeeper:', e);
-          }
-        } else if (url && (url.startsWith('https://') || url.startsWith('http://'))) {
-          // For other external URLs in Telegram Mini App, try to use Telegram's openLink
-          try {
-            if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.openLink) {
-              console.log('Using Telegram.WebApp.openLink for:', url);
-              window.Telegram.WebApp.openLink(url);
-              return null;
-            }
-          } catch (e) {
-            console.error('Failed to use Telegram.WebApp.openLink:', e);
-          }
-        }
-        
-        // Fall back to original behavior
-        return originalOpen.call(window, url, target, features);
-      };
-      
       // Call ready after everything is set up
       window.Telegram.WebApp.ready();
+      
+      // Set MainButton handling - important for some Mini Apps UX
+      if (window.Telegram.WebApp.MainButton) {
+        window.Telegram.WebApp.MainButton.setText('Connect Wallet');
+        window.Telegram.WebApp.MainButton.onClick(function() {
+          // Dispatch event to trigger wallet connection
+          window.dispatchEvent(new CustomEvent('telegramMainButtonClicked'));
+        });
+      }
     } else {
       console.log('Not running in Telegram WebApp environment');
-      localStorage.removeItem('isTelegramMiniApp');
-      localStorage.removeItem('tonconnect_in_telegram');
       
-      // Check if we have WebApp data in the URL for testing
+      // Check URL for testing parameters
       const urlParams = new URLSearchParams(window.location.search);
       const tgWebAppData = urlParams.get('tgWebAppData');
-      if (tgWebAppData) {
-        console.log('Found tgWebAppData in URL params:', tgWebAppData);
-        try {
-          const data = JSON.parse(decodeURIComponent(tgWebAppData));
-          console.log('Parsed WebApp data:', data);
-          
-          // Store the data for the app to use
-          localStorage.setItem('telegramWebAppData', JSON.stringify(data));
-          
-          // Create a mock WebApp object
-          window.Telegram = {
-            WebApp: {
-              initData: tgWebAppData,
-              initDataUnsafe: data,
-              expand: () => {},
-              ready: () => {},
-              openLink: (url) => { window.open(url, '_blank'); }
-            }
-          };
-          
-          // Store user data for auto-login
-          if (data.user) {
-            const telegramUser = {
-              id: data.user.id,
-              first_name: data.user.first_name,
-              last_name: data.user.last_name || undefined,
-              username: data.user.username || undefined,
-              photo_url: data.user.photo_url || undefined,
-              auth_date: Math.floor(Date.now() / 1000),
-              hash: tgWebAppData
-            };
-            localStorage.setItem('telegramUser', JSON.stringify(telegramUser));
-            
-            // Dispatch event to notify app of login
-            window.dispatchEvent(new CustomEvent('telegramUserAutoLogin', { 
-              detail: { user: telegramUser } 
-            }));
+      const forceTelegram = urlParams.get('forceTelegram');
+      
+      // Allow forcing Telegram mode for testing
+      if (forceTelegram === 'true' || tgWebAppData) {
+        console.log('Forcing Telegram Mini App environment for testing');
+        localStorage.setItem('isTelegramMiniApp', 'true');
+        localStorage.setItem('tonconnect_in_telegram', 'true');
+        
+        // Create a minimal Telegram WebApp object for testing
+        window.Telegram = {
+          WebApp: {
+            openLink: function(url) {
+              console.log('Mock Telegram.WebApp.openLink called:', url);
+              window.open(url, '_blank');
+            },
+            ready: function() {},
+            expand: function() {},
+            initDataUnsafe: tgWebAppData ? JSON.parse(decodeURIComponent(tgWebAppData)) : { user: null }
           }
-          
-          const event = new CustomEvent('telegramWebAppInitialized', {
-            detail: { webApp: window.Telegram.WebApp }
-          });
-          window.dispatchEvent(event);
-          
-          console.log('Created mock Telegram WebApp object for testing');
-        } catch (e) {
-          console.error('Failed to parse tgWebAppData:', e);
+        };
+        
+        if (tgWebAppData) {
+          try {
+            const parsedData = JSON.parse(decodeURIComponent(tgWebAppData));
+            console.log('Parsed test WebApp data:', parsedData);
+            
+            if (parsedData.user) {
+              const telegramUser = {
+                id: parsedData.user.id,
+                first_name: parsedData.user.first_name,
+                last_name: parsedData.user.last_name || undefined,
+                username: parsedData.user.username || undefined,
+                photo_url: parsedData.user.photo_url || undefined,
+                auth_date: Math.floor(Date.now() / 1000),
+                hash: tgWebAppData
+              };
+              localStorage.setItem('telegramUser', JSON.stringify(telegramUser));
+              
+              window.dispatchEvent(new CustomEvent('telegramUserAutoLogin', { 
+                detail: { user: telegramUser } 
+              }));
+            }
+          } catch (e) {
+            console.error('Failed to parse tgWebAppData:', e);
+          }
         }
+      } else {
+        localStorage.removeItem('isTelegramMiniApp');
+        localStorage.removeItem('tonconnect_in_telegram');
       }
     }
   });

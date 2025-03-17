@@ -32,21 +32,24 @@ export const connectToTonkeeper = async (
   console.log("Environment:", { isMobile, isTelegramMiniApp });
   console.log("Available wallets:", available.map(w => w.name));
   
-  // Force mobile detection for iOS/Android devices - this is critical
-  const userAgent = navigator.userAgent || '';
-  const forceMobile = /iPhone|iPad|iPod|Android/i.test(userAgent);
-  if (forceMobile && !isMobile) {
-    console.log("⚠️ Forcing mobile environment detection based on user agent");
-    isMobile = true;
-  }
-  
-  // Double-check Telegram Mini App detection
+  // Force Telegram Mini App detection
   const forceTelegramCheck = window.Telegram && window.Telegram.WebApp;
   if (forceTelegramCheck && !isTelegramMiniApp) {
     console.log("Forcing Telegram Mini App environment detection based on window.Telegram.WebApp");
     isTelegramMiniApp = true;
+    // Also set in localStorage for persistence
+    localStorage.setItem('isTelegramMiniApp', 'true');
+    localStorage.setItem('tonconnect_in_telegram', 'true');
   }
-
+  
+  // Force mobile detection for iOS/Android devices - this is critical
+  const userAgent = navigator.userAgent || '';
+  const forceMobile = /iPhone|iPad|iPod|Android/i.test(userAgent);
+  if ((forceMobile || isTelegramMiniApp) && !isMobile) {
+    console.log("⚠️ Forcing mobile environment detection based on user agent or Telegram");
+    isMobile = true;
+  }
+  
   // Clean up any existing timeout
   clearConnectionTimeout(connectionTimeout);
 
@@ -66,13 +69,13 @@ export const connectToTonkeeper = async (
     // Enhanced logging of the wallet details for debugging
     console.log("Found Tonkeeper wallet:", {
       name: tonkeeper.name,
-      universalUrl: tonkeeper.universalUrl ? "Available" : "Not available",
-      deepLink: tonkeeper.deepLink ? "Available" : "Not available",
+      universalUrl: tonkeeper.universalUrl ? tonkeeper.universalUrl : "Not available",
+      deepLink: tonkeeper.deepLink ? tonkeeper.deepLink : "Not available",
       bridgeCount: tonkeeper.bridge?.length || 0
     });
 
     // Set up a connection timeout - longer for mobile to account for app switching
-    const timeoutDuration = isMobile ? 180000 : 30000; // 3 min for mobile, 30s for desktop
+    const timeoutDuration = isMobile || isTelegramMiniApp ? 180000 : 30000; // 3 min for mobile/telegram, 30s for desktop
     
     console.log(`Setting up connection timeout for ${timeoutDuration}ms`);
     const timeout = setupConnectionTimeout(timeoutDuration, () => {
@@ -87,18 +90,21 @@ export const connectToTonkeeper = async (
     
     // Determine and execute the appropriate connection method based on environment
     if (isTelegramMiniApp) {
+      console.log("Using Telegram Mini App connection method");
       toast({
         title: "Opening Tonkeeper",
         description: "This will open Tonkeeper outside of Telegram. Please approve the connection request and return to this app.",
       });
       await handleTelegramMiniAppConnection(wallet, tonkeeper);
     } else if (isMobile) {
+      console.log("Using mobile connection method");
       toast({
         title: "Opening Tonkeeper",
         description: "Launching Tonkeeper app. If the app doesn't open automatically, you may need to install it.",
       });
       await handleMobileConnection(wallet, tonkeeper);
     } else {
+      console.log("Using desktop connection method");
       toast({
         title: "Connecting to Tonkeeper",
         description: "Please check your browser extension or desktop app to approve the connection.",
