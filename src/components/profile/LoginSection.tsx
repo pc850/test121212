@@ -21,21 +21,10 @@ const LoginSection = ({
   
   if (isLoggedIn) return null;
   
-  const handleLoginClick = () => {
-    // Redirect to the auth page
-    navigate('/');
-  };
-  
   return (
     <>
       <div className="px-6 pb-2 flex justify-between -mt-2">
         <div className="flex gap-2 w-full justify-between">
-          <Button 
-            variant="outline" 
-            onClick={handleLoginClick}
-          >
-            Login / Sign Up
-          </Button>
           <TonConnectButton />
         </div>
       </div>

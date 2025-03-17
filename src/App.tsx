@@ -4,6 +4,8 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { supabase } from "./integrations/supabase/client";
 
 import AuthPage from "./pages/AuthPage";
 import EarnPage from "./pages/EarnPage";
@@ -16,6 +18,44 @@ import BottomNav from "./components/BottomNav";
 
 const queryClient = new QueryClient();
 
+const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const checkAuth = async () => {
+      // Check if telegram user exists
+      const storedUser = localStorage.getItem('telegramUser');
+      if (storedUser) {
+        setIsAuthenticated(true);
+        setLoading(false);
+        return;
+      }
+
+      // Check if supabase session exists
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session) {
+        setIsAuthenticated(true);
+      } else {
+        setIsAuthenticated(false);
+      }
+      setLoading(false);
+    };
+
+    checkAuth();
+  }, []);
+
+  if (loading) {
+    return <div className="flex items-center justify-center h-screen">Loading...</div>;
+  }
+
+  return isAuthenticated ? (
+    <>{children}</>
+  ) : (
+    <Navigate to="/" replace />
+  );
+};
+
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
@@ -25,11 +65,31 @@ const App = () => (
         <div className="w-full max-w-md mx-auto min-h-screen pb-16">
           <Routes>
             <Route path="/" element={<AuthPage />} />
-            <Route path="/earn" element={<EarnPage />} />
-            <Route path="/feed" element={<FeedPage />} />
-            <Route path="/swap" element={<SwapPage />} />
-            <Route path="/shop" element={<ShopPage />} />
-            <Route path="/profile" element={<ProfilePage />} />
+            <Route path="/earn" element={
+              <ProtectedRoute>
+                <EarnPage />
+              </ProtectedRoute>
+            } />
+            <Route path="/feed" element={
+              <ProtectedRoute>
+                <FeedPage />
+              </ProtectedRoute>
+            } />
+            <Route path="/swap" element={
+              <ProtectedRoute>
+                <SwapPage />
+              </ProtectedRoute>
+            } />
+            <Route path="/shop" element={
+              <ProtectedRoute>
+                <ShopPage />
+              </ProtectedRoute>
+            } />
+            <Route path="/profile" element={
+              <ProtectedRoute>
+                <ProfilePage />
+              </ProtectedRoute>
+            } />
             <Route path="*" element={<NotFound />} />
           </Routes>
           <BottomNav />
