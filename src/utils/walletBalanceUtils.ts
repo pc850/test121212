@@ -17,9 +17,15 @@ export const getFiptBalance = async (walletAddress: string | null): Promise<numb
     
     if (error) {
       console.error("Error fetching FIPT balance:", error);
-      return 0;
+      // If the error is because no rows were found, return 0
+      if (error.code === "PGRST116") {
+        console.log("No balance found for wallet, returning 0");
+        return 0;
+      }
+      throw error;
     }
     
+    console.log("Balance retrieved from Supabase:", data?.fipt_balance);
     return data?.fipt_balance || 0;
   } catch (error) {
     console.error("Error in getFiptBalance:", error);
@@ -42,11 +48,16 @@ export const updateFiptBalance = async (
     console.log(`${isIncrement ? 'Adding' : 'Setting'} ${amount} FIPT for wallet`, walletAddress);
     
     // First check if the wallet already has a record
-    const { data: existingData } = await supabase
+    const { data: existingData, error: fetchError } = await supabase
       .from("wallet_balances")
       .select("fipt_balance")
       .eq("wallet_address", walletAddress)
       .single();
+    
+    if (fetchError && fetchError.code !== "PGRST116") {
+      console.error("Error checking existing balance:", fetchError);
+      throw fetchError;
+    }
     
     let newBalance = 0;
     
@@ -55,6 +66,8 @@ export const updateFiptBalance = async (
       newBalance = isIncrement 
         ? existingData.fipt_balance + amount 
         : amount;
+      
+      console.log("Updating existing record. New balance will be:", newBalance);
       
       const { error } = await supabase
         .from("wallet_balances")
@@ -72,6 +85,8 @@ export const updateFiptBalance = async (
       // Insert new record
       newBalance = isIncrement ? amount : amount;
       
+      console.log("Creating new record with balance:", newBalance);
+      
       const { error } = await supabase
         .from("wallet_balances")
         .insert({
@@ -81,14 +96,15 @@ export const updateFiptBalance = async (
       
       if (error) {
         console.error("Error inserting new FIPT balance:", error);
-        return 0;
+        throw error;
       }
     }
     
+    console.log("Balance successfully updated to:", newBalance);
     return newBalance;
   } catch (error) {
     console.error("Error in updateFiptBalance:", error);
-    return 0;
+    throw error; // Rethrow to allow calling code to handle
   }
 };
 

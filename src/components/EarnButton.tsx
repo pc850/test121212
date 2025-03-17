@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import { Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { AdDialog } from "@/components/ad/AdDialog";
+import { useToast } from "@/hooks/use-toast";
 
 interface EarnButtonProps {
   onEarn?: (points: number) => void;
@@ -16,6 +17,7 @@ const EarnButton = ({ onEarn, disabled = false }: EarnButtonProps) => {
   const [particles, setParticles] = useState<Array<{ id: number; x: number; y: number; size: number; color: string }>>([]);
   const [showAdDialog, setShowAdDialog] = useState(false);
   const [pendingPoints, setPendingPoints] = useState(0);
+  const { toast } = useToast();
 
   const handleClick = () => {
     if (disabled) return;
@@ -54,18 +56,35 @@ const EarnButton = ({ onEarn, disabled = false }: EarnButtonProps) => {
     }
   };
   
-  const handleAdSuccess = () => {
-    // This function is called when an ad is successfully viewed
+  const handleAdSuccess = (claimedPoints: number) => {
+    // This function is called when an ad is successfully viewed and claimed
+    console.log('Ad completed successfully, claiming points:', claimedPoints);
+    
+    if (onEarn) {
+      // Call the onEarn handler with the claimed points
+      onEarn(claimedPoints);
+      
+      // Show a success toast
+      toast({
+        title: "Points Claimed!",
+        description: `You've earned ${claimedPoints} FIPT points.`,
+        variant: "default"
+      });
+    }
+    
+    // Reset pending points
+    setPendingPoints(0);
   };
   
   const handleAdSkip = () => {
-    setPoints(prev => prev - pendingPoints);
-    
-    if (onEarn) {
-      onEarn(-pendingPoints);
-    }
-    
+    console.log('Ad skipped, no points awarded');
     setPendingPoints(0);
+    
+    toast({
+      title: "Ad Skipped",
+      description: "No points were awarded.",
+      variant: "default"
+    });
   };
   
   useEffect(() => {
