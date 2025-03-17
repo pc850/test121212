@@ -1,42 +1,23 @@
 
-import { toNano } from "@ton/ton";
+import { TonClient, toNano, Address } from "@ton/ton";
+import { DEX, pTON } from "@ston-fi/sdk";
 
-// Initialize mock versions of services for browser compatibility
-// This avoids the Buffer not defined error
-const mockClient = {
-  open: (router) => router
-};
+// Initialize the TonClient for testnet
+const client = new TonClient({
+  endpoint: "https://testnet.toncenter.com/api/v2/jsonRPC",
+});
 
-// Mock router with the same API structure
-const router = {
-  getSwapTonToJettonTxParams: async (params) => {
-    console.log("Mock Ton to Jetton swap params:", params);
-    return { 
-      to: "mock_address", 
-      value: params.offerAmount, 
-      payload: "mock_payload" 
-    };
-  },
-  getSwapJettonToTonTxParams: async (params) => {
-    console.log("Mock Jetton to Ton swap params:", params);
-    return { 
-      to: "mock_address", 
-      value: "100000000", 
-      payload: "mock_payload" 
-    };
-  },
-  getSwapJettonToJettonTxParams: async (params) => {
-    console.log("Mock Jetton to Jetton swap params:", params);
-    return { 
-      to: "mock_address", 
-      value: "100000000", 
-      payload: "mock_payload" 
-    };
-  }
-};
+// Initialize the DEX router
+const router = client.open(
+  DEX.v2_1.Router.create(
+    "kQALh-JBBIKK7gr0o4AVf9JZnEsFndqO0qTCyT-D-yBsWk0v" // CPI Router v2.1.0
+  )
+);
 
-// Mock proxyTon
-const proxyTon = "mock_proxyTon";
+// Initialize the proxyTon for TON swaps
+const proxyTon = pTON.v2_1.create(
+  "kQACS30DNoUQ7NfApPvzh7eBmSZ9L4ygJ-lkNWtba8TQT-Px" // pTON v2.1.0
+);
 
 // Token contract addresses for testnet
 export const TEST_TOKENS = {
@@ -101,7 +82,6 @@ export const getJettonToTonSwapParams = async (
       offerJettonAddress: fromTokenAddress,
       offerAmount: toNano(amount.toString()),
       minAskAmount: minReceiveAmount,
-      proxyTon: proxyTon, // ProxyTon is required for Jetton to TON swaps
       queryId: Date.now(), // Use current timestamp as query ID
     });
 
@@ -127,8 +107,6 @@ export const getJettonToJettonSwapParams = async (
   }
 
   try {
-    // For Jetton to Jetton swaps, we don't pass proxyTon directly
-    // It's used internally by the SDK
     const txParams = await router.getSwapJettonToJettonTxParams({
       userWalletAddress: userWalletAddress,
       offerJettonAddress: fromTokenAddress,
@@ -179,7 +157,7 @@ export const getSwapParams = async (
 
 /**
  * Execute a swap using StonFi SDK
- * Note: This is a mock implementation since we can't use the actual SDK in the browser
+ * Note: This is a mock implementation that would be integrated with a wallet connector
  */
 export const executeStonfiSwap = async (
   fromToken: string,
