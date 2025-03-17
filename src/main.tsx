@@ -13,7 +13,8 @@ interface ProcessPolyfill {
 }
 
 // Apply the process polyfill with correct typing
-window.process = window.process || { env: {} } as unknown as ProcessPolyfill;
+// Use a double type assertion to bypass TypeScript's strict type checking
+window.process = window.process || ({ env: {} } as any);
 
 import { createRoot } from 'react-dom/client'
 import App from './App.tsx'
