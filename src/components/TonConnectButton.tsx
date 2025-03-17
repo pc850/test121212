@@ -1,3 +1,4 @@
+
 "use client"; // For Next.js App Router client-side rendering
 
 import React, { useState, useEffect } from "react";
@@ -6,25 +7,27 @@ import {
   Button,
   Dialog,
   DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
   DialogTrigger,
 } from "@/components/ui";
 import { toast } from "@/hooks/use-toast";
 import { useTonkeeperWallet } from "@/hooks/useTonkeeperWallet";
 import { TelegramUser } from "@/types/telegram";
 import { useWalletStorage } from "@/hooks/useWalletStorage";
-import WalletInfoDisplay from "@/components/wallet/WalletInfoDisplay";
-import WalletConnectButton from "@/components/wallet/WalletConnectButton";
+import { useWalletDialog } from "@/hooks/useWalletDialog";
+import WalletDialogContent from "@/components/wallet/WalletDialogContent";
 
 const TonConnectButton: React.FC = () => {
   const { connectWallet, disconnectWallet, connected, address, wallet, available, isMobile, isConnecting, isTelegramMiniApp } = useTonkeeperWallet();
   const { storeWalletAddress } = useWalletStorage();
-  const [dialogOpen, setDialogOpen] = useState(false);
   const [walletInfo, setWalletInfo] = useState<string>("No wallet info available");
   const [telegramUser, setTelegramUser] = useState<TelegramUser | null>(null);
-  const [connectionAttempted, setConnectionAttempted] = useState(false);
+  
+  const { 
+    dialogOpen, 
+    setDialogOpen, 
+    connectionAttempted, 
+    setConnectionAttempted 
+  } = useWalletDialog(connected, isConnecting, isMobile, isTelegramMiniApp);
 
   useEffect(() => {
     // Debug info
@@ -61,17 +64,7 @@ const TonConnectButton: React.FC = () => {
       setDialogOpen(false);
       setConnectionAttempted(false);
     }
-  }, [connected, address, storeWalletAddress, telegramUser]);
-
-  // Auto-close the dialog if we're in a Telegram Mini App and have attempted connection
-  useEffect(() => {
-    if (connectionAttempted && (isMobile || isTelegramMiniApp)) {
-      const timer = setTimeout(() => {
-        setDialogOpen(false);
-      }, 500);
-      return () => clearTimeout(timer);
-    }
-  }, [connectionAttempted, isMobile, isTelegramMiniApp]);
+  }, [connected, address, storeWalletAddress, telegramUser, setDialogOpen, setConnectionAttempted]);
 
   // Connect function to trigger Tonkeeper via TonConnect
   const handleConnect = async () => {
@@ -145,42 +138,18 @@ const TonConnectButton: React.FC = () => {
       </DialogTrigger>
       
       <DialogContent className="sm:max-w-md">
-        <DialogHeader>
-          <DialogTitle>
-            {connected ? "Wallet Connected" : "Connect your TON wallet"}
-          </DialogTitle>
-          <DialogDescription>
-            {connected
-              ? "Your wallet is connected to FIPT Shop"
-              : "Connect your Tonkeeper wallet to log in or sign up"}
-          </DialogDescription>
-        </DialogHeader>
-        
-        {connected ? (
-          <div className="space-y-4">
-            <WalletInfoDisplay 
-              address={address} 
-              telegramUser={telegramUser} 
-            />
-            <Button
-              variant="destructive"
-              className="w-full"
-              onClick={handleDisconnect}
-            >
-              Disconnect Wallet
-            </Button>
-          </div>
-        ) : (
-          <WalletConnectButton
-            isConnecting={isConnecting}
-            telegramUser={telegramUser}
-            walletInfo={walletInfo}
-            available={available}
-            onConnect={handleConnect}
-            isMobile={isMobile}
-            isTelegramMiniApp={isTelegramMiniApp}
-          />
-        )}
+        <WalletDialogContent
+          connected={connected}
+          isConnecting={isConnecting}
+          address={address}
+          telegramUser={telegramUser}
+          walletInfo={walletInfo}
+          available={available}
+          isMobile={isMobile}
+          isTelegramMiniApp={isTelegramMiniApp}
+          onConnect={handleConnect}
+          onDisconnect={handleDisconnect}
+        />
       </DialogContent>
     </Dialog>
   );
