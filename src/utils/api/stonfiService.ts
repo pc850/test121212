@@ -82,7 +82,7 @@ export const getJettonToTonSwapParams = async (
       offerJettonAddress: fromTokenAddress,
       offerAmount: toNano(amount.toString()),
       minAskAmount: minReceiveAmount,
-      proxyTon: proxyTon, // Adding the missing proxyTon parameter
+      proxyTon: proxyTon, // ProxyTon is required for Jetton to TON swaps
       queryId: Date.now(), // Use current timestamp as query ID
     });
 
@@ -108,13 +108,14 @@ export const getJettonToJettonSwapParams = async (
   }
 
   try {
+    // For Jetton to Jetton swaps, we don't pass proxyTon directly
+    // It's used internally by the SDK
     const txParams = await router.getSwapJettonToJettonTxParams({
       userWalletAddress: userWalletAddress,
       offerJettonAddress: fromTokenAddress,
       offerAmount: toNano(amount.toString()),
       askJettonAddress: toTokenAddress,
       minAskAmount: minReceiveAmount,
-      proxyTon: proxyTon, // Adding the missing proxyTon parameter
       queryId: Date.now(), // Use current timestamp as query ID
     });
 
