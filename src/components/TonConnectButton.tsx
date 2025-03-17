@@ -1,6 +1,6 @@
 "use client"; // For Next.js App Router client-side rendering
 
-import React, { useState, useEffect } from "react";
+import React from "react";
 import { Wallet } from "lucide-react";
 import {
   Button,
@@ -12,66 +12,20 @@ import {
   DialogTrigger,
 } from "@/components/ui";
 import { toast } from "@/hooks/use-toast";
+import { useTonkeeperWallet } from "@/hooks/useTonkeeperWallet";
 
-// Import TonConnect SDK
-import { TonConnect } from "@tonconnect/sdk";
 // Import Supabase client
 import { supabase } from "@/integrations/supabase/client";
 
-// Initialize TonConnect with your manifest URL
-const tonConnect = new TonConnect({
-  manifestUrl: "https://fipt-wonderland.lovable.app/tonconnect-manifest.json",
-});
-
 const TonConnectButton: React.FC = () => {
-  const [isConnected, setIsConnected] = useState(false);
-  const [walletAddress, setWalletAddress] = useState("");
-
-  // Check connection status on component mount
-  useEffect(() => {
-    const checkConnection = async () => {
-      if (tonConnect.connected) {
-        const walletInfo = tonConnect.wallet;
-        const address = walletInfo?.account.address || "";
-        setWalletAddress(address);
-        setIsConnected(true);
-      }
-    };
-
-    checkConnection();
-
-    // Listen for connection status changes
-    const unsubscribe = tonConnect.onStatusChange(async (wallet) => {
-      if (wallet) {
-        const address = wallet.account.address;
-        setWalletAddress(address);
-        setIsConnected(true);
-      } else {
-        setWalletAddress("");
-        setIsConnected(false);
-      }
-    });
-
-    return () => {
-      unsubscribe();
-    };
-  }, []);
+  const { connectWallet, disconnectWallet, connected, address } = useTonkeeperWallet();
 
   // Connect function to trigger Tonkeeper via TonConnect
-  const connectWallet = async () => {
+  const handleConnect = async () => {
     try {
-      // Connect to wallet using the universal protocol
-      // Passing an empty array to show all available wallets
-      await tonConnect.connect([]);
+      await connectWallet();
       
-      if (tonConnect.connected) {
-        const walletInfo = tonConnect.wallet;
-        const address = walletInfo?.account.address || "";
-
-        // Update local state
-        setWalletAddress(address);
-        setIsConnected(true);
-
+      if (connected && address) {
         toast({
           title: "Connected to Wallet",
           description: `Wallet address: ${address}`,
@@ -102,12 +56,9 @@ const TonConnectButton: React.FC = () => {
   };
 
   // Disconnect function to end the session
-  const disconnect = async () => {
+  const handleDisconnect = async () => {
     try {
-      await tonConnect.disconnect();
-      setIsConnected(false);
-      setWalletAddress("");
-
+      disconnectWallet();
       toast({
         title: "Wallet disconnected",
         description: "Your wallet has been disconnected",
@@ -126,34 +77,34 @@ const TonConnectButton: React.FC = () => {
       <DialogTrigger asChild>
         <Button variant="outline" className="gap-2" size="sm">
           <Wallet className="h-4 w-4" />
-          {isConnected ? "Connected" : "Connect Wallet"}
+          {connected ? "Connected" : "Connect Wallet"}
         </Button>
       </DialogTrigger>
       
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>
-            {isConnected ? "Wallet Connected" : "Connect your TON wallet"}
+            {connected ? "Wallet Connected" : "Connect your TON wallet"}
           </DialogTitle>
           <DialogDescription>
-            {isConnected
+            {connected
               ? "Your wallet is connected to FIPT Shop"
               : "Connect your Tonkeeper wallet to log in or sign up"}
           </DialogDescription>
         </DialogHeader>
         
-        {isConnected ? (
+        {connected ? (
           <div className="space-y-4">
             <div className="p-4 bg-muted rounded-md">
               <p className="text-sm font-medium">Wallet Address</p>
               <p className="text-xs text-muted-foreground break-all">
-                {walletAddress}
+                {address}
               </p>
             </div>
             <Button
               variant="destructive"
               className="w-full"
-              onClick={disconnect}
+              onClick={handleDisconnect}
             >
               Disconnect Wallet
             </Button>
@@ -163,7 +114,7 @@ const TonConnectButton: React.FC = () => {
             <Button
               variant="outline"
               className="justify-start gap-2"
-              onClick={connectWallet}
+              onClick={handleConnect}
             >
               <img
                 src="https://tonkeeper.com/assets/tonconnect-icon.png"
