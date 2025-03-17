@@ -46,11 +46,11 @@ const UserDataFetcher = ({
           
           if (userId) {
             // Get the balance for the Supabase user
-            const { data, error } = await supabase
+            const { data } = await supabase
               .from('wallet_balances')
               .select('fipt_balance')
               .eq('user_id', userId)
-              .single();
+              .maybeSingle(); // Use maybeSingle instead of single to prevent errors
               
             if (data) {
               localStorage.setItem('fiptBalance', data.fipt_balance.toString());
