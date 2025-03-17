@@ -8,6 +8,8 @@ import {
   handleMobileConnection, 
   handleDesktopConnection 
 } from "./wallet";
+// Import toast directly instead of using require()
+import { toast as showToast } from "@/hooks/use-toast";
 
 export { 
   detectMobileDevice, 
@@ -122,9 +124,8 @@ export const connectToTonkeeper = async (
   }
 };
 
-// Helper for showing toast messages without repeating code
+// Helper for showing toast messages without using require()
 const toast = (options: { title: string; description: string; variant?: "default" | "destructive" }) => {
-  // Import at runtime to avoid circular dependencies
-  const { toast: showToast } = require("@/hooks/use-toast");
+  // Use the imported toast function directly
   showToast(options);
 };

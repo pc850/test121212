@@ -1,4 +1,3 @@
-
 "use client"; // For Next.js App Router client-side rendering
 
 import React, { useState, useEffect } from "react";
@@ -30,14 +29,12 @@ const TonConnectButton: React.FC = () => {
   } = useWalletDialog(connected, isConnecting, isMobile, isTelegramMiniApp);
 
   useEffect(() => {
-    // Debug info
     if (wallet) {
       const info = `Wallet initialized: ${!!wallet}, Connected: ${connected}, Address: ${address}, Available wallets: ${available.length}, Mobile: ${isMobile}, TG Mini App: ${isTelegramMiniApp}`;
       console.log(info);
       setWalletInfo(info);
     }
     
-    // Check if user is logged in with Telegram
     const storedUser = localStorage.getItem('telegramUser');
     if (storedUser) {
       try {
@@ -48,11 +45,9 @@ const TonConnectButton: React.FC = () => {
     }
   }, [wallet, connected, address, available, isMobile, isTelegramMiniApp]);
 
-  // When connection status changes, update local storage and Supabase if needed
   useEffect(() => {
     if (connected && address) {
       console.log("Wallet connected, storing address:", address);
-      // Store wallet address in Supabase if user is logged in
       storeWalletAddress(address, telegramUser);
       
       toast({
@@ -60,19 +55,16 @@ const TonConnectButton: React.FC = () => {
         description: "Your wallet has been successfully connected",
       });
       
-      // Close dialog after successful connection
       setDialogOpen(false);
       setConnectionAttempted(false);
     }
   }, [connected, address, storeWalletAddress, telegramUser, setDialogOpen, setConnectionAttempted]);
 
-  // Connect function to trigger Tonkeeper via TonConnect
   const handleConnect = async () => {
     try {
       console.log("Attempting to connect wallet from button...");
       setConnectionAttempted(true);
       
-      // If no wallets are available, show specific error
       if (!available || available.length === 0) {
         toast({
           title: "No wallets available",
@@ -82,7 +74,6 @@ const TonConnectButton: React.FC = () => {
         return;
       }
       
-      // Display available wallets for debugging
       console.log("Available wallets:", available.map(w => w.name).join(', '));
       
       if (isMobile || isTelegramMiniApp) {
@@ -110,7 +101,6 @@ const TonConnectButton: React.FC = () => {
     }
   };
 
-  // Disconnect function to end the session
   const handleDisconnect = async () => {
     try {
       disconnectWallet();
