@@ -6,7 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 interface UserDataFetcherProps {
   children: ReactNode;
   telegramUser: TelegramUser | null;
-  supabaseUser?: any;
+  supabaseUser?: any; // Using any for Supabase user to avoid deep type recursion
   onBalanceUpdate: (balance: number) => void;
 }
 
@@ -41,16 +41,21 @@ const UserDataFetcher = ({
             onBalanceUpdate(data.fipt_balance);
           }
         } else if (supabaseUser) {
-          // Get the balance for the Supabase user
-          const { data, error } = await supabase
-            .from('wallet_balances')
-            .select('fipt_balance')
-            .eq('user_id', supabaseUser.id)
-            .single();
-            
-          if (data) {
-            localStorage.setItem('fiptBalance', data.fipt_balance.toString());
-            onBalanceUpdate(data.fipt_balance);
+          // Use a string ID from supabaseUser to avoid type issues
+          const userId = typeof supabaseUser.id === 'string' ? supabaseUser.id : null;
+          
+          if (userId) {
+            // Get the balance for the Supabase user
+            const { data, error } = await supabase
+              .from('wallet_balances')
+              .select('fipt_balance')
+              .eq('user_id', userId)
+              .single();
+              
+            if (data) {
+              localStorage.setItem('fiptBalance', data.fipt_balance.toString());
+              onBalanceUpdate(data.fipt_balance);
+            }
           }
         }
       } catch (error) {
