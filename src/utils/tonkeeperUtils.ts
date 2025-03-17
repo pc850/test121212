@@ -1,4 +1,3 @@
-
 import { TonConnect, isWalletInfoInjectable, WalletInfoRemote } from "@tonconnect/sdk";
 
 /**
@@ -83,9 +82,11 @@ export const handleMobileConnection = async (
       // As a fallback, also call connect (though the page may have already navigated away)
       setTimeout(() => {
         try {
+          // This is a Promise, but we're not waiting for it since we may have navigated away
           wallet.connect({
             jsBridgeKey: "tonkeeper"
-          }).catch((e: Error) => console.error("Error in delayed connect:", e));
+          });
+          console.log("Delayed connect called");
         } catch (e) {
           console.error("Error setting up delayed connect:", e);
         }
@@ -112,11 +113,12 @@ export const handleMobileConnection = async (
       // Also try the connect method as a fallback
       setTimeout(() => {
         try {
-          // Fix: Properly handle the Promise returned by wallet.connect
+          // This is a Promise, but we're not waiting for it since we may have navigated away
           wallet.connect({
             universalLink: tonkeeper.universalUrl,
             bridgeUrl: tonkeeper.bridge?.[0]?.url
-          }).catch((e: Error) => console.error("Error in delayed connect:", e));
+          });
+          console.log("Delayed connect called");
         } catch (e) {
           console.error("Error setting up delayed connect:", e);
         }
