@@ -5,7 +5,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 
-import Index from "./pages/Index";
+import AuthPage from "./pages/AuthPage";
 import EarnPage from "./pages/EarnPage";
 import FeedPage from "./pages/FeedPage";
 import SwapPage from "./pages/SwapPage";
@@ -24,7 +24,7 @@ const App = () => (
       <BrowserRouter>
         <div className="w-full max-w-md mx-auto min-h-screen pb-16">
           <Routes>
-            <Route path="/" element={<Index />} />
+            <Route path="/" element={<AuthPage />} />
             <Route path="/earn" element={<EarnPage />} />
             <Route path="/feed" element={<FeedPage />} />
             <Route path="/swap" element={<SwapPage />} />

@@ -1,7 +1,7 @@
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import TelegramLoginOptions from "@/components/auth/TelegramLoginOptions";
+import { useNavigate } from "react-router-dom";
 import TonConnectButton from "@/components/TonConnectButton";
 
 interface LoginSectionProps {
@@ -17,7 +17,14 @@ const LoginSection = ({
   onLoginSuccess,
   isLoggedIn 
 }: LoginSectionProps) => {
+  const navigate = useNavigate();
+  
   if (isLoggedIn) return null;
+  
+  const handleLoginClick = () => {
+    // Redirect to the auth page
+    navigate('/');
+  };
   
   return (
     <>
@@ -25,23 +32,13 @@ const LoginSection = ({
         <div className="flex gap-2 w-full justify-between">
           <Button 
             variant="outline" 
-            onClick={() => setShowLoginOptions(!showLoginOptions)}
+            onClick={handleLoginClick}
           >
-            {showLoginOptions ? "Hide Login Options" : "Login / Sign Up"}
+            Login / Sign Up
           </Button>
           <TonConnectButton />
         </div>
       </div>
-      
-      {/* Login Options Dialog */}
-      {showLoginOptions && (
-        <div className="px-6 mt-4 mb-4">
-          <div className="p-4 bg-white rounded-lg shadow">
-            <h3 className="text-lg font-semibold mb-4 text-center">Sign In / Sign Up</h3>
-            <TelegramLoginOptions onSuccess={onLoginSuccess} />
-          </div>
-        </div>
-      )}
     </>
   );
 };

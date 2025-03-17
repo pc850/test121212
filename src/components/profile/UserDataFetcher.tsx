@@ -41,7 +41,7 @@ const UserDataFetcher = ({
             onBalanceUpdate(data.fipt_balance);
           }
         } else if (supabaseUser) {
-          // Extract user ID safely to avoid type recursion issues
+          // Extract user ID safely as a string to avoid type recursion issues
           const userId = supabaseUser?.id ? String(supabaseUser.id) : null;
           
           if (userId) {

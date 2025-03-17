@@ -1,10 +1,9 @@
 
-import { useEffect } from "react";
 import { Navigate } from "react-router-dom";
 
 const Index = () => {
-  // This page just redirects to the earn page
-  return <Navigate to="/earn" replace />;
+  // Redirect to the auth page instead of earn page
+  return <Navigate to="/" replace />;
 };
 
 export default Index;
