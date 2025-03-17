@@ -1,5 +1,5 @@
 
-import { useCallback, useState } from "react";
+import { useCallback, useState, useRef } from "react";
 import { TonConnect, WalletInfo } from "@tonconnect/sdk";
 
 interface TonConnectManagerProps {
@@ -14,8 +14,15 @@ export const useTonConnectManager = ({
   onWalletsAvailable
 }: TonConnectManagerProps) => {
   const [wallet, setWallet] = useState<TonConnect | null>(null);
+  const isInitialized = useRef(false);
   
   const initializeWallet = useCallback(() => {
+    // Prevent multiple initializations
+    if (isInitialized.current) {
+      console.log("TonConnect already initialized, skipping");
+      return wallet;
+    }
+    
     try {
       // Use the absolute URL to the manifest file
       const manifestUrl = `${window.location.origin}/tonconnect-manifest.json`;
@@ -26,6 +33,7 @@ export const useTonConnectManager = ({
       });
 
       setWallet(connector);
+      isInitialized.current = true;
       console.log("TonConnect initialized with manifest", connector);
 
       // Get available wallets

@@ -19,9 +19,8 @@ import WalletInfoDisplay from "@/components/wallet/WalletInfoDisplay";
 import WalletConnectButton from "@/components/wallet/WalletConnectButton";
 
 const TonConnectButton: React.FC = () => {
-  const { connectWallet, disconnectWallet, connected, address, wallet, available, isMobile } = useTonkeeperWallet();
+  const { connectWallet, disconnectWallet, connected, address, wallet, available, isMobile, isConnecting } = useTonkeeperWallet();
   const { storeWalletAddress } = useWalletStorage();
-  const [isConnecting, setIsConnecting] = useState(false);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [walletInfo, setWalletInfo] = useState<string>("No wallet info available");
   const [telegramUser, setTelegramUser] = useState<TelegramUser | null>(null);
@@ -59,7 +58,6 @@ const TonConnectButton: React.FC = () => {
       
       // Close dialog after successful connection
       setDialogOpen(false);
-      setIsConnecting(false);
     }
   }, [connected, address, storeWalletAddress, telegramUser]);
 
@@ -67,7 +65,6 @@ const TonConnectButton: React.FC = () => {
   const handleConnect = async () => {
     try {
       console.log("Attempting to connect wallet from button...");
-      setIsConnecting(true);
       
       // If no wallets are available, show specific error
       if (!available || available.length === 0) {
@@ -76,7 +73,6 @@ const TonConnectButton: React.FC = () => {
           description: "No compatible wallets found. Please install Tonkeeper.",
           variant: "destructive"
         });
-        setIsConnecting(false);
         return;
       }
       
@@ -109,7 +105,6 @@ const TonConnectButton: React.FC = () => {
         description: `Failed to connect to wallet: ${error.message || String(error)}`,
         variant: "destructive"
       });
-      setIsConnecting(false);
     }
   };
 
