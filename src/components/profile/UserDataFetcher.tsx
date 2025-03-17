@@ -30,7 +30,7 @@ const UserDataFetcher = ({
         
         if (telegramUser) {
           // Get the balance for the Telegram user
-          const { data, error } = await supabase
+          const { data } = await supabase
             .from('wallet_balances')
             .select('fipt_balance')
             .eq('telegram_id', telegramUser.id)

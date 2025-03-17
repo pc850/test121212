@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import EarnButton from "@/components/EarnButton";
 import { Card } from "@/components/ui/card";
@@ -142,6 +143,7 @@ const EarnPage = () => {
         </div>
       )}
       
+      {/* Only show the balance display for non-logged-in users here, since logged-in users see it in UserProfileSection */}
       {!isLoggedIn && (
         <div className="mb-6">
           <Card className="w-full p-4 border border-fipt-blue/20 bg-gradient-to-r from-fipt-blue/10 to-fipt-accent/10">
