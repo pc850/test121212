@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Button } from "@/components/ui";
 import { TelegramUser } from "@/types/telegram";
@@ -70,18 +69,20 @@ const WalletConnectButton: React.FC<WalletConnectButtonProps> = ({
         )}
       </Button>
       
+      {isMobile && (
+        <div className="p-2 bg-yellow-50 border border-yellow-200 rounded-md text-xs text-yellow-700">
+          <p className="font-medium">Mobile Device Detected</p>
+          <p>Clicking will attempt to open the Tonkeeper app.</p>
+          <p className="mt-1">If Tonkeeper doesn't open automatically, please install the app from your app store first.</p>
+          <p className="mt-1">After connecting in Tonkeeper, return to this browser tab.</p>
+        </div>
+      )}
+      
       {isTelegramMiniApp && (
         <div className="p-2 bg-yellow-50 border border-yellow-200 rounded-md text-xs text-yellow-700">
           <p className="font-medium">Important</p>
           <p>Clicking will open Tonkeeper outside this app. After connecting, please return here.</p>
           <p className="mt-1">If nothing happens, please try again or open Tonkeeper manually.</p>
-        </div>
-      )}
-      
-      {isMobile && !isTelegramMiniApp && (
-        <div className="p-2 bg-yellow-50 border border-yellow-200 rounded-md text-xs text-yellow-700">
-          <p className="font-medium">Mobile Device</p>
-          <p>Clicking will open the Tonkeeper app. Approve the connection there and return to this app.</p>
         </div>
       )}
       

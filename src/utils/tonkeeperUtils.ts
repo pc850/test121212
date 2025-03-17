@@ -1,3 +1,4 @@
+
 import { TonConnect, isWalletInfoInjectable, WalletInfoRemote } from "@tonconnect/sdk";
 
 /**
@@ -57,29 +58,81 @@ export const handleMobileConnection = async (
   wallet: TonConnect,
   tonkeeper: any
 ): Promise<void> => {
-  console.log("Connecting on mobile device");
+  console.log("Connecting on mobile device", tonkeeper);
   
-  // For mobile, try using universal URL first if available
-  if (tonkeeper.universalUrl) {
-    console.log("Using universal URL for mobile:", tonkeeper.universalUrl);
-    window.location.href = tonkeeper.universalUrl;
+  // Mobile connections need special handling
+  // Extract the important properties for debugging
+  const walletInfo = {
+    name: tonkeeper.name,
+    hasUniversalUrl: !!tonkeeper.universalUrl,
+    hasDeepLink: !!tonkeeper.deepLink,
+    hasBridge: !!(tonkeeper.bridge && tonkeeper.bridge.length > 0)
+  };
+  console.log("Wallet details:", walletInfo);
+  
+  // For Android/iOS deep links work better than universal URLs in many cases
+  if (tonkeeper.deepLink) {
+    console.log("Using deep link for mobile:", tonkeeper.deepLink);
     
-    // As a fallback, also try the connect method
+    // For mobile, we need to directly change the window location
+    // to trigger the app to open
     try {
-      await wallet.connect({
-        universalLink: tonkeeper.universalUrl,
-        bridgeUrl: tonkeeper.bridge?.[0]?.url
-      });
-      console.log("Mobile connect method called successfully");
+      window.location.href = tonkeeper.deepLink;
+      console.log("Redirected to deep link");
+      
+      // As a fallback, also call connect (though the page may have already navigated away)
+      setTimeout(() => {
+        try {
+          wallet.connect({
+            jsBridgeKey: "tonkeeper"
+          }).catch(e => console.error("Error in delayed connect:", e));
+        } catch (e) {
+          console.error("Error setting up delayed connect:", e);
+        }
+      }, 100);
     } catch (e) {
-      console.error("Error in mobile wallet.connect method:", e);
+      console.error("Error redirecting to deep link:", e);
+      
+      // If deep link redirection fails, try universal URL as fallback
+      if (tonkeeper.universalUrl) {
+        console.log("Falling back to universal URL");
+        window.location.href = tonkeeper.universalUrl;
+      }
     }
-  } else if (tonkeeper.deepLink) {
-    console.log("Using deep link:", tonkeeper.deepLink);
-    window.location.href = tonkeeper.deepLink;
-  } else {
+  } 
+  // If no deep link but has universal URL
+  else if (tonkeeper.universalUrl) {
+    console.log("Using universal URL for mobile:", tonkeeper.universalUrl);
+    
+    try {
+      // Direct navigation works better on mobile than window.open
+      window.location.href = tonkeeper.universalUrl;
+      console.log("Redirected to universal URL");
+      
+      // Also try the connect method as a fallback
+      setTimeout(() => {
+        try {
+          wallet.connect({
+            universalLink: tonkeeper.universalUrl,
+            bridgeUrl: tonkeeper.bridge?.[0]?.url
+          }).catch(e => console.error("Error in delayed connect:", e));
+        } catch (e) {
+          console.error("Error setting up delayed connect:", e);
+        }
+      }, 100);
+    } catch (e) {
+      console.error("Error redirecting to universal URL:", e);
+    }
+  } 
+  // Last resort: try the standard connection method
+  else {
     console.log("No deep link or universal URL, using standard connect");
-    await wallet.connect({ jsBridgeKey: "tonkeeper" });
+    try {
+      await wallet.connect({ jsBridgeKey: "tonkeeper" });
+      console.log("Standard connect method called");
+    } catch (e) {
+      console.error("Error in standard connect:", e);
+    }
   }
 };
 
@@ -115,3 +168,4 @@ export const handleDesktopConnection = async (
     await wallet.connect({ jsBridgeKey: "tonkeeper" });
   }
 };
+
