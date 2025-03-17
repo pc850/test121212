@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { 
@@ -7,7 +6,7 @@ import {
   calculateSwapAmount,
   getTokenBalances,
   executeSwap
-} from "@/utils/tonswapApi";
+} from "@/utils/api";
 
 export const useSwapForm = (address?: string) => {
   // State management
