@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { TonConnect, WalletInfo } from "@tonconnect/sdk";
 import { Address } from "@ton/core";
@@ -116,26 +115,14 @@ export const useTonkeeperWallet = () => {
       
       console.log("Found Tonkeeper wallet:", tonkeeperWallet);
       
-      // Connect to the wallet using the TonConnect API
-      // We need to handle different wallet types (mobile vs injected)
-      let connectionSource;
+      // Create a safe connection source that works with different wallet types
+      let connectionSource = { jsBridgeKey: 'tonkeeper' };
       
-      // Check wallet type and use appropriate properties
-      if ('bridgeUrl' in tonkeeperWallet) {
-        // It's a mobile wallet
+      // Safely build connection source based on what properties are available
+      if ('universalLink' in tonkeeperWallet) {
         connectionSource = {
-          jsBridgeKey: 'tonkeeper',
+          ...connectionSource,
           universalLink: tonkeeperWallet.universalLink
-        };
-      } else if (tonkeeperWallet.injected) {
-        // It's an injected wallet
-        connectionSource = {
-          jsBridgeKey: tonkeeperWallet.jsBridgeKey || 'tonkeeper'
-        };
-      } else {
-        // Fallback
-        connectionSource = {
-          jsBridgeKey: 'tonkeeper'
         };
       }
       
