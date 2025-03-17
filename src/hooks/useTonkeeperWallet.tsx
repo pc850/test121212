@@ -80,7 +80,7 @@ export const useTonkeeperWallet = () => {
       // Get tonkeeper from available wallets
       const tonkeeperWallet = available.find(w => 
         w.name.toLowerCase().includes('tonkeeper') || 
-        w.appName.toLowerCase().includes('tonkeeper')
+        w.id.toLowerCase().includes('tonkeeper')
       );
       
       if (!tonkeeperWallet) {
@@ -90,11 +90,8 @@ export const useTonkeeperWallet = () => {
       
       console.log("Found Tonkeeper wallet:", tonkeeperWallet);
       
-      // Use the specific wallet for connection with its embedded link
-      const result = wallet.connect({
-        jsBridgeKey: tonkeeperWallet.jsBridgeKey,
-        universalLink: tonkeeperWallet.universalLink
-      });
+      // Connect without using jsBridgeKey and universalLink
+      const result = wallet.connect(tonkeeperWallet);
       
       console.log("Connection initiated:", result);
       return result;

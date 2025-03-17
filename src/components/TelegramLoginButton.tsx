@@ -1,4 +1,3 @@
-
 import { useEffect, useRef } from 'react';
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -36,7 +35,7 @@ declare global {
 }
 
 const TelegramLoginButton = ({
-  botName = 'fipt_bot', // Update this to use your bot name
+  botName = 'Chicktok_bot', // Updated to use the new bot name
   buttonSize = 'medium',
   cornerRadius = 8,
   requestAccess,

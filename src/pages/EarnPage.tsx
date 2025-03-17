@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import EarnButton from "@/components/EarnButton";
 import { Card } from "@/components/ui/card";
@@ -110,7 +111,7 @@ const EarnPage = () => {
           <Card className="p-4 border border-fipt-blue/20 bg-white">
             <h3 className="text-sm font-medium text-fipt-dark mb-3 text-center">Login to Save Your Progress</h3>
             <TelegramLoginButton 
-              botName="fipt_bot" // Replace with your Telegram bot name
+              botName="Chicktok_bot" // Updated to use the new bot name
               buttonSize="medium"
               onAuth={handleTelegramAuth}
               className="flex justify-center"
