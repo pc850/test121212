@@ -1,7 +1,7 @@
 
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
-import { TelegramUser } from "@/components/TelegramLoginButton";
+import { TelegramUser } from "@/types/telegram";
 
 export const useWalletStorage = () => {
   const storeWalletAddress = async (address: string, telegramUser: TelegramUser | null) => {
