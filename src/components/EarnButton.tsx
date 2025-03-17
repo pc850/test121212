@@ -57,14 +57,11 @@ const EarnButton = ({ onEarn, disabled = false }: EarnButtonProps) => {
   };
   
   const handleAdSuccess = (claimedPoints: number) => {
-    // This function is called when an ad is successfully viewed and claimed
     console.log('Ad completed successfully, claiming points:', claimedPoints);
     
     if (onEarn) {
-      // Call the onEarn handler with the claimed points
       onEarn(claimedPoints);
       
-      // Show a success toast
       toast({
         title: "Points Claimed!",
         description: `You've earned ${claimedPoints} FIPT points.`,
@@ -72,7 +69,6 @@ const EarnButton = ({ onEarn, disabled = false }: EarnButtonProps) => {
       });
     }
     
-    // Reset pending points
     setPendingPoints(0);
   };
   
@@ -123,7 +119,7 @@ const EarnButton = ({ onEarn, disabled = false }: EarnButtonProps) => {
         onClick={handleClick}
         disabled={disabled}
         className={cn(
-          "relative w-48 h-48 rounded-full flex items-center justify-center shadow-lg transition-all duration-200",
+          "relative w-48 h-48 rounded-full flex items-center justify-center shadow-lg transition-all duration-200 cursor-pointer",
           disabled 
             ? "bg-gray-200 cursor-not-allowed" 
             : "bg-gradient-to-br from-fipt-blue to-fipt-accent hover:scale-[1.02]",
