@@ -1,3 +1,5 @@
+"use client"; // If you’re using Next.js App Router and need client-side rendering
+
 import React, { useState } from "react";
 import { Wallet } from "lucide-react";
 import { 
@@ -11,10 +13,13 @@ import {
 } from "@/components/ui";
 import { toast } from "@/hooks/use-toast";
 
-// Import TonConnect SDK
+// 1) TonConnect SDK import
 import { TonConnect } from "@tonconnect/sdk";
 
-// Initialize TonConnect with your manifest URL
+// 2) Supabase client import
+import { supabase } from "@/lib/supabase";
+
+// 3) Initialize TonConnect
 const tonConnect = new TonConnect({
   manifestUrl: "https://your-site.com/tonconnect-manifest.json",
 });
@@ -26,23 +31,40 @@ const TonConnectButton: React.FC = () => {
   // Connect function that triggers Tonkeeper via TonConnect
   const connectWallet = async () => {
     try {
-      // If you want to limit the connection to Tonkeeper, pass an array with one wallet connection source.
-      // Replace "tonkeeper" with the appropriate id if needed (refer to your SDK docs).
+      // Attempt to connect specifically to Tonkeeper
       const wallets = await tonConnect.connect([{ id: "tonkeeper" }]);
       if (wallets && wallets.length > 0) {
         const address = wallets[0].account.address;
+
+        // Update local state
         setWalletAddress(address);
         setIsConnected(true);
+
         toast({
           title: "Connected to Tonkeeper",
           description: `Wallet address: ${address}`,
         });
+
+        // 4) Store the wallet address in Supabase
+        const { data, error } = await supabase
+          .from("wallets")               // <--- Replace with your table name
+          .insert({ wallet_address: address }); // <--- Replace with your column name
+
+        if (error) {
+          console.error("Supabase insertion error:", error);
+          toast({
+            title: "Database error",
+            description: "Failed to store wallet address",
+          });
+        } else {
+          console.log("Wallet address stored in Supabase:", data);
+        }
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Connection error:", error);
       toast({
         title: "Connection error",
-        description: "Failed to connect to wallet",
+        description: `Failed to connect to wallet: ${error.message || error}`,
       });
     }
   };
@@ -53,15 +75,16 @@ const TonConnectButton: React.FC = () => {
       await tonConnect.disconnect();
       setIsConnected(false);
       setWalletAddress("");
+
       toast({
         title: "Wallet disconnected",
         description: "Your wallet has been disconnected",
       });
-    } catch (error) {
+    } catch (error: any) {
       console.error("Disconnect error:", error);
       toast({
         title: "Error",
-        description: "Failed to disconnect wallet",
+        description: `Failed to disconnect wallet: ${error.message || error}`,
       });
     }
   };
