@@ -22,6 +22,32 @@
       
       // Create a global access point
       window.telegramWebApp = window.Telegram.WebApp;
+      
+      // Trigger auto-login when WebApp is ready
+      if (window.Telegram.WebApp.initDataUnsafe?.user) {
+        // Store basic user data for immediate access
+        const user = window.Telegram.WebApp.initDataUnsafe.user;
+        const telegramUser = {
+          id: user.id,
+          first_name: user.first_name,
+          last_name: user.last_name || undefined,
+          username: user.username || undefined,
+          photo_url: user.photo_url || undefined,
+          auth_date: Math.floor(Date.now() / 1000),
+          hash: window.Telegram.WebApp.initData
+        };
+        localStorage.setItem('telegramUser', JSON.stringify(telegramUser));
+        
+        console.log('Auto-stored Telegram user:', telegramUser);
+        
+        // Dispatch event to notify app of login
+        window.dispatchEvent(new CustomEvent('telegramUserAutoLogin', { 
+          detail: { user: telegramUser } 
+        }));
+      }
+      
+      // Call ready after everything is set up
+      window.Telegram.WebApp.ready();
     } else {
       console.log('Not running in Telegram WebApp environment');
       
@@ -46,6 +72,25 @@
               ready: () => {}
             }
           };
+          
+          // Store user data for auto-login
+          if (data.user) {
+            const telegramUser = {
+              id: data.user.id,
+              first_name: data.user.first_name,
+              last_name: data.user.last_name || undefined,
+              username: data.user.username || undefined,
+              photo_url: data.user.photo_url || undefined,
+              auth_date: Math.floor(Date.now() / 1000),
+              hash: tgWebAppData
+            };
+            localStorage.setItem('telegramUser', JSON.stringify(telegramUser));
+            
+            // Dispatch event to notify app of login
+            window.dispatchEvent(new CustomEvent('telegramUserAutoLogin', { 
+              detail: { user: telegramUser } 
+            }));
+          }
           
           const event = new CustomEvent('telegramWebAppInitialized', {
             detail: { webApp: window.Telegram.WebApp }

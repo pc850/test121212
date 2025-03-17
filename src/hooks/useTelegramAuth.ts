@@ -1,10 +1,14 @@
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { supabase } from "@/integrations/supabase/client";
 import { TelegramUser } from '@/components/TelegramLoginButton';
+import { useToast } from "@/hooks/use-toast";
 
 export const useTelegramAuth = () => {
   const [isVerifying, setIsVerifying] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [currentUser, setCurrentUser] = useState<TelegramUser | null>(null);
+  const { toast } = useToast();
   
   const verifyTelegramLogin = async (user: TelegramUser): Promise<boolean> => {
     setIsVerifying(true);
@@ -56,7 +60,6 @@ export const useTelegramAuth = () => {
     }
   };
   
-  // New function to extract WebApp Telegram user data from the mini-app
   const autoLogin = useCallback(async (): Promise<TelegramUser | null> => {
     try {
       // Check if running in Telegram WebApp
@@ -83,6 +86,8 @@ export const useTelegramAuth = () => {
           
           // Store the user in localStorage
           localStorage.setItem('telegramUser', JSON.stringify(telegramUser));
+          setCurrentUser(telegramUser);
+          setIsLoggedIn(true);
           
           return telegramUser;
         }
@@ -111,10 +116,26 @@ export const useTelegramAuth = () => {
             
             await saveUserToSupabase(telegramUser);
             localStorage.setItem('telegramUser', JSON.stringify(telegramUser));
+            setCurrentUser(telegramUser);
+            setIsLoggedIn(true);
             return telegramUser;
           }
         } catch (e) {
           console.error('Failed to parse tgWebAppData:', e);
+        }
+      }
+      
+      // Check if user is already stored in localStorage
+      const storedUser = localStorage.getItem('telegramUser');
+      if (storedUser) {
+        try {
+          const parsedUser = JSON.parse(storedUser);
+          setCurrentUser(parsedUser);
+          setIsLoggedIn(true);
+          return parsedUser;
+        } catch (e) {
+          console.error('Failed to parse stored user:', e);
+          localStorage.removeItem('telegramUser');
         }
       }
       
@@ -125,11 +146,29 @@ export const useTelegramAuth = () => {
     }
   }, []);
   
+  // Run auto login on component mount
+  useEffect(() => {
+    autoLogin();
+  }, [autoLogin]);
+  
+  const logout = () => {
+    localStorage.removeItem('telegramUser');
+    setCurrentUser(null);
+    setIsLoggedIn(false);
+    toast({
+      title: 'Logged Out',
+      description: 'You have been successfully logged out.'
+    });
+  };
+  
   return {
     isVerifying,
     verifyTelegramLogin,
     saveUserToSupabase,
-    autoLogin
+    autoLogin,
+    logout,
+    isLoggedIn,
+    currentUser
   };
 };
 
@@ -152,6 +191,8 @@ declare global {
           hash: string;
           [key: string]: any;
         };
+        expand: () => void;
+        ready: () => void;
         [key: string]: any;
       };
     };

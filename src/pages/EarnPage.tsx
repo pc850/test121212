@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import EarnButton from "@/components/EarnButton";
 import { Card } from "@/components/ui/card";
@@ -14,25 +13,15 @@ const EarnPage = () => {
     const savedBalance = localStorage.getItem('fiptBalance');
     return savedBalance ? parseInt(savedBalance, 10) : 0;
   });
-  const [telegramUser, setTelegramUser] = useState<TelegramUser | null>(null);
   const { toast } = useToast();
-  const { autoLogin } = useTelegramAuth();
+  const { autoLogin, currentUser: telegramUser, isLoggedIn, logout } = useTelegramAuth();
   
   useEffect(() => {
     document.title = "FIPT - Earn";
     
-    const storedUser = localStorage.getItem('telegramUser');
-    if (storedUser) {
-      try {
-        setTelegramUser(JSON.parse(storedUser));
-      } catch (e) {
-        console.error('Failed to parse stored user:', e);
-        localStorage.removeItem('telegramUser');
-      }
-    } else {
+    if (!telegramUser) {
       autoLogin().then(user => {
         if (user) {
-          setTelegramUser(user);
           toast({
             title: 'Login Successful',
             description: `Welcome, ${user.first_name}!`,
@@ -40,7 +29,7 @@ const EarnPage = () => {
         }
       });
     }
-  }, [toast, autoLogin]);
+  }, [toast, autoLogin, telegramUser]);
 
   useEffect(() => {
     localStorage.setItem('fiptBalance', balance.toString());
@@ -93,25 +82,20 @@ const EarnPage = () => {
   };
   
   const handleTelegramAuth = (user: TelegramUser) => {
-    setTelegramUser(user);
     localStorage.setItem('telegramUser', JSON.stringify(user));
-  };
-  
-  const handleLogout = () => {
-    setTelegramUser(null);
-    localStorage.removeItem('telegramUser');
+    autoLogin();
   };
 
   return (
     <div className="min-h-screen flex flex-col pt-6 px-4 animate-fade-in">
       {telegramUser ? (
-        <UserProfileSection onLogout={handleLogout} />
+        <UserProfileSection onLogout={logout} />
       ) : (
         <div className="mb-6 flex justify-center">
           <Card className="p-4 border border-fipt-blue/20 bg-white">
             <h3 className="text-sm font-medium text-fipt-dark mb-3 text-center">Login to Save Your Progress</h3>
             <TelegramLoginButton 
-              botName="Chicktok_bot" // Updated to use the new bot name
+              botName="Chicktok_bot"
               buttonSize="medium"
               onAuth={handleTelegramAuth}
               className="flex justify-center"

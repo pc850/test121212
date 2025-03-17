@@ -5,25 +5,21 @@ import { useState, useEffect } from "react";
 import { TelegramUser } from "@/components/TelegramLoginButton";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { supabase } from "@/integrations/supabase/client";
+import { useTelegramAuth } from "@/hooks/useTelegramAuth";
 
 interface FeedHeaderProps {
   balance: number;
 }
 
 const FeedHeader = ({ balance }: FeedHeaderProps) => {
-  const [telegramUser, setTelegramUser] = useState<TelegramUser | null>(null);
+  const { currentUser: telegramUser, autoLogin } = useTelegramAuth();
   
   useEffect(() => {
-    // Check if user is logged in with Telegram
-    const storedUser = localStorage.getItem('telegramUser');
-    if (storedUser) {
-      try {
-        setTelegramUser(JSON.parse(storedUser));
-      } catch (e) {
-        console.error('Failed to parse stored user:', e);
-      }
+    // If no user is in state, try to auto-login
+    if (!telegramUser) {
+      autoLogin();
     }
-  }, []);
+  }, [telegramUser, autoLogin]);
   
   useEffect(() => {
     // If user is logged in with Telegram, update balance in Supabase
