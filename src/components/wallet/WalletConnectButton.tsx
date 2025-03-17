@@ -9,6 +9,7 @@ interface WalletConnectButtonProps {
   walletInfo: string;
   available: any[];
   onConnect: () => void;
+  isMobile?: boolean;
 }
 
 const WalletConnectButton: React.FC<WalletConnectButtonProps> = ({
@@ -16,7 +17,8 @@ const WalletConnectButton: React.FC<WalletConnectButtonProps> = ({
   telegramUser,
   walletInfo,
   available,
-  onConnect
+  onConnect,
+  isMobile = false
 }) => {
   return (
     <div className="grid gap-4">
@@ -31,8 +33,15 @@ const WalletConnectButton: React.FC<WalletConnectButtonProps> = ({
           alt="Tonkeeper"
           className="h-5 w-5"
         />
-        {isConnecting ? "Connecting..." : "Tonkeeper"}
+        {isConnecting ? "Connecting..." : (isMobile ? "Open Tonkeeper App" : "Tonkeeper")}
       </Button>
+      
+      {isMobile && (
+        <div className="p-2 bg-yellow-50 border border-yellow-200 rounded-md text-xs text-yellow-700">
+          <p className="font-medium">Mobile Device Detected</p>
+          <p>Clicking the button above will open the Tonkeeper app. You'll need to approve the connection there.</p>
+        </div>
+      )}
       
       {telegramUser && (
         <div className="p-2 bg-muted rounded-md text-xs text-muted-foreground">

@@ -13,8 +13,13 @@ interface FeedHeaderProps {
 
 const FeedHeader = ({ balance }: FeedHeaderProps) => {
   const { currentUser: telegramUser, autoLogin } = useTelegramAuth();
+  const [isTelegramMobileApp, setIsTelegramMobileApp] = useState(false);
   
   useEffect(() => {
+    // Check if running in Telegram mobile app
+    const telegramMobileAppFlag = localStorage.getItem('isTelegramMobileApp');
+    setIsTelegramMobileApp(telegramMobileAppFlag === 'true');
+    
     // If no user is in state, try to auto-login
     if (!telegramUser) {
       autoLogin();

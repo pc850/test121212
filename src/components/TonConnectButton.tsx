@@ -19,7 +19,7 @@ import WalletInfoDisplay from "@/components/wallet/WalletInfoDisplay";
 import WalletConnectButton from "@/components/wallet/WalletConnectButton";
 
 const TonConnectButton: React.FC = () => {
-  const { connectWallet, disconnectWallet, connected, address, wallet, available } = useTonkeeperWallet();
+  const { connectWallet, disconnectWallet, connected, address, wallet, available, isMobile } = useTonkeeperWallet();
   const { storeWalletAddress } = useWalletStorage();
   const [isConnecting, setIsConnecting] = useState(false);
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -29,7 +29,7 @@ const TonConnectButton: React.FC = () => {
   useEffect(() => {
     // Debug info
     if (wallet) {
-      const info = `Wallet initialized: ${!!wallet}, Connected: ${connected}, Address: ${address}, Available wallets: ${available.length}`;
+      const info = `Wallet initialized: ${!!wallet}, Connected: ${connected}, Address: ${address}, Available wallets: ${available.length}, Mobile: ${isMobile}`;
       console.log(info);
       setWalletInfo(info);
     }
@@ -43,7 +43,7 @@ const TonConnectButton: React.FC = () => {
         console.error('Failed to parse stored user:', e);
       }
     }
-  }, [wallet, connected, address, available]);
+  }, [wallet, connected, address, available, isMobile]);
 
   // Connect function to trigger Tonkeeper via TonConnect
   const handleConnect = async () => {
@@ -66,10 +66,19 @@ const TonConnectButton: React.FC = () => {
       
       await connectWallet();
       
-      toast({
-        title: "Connection initiated",
-        description: "Please check your wallet app to approve the connection",
-      });
+      // Close the dialog on mobile since we're redirecting to another app
+      if (isMobile) {
+        setDialogOpen(false);
+        toast({
+          title: "Opening Tonkeeper",
+          description: "We're redirecting you to the Tonkeeper app...",
+        });
+      } else {
+        toast({
+          title: "Connection initiated",
+          description: "Please check your wallet app to approve the connection",
+        });
+      }
       
     } catch (error: any) {
       console.error("Connection error:", error);
@@ -146,6 +155,7 @@ const TonConnectButton: React.FC = () => {
             walletInfo={walletInfo}
             available={available}
             onConnect={handleConnect}
+            isMobile={isMobile}
           />
         )}
       </DialogContent>

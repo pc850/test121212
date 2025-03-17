@@ -23,6 +23,9 @@
       // Create a global access point
       window.telegramWebApp = window.Telegram.WebApp;
       
+      // Set flag for mobile environment
+      localStorage.setItem('isTelegramMobileApp', 'true');
+      
       // Trigger auto-login when WebApp is ready
       if (window.Telegram.WebApp.initDataUnsafe?.user) {
         // Store basic user data for immediate access
@@ -50,6 +53,7 @@
       window.Telegram.WebApp.ready();
     } else {
       console.log('Not running in Telegram WebApp environment');
+      localStorage.removeItem('isTelegramMobileApp');
       
       // Check if we have WebApp data in the URL for testing
       const urlParams = new URLSearchParams(window.location.search);

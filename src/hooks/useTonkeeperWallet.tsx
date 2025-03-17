@@ -6,6 +6,7 @@ export const useTonkeeperWallet = () => {
   const [address, setAddress] = useState<string | null>(null);
   const [connected, setConnected] = useState(false);
   const [available, setAvailable] = useState<WalletInfo[]>([]);
+  const [isMobile, setIsMobile] = useState(false);
   
   const {
     wallet,
@@ -27,6 +28,11 @@ export const useTonkeeperWallet = () => {
   });
   
   useEffect(() => {
+    const checkMobile = () => {
+      return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    };
+    
+    setIsMobile(checkMobile());
     initializeWallet();
     const unsubscribe = subscribeToWalletChanges();
     
@@ -43,6 +49,7 @@ export const useTonkeeperWallet = () => {
 
     try {
       console.log("Attempting to connect wallet...");
+      console.log("Is mobile device:", isMobile);
       
       // Get tonkeeper from available wallets
       const tonkeeperWallet = available.find(w => 
@@ -58,10 +65,32 @@ export const useTonkeeperWallet = () => {
       
       console.log("Found Tonkeeper wallet:", tonkeeperWallet);
       
-      // Connect without using jsBridgeKey and universalLink
-      const result = wallet.connect(tonkeeperWallet);
+      // Mobile devices need special handling
+      if (isMobile) {
+        // Use universal link for mobile instead of modal
+        if (tonkeeperWallet.universalLink) {
+          console.log("Using universal link for mobile:", tonkeeperWallet.universalLink);
+          
+          // For mobile, we'll use the protocol method to open the wallet app directly
+          const connectionSource = {
+            universalLink: tonkeeperWallet.universalLink,
+            bridgeUrl: tonkeeperWallet.bridgeUrl
+          };
+          
+          const result = wallet.connect(tonkeeperWallet, connectionSource);
+          console.log("Mobile connection initiated:", result);
+          return result;
+        } else if (tonkeeperWallet.deepLink) {
+          console.log("Using deep link for mobile:", tonkeeperWallet.deepLink);
+          // Try deep link as fallback
+          window.location.href = tonkeeperWallet.deepLink as string;
+          return;
+        }
+      }
       
-      console.log("Connection initiated:", result);
+      // Desktop flow
+      const result = wallet.connect(tonkeeperWallet);
+      console.log("Desktop connection initiated:", result);
       return result;
     } catch (error) {
       console.error("Connection error:", error);
@@ -76,5 +105,5 @@ export const useTonkeeperWallet = () => {
     }
   };
 
-  return { connectWallet, disconnectWallet, connected, address, wallet, available };
+  return { connectWallet, disconnectWallet, connected, address, wallet, available, isMobile };
 };
