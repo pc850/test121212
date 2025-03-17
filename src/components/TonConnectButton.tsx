@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Wallet, Link } from "lucide-react";
 import { 
@@ -20,11 +19,19 @@ const TonConnectButton: React.FC = () => {
     walletAddress, 
     provider,
     mockConnect, 
+    connectToTonkeeper,
     disconnect 
   } = useTonConnect();
 
   const handleConnect = async (walletType: string) => {
-    const address = await mockConnect(walletType);
+    let address;
+    
+    if (walletType === "Tonkeeper") {
+      address = await connectToTonkeeper();
+    } else {
+      address = await mockConnect(walletType);
+    }
+    
     if (address) {
       toast({
         title: `Connected to ${walletType}`,

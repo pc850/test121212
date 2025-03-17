@@ -10,6 +10,11 @@ export function useTonConnect() {
   const [walletAddress, setWalletAddress] = useState("");
   const [provider, setProvider] = useState<string | null>(null);
   
+  // Initialize TON client
+  const tonClient = new TonClient({
+    endpoint: 'https://toncenter.com/api/v2/jsonRPC', // Using public TON API endpoint
+  });
+  
   const saveWalletConnection = async (address: string, provider: string) => {
     try {
       const { data: existingWallet } = await supabase
@@ -33,10 +38,12 @@ export function useTonConnect() {
     }
   };
 
+  // For development and demo purposes
   const mockConnect = useCallback(async (walletType: string) => {
     setIsConnecting(true);
     try {
-      // Generate a mock TON address for demo purposes
+      // In a real implementation, this would trigger the wallet connection
+      // For now, we'll simulate a successful connection with a fake address
       const mockAddress = "UQ" + Math.random().toString(16).slice(2, 10).toUpperCase() + "...";
       
       setWalletAddress(mockAddress);
@@ -54,6 +61,13 @@ export function useTonConnect() {
       setIsConnecting(false);
     }
   }, []);
+
+  // In a real implementation, this would handle the real wallet connection
+  const connectToTonkeeper = useCallback(async () => {
+    // This is where the actual TON Connect SDK implementation would go
+    // Currently using mockConnect for demo purposes
+    return await mockConnect("Tonkeeper");
+  }, [mockConnect]);
 
   const disconnect = useCallback(async () => {
     try {
@@ -78,6 +92,8 @@ export function useTonConnect() {
     walletAddress,
     provider,
     mockConnect,
-    disconnect
+    connectToTonkeeper,
+    disconnect,
+    tonClient
   };
 }
