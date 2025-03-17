@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from "react";
-import { Wallet } from "lucide-react";
+import { Wallet, Link } from "lucide-react";
 import { 
   Button,
   Dialog,
@@ -11,102 +11,124 @@ import {
   DialogTrigger,
 } from "@/components/ui";
 import { toast } from "@/hooks/use-toast";
-
-// Import TonConnect SDK with correct types
-import { TonConnect, type Wallet as TonWallet } from "@tonconnect/sdk";
-
-// Initialize TonConnect with the correct manifest URL
-const tonConnect = new TonConnect({
-  manifestUrl: "https://5bc3d506-2efc-40e2-9a59-c8a6ba10c04b.lovableproject.com/tonconnect-manifest.json",
-});
+import WalletConnect from "@walletconnect/client";
+import QRCodeModal from "@walletconnect/qrcode-modal";
 
 const TonConnectButton: React.FC = () => {
   const [isConnected, setIsConnected] = useState(false);
   const [walletAddress, setWalletAddress] = useState("");
+  const [connector, setConnector] = useState<WalletConnect | null>(null);
+  const [open, setOpen] = useState(false);
 
-  // Setup TonConnect on component mount
   useEffect(() => {
-    // Check if already connected
-    const connectedWallet = tonConnect.wallet;
-    if (connectedWallet) {
-      setIsConnected(true);
-      setWalletAddress(connectedWallet.account.address);
-    }
-
-    // Set up connection event listeners
-    const unsubscribeConnection = tonConnect.onStatusChange((wallet) => {
-      if (wallet) {
-        setIsConnected(true);
-        setWalletAddress(wallet.account.address);
-        toast({
-          title: "Connected to wallet",
-          description: `Wallet connected successfully`,
-        });
-      } else {
-        setIsConnected(false);
-        setWalletAddress("");
-      }
+    // Initialize WalletConnect
+    const walletConnector = new WalletConnect({
+      bridge: "https://bridge.walletconnect.org", 
+      qrcodeModal: QRCodeModal,
     });
 
-    // Cleanup listeners on unmount
+    // Set the connector
+    setConnector(walletConnector);
+
+    // Setup event listeners
+    if (walletConnector) {
+      // Check if already connected
+      if (walletConnector.connected) {
+        const { accounts } = walletConnector;
+        setWalletAddress(accounts[0]);
+        setIsConnected(true);
+      }
+
+      // Listen for connect events
+      walletConnector.on("connect", (error, payload) => {
+        if (error) {
+          console.error("Connection error:", error);
+          toast({
+            title: "Connection Error",
+            description: "Failed to connect to wallet",
+            variant: "destructive"
+          });
+          return;
+        }
+
+        const { accounts } = payload.params[0];
+        setWalletAddress(accounts[0]);
+        setIsConnected(true);
+        toast({
+          title: "Wallet Connected",
+          description: `Connected to wallet: ${accounts[0].substring(0, 8)}...`,
+        });
+      });
+
+      // Listen for disconnect events
+      walletConnector.on("disconnect", (error) => {
+        if (error) {
+          console.error("Disconnect error:", error);
+        }
+        setWalletAddress("");
+        setIsConnected(false);
+        toast({
+          title: "Wallet Disconnected",
+          description: "Your wallet has been disconnected",
+        });
+      });
+    }
+
+    // Clean up event listeners on component unmount
     return () => {
-      unsubscribeConnection();
+      if (walletConnector) {
+        walletConnector.off("connect");
+        walletConnector.off("disconnect");
+      }
     };
   }, []);
 
-  // Connect function that triggers wallet connection
   const connectWallet = async () => {
-    try {
-      // Get a list of available wallets - properly handle the Promise
-      const walletsList = await tonConnect.getWallets();
-      
-      // Properly construct wallet connection options
-      if (walletsList.length > 0) {
-        // Use the first wallet in the list (typically Tonkeeper)
-        const selectedWallet = walletsList[0];
-        
-        // Create a proper universal link
-        tonConnect.connect({ 
-          jsBridgeKey: selectedWallet.jsBridgeKey,
-          universalLink: selectedWallet.universalLink,
-          bridgeUrl: selectedWallet.bridgeUrl,
-        });
-      } else {
+    if (!connector) {
+      toast({
+        title: "Connection Error",
+        description: "WalletConnect not initialized",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    if (!connector.connected) {
+      try {
+        // Create a new session and show QR code
+        await connector.createSession();
+      } catch (error) {
+        console.error("Failed to create session:", error);
         toast({
-          title: "No wallets available",
-          description: "Could not find any compatible wallets",
+          title: "Connection Error",
+          description: "Failed to create wallet session",
+          variant: "destructive"
         });
       }
-    } catch (error) {
-      console.error("Connection error:", error);
+    } else {
+      // Already connected, show the current connection
       toast({
-        title: "Connection error",
-        description: "Failed to connect to wallet",
+        title: "Already Connected",
+        description: `Connected to wallet: ${walletAddress.substring(0, 8)}...`,
       });
     }
   };
 
-  // Disconnect function to end the session
-  const disconnect = async () => {
-    try {
-      await tonConnect.disconnect();
-      setIsConnected(false);
-      setWalletAddress("");
-      toast({
-        title: "Wallet disconnected",
-        description: "Your wallet has been disconnected",
-      });
-    } catch (error) {
-      console.error("Disconnect error:", error);
-      toast({
-        title: "Error",
-        description: "Failed to disconnect wallet",
-      });
+  const disconnect = () => {
+    if (connector && connector.connected) {
+      connector.killSession();
     }
+    setIsConnected(false);
+    setWalletAddress("");
+    setOpen(false);
+    toast({
+      title: "Wallet disconnected",
+      description: "Your wallet has been disconnected",
+    });
   };
 
   return (
-    <Dialog>
+    <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <Button variant="outline" className="gap-2" size="sm">
           <Wallet className="h-4 w-4" />
@@ -116,13 +138,11 @@ const TonConnectButton: React.FC = () => {
       
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>
-            {isConnected ? "Wallet Connected" : "Connect your TON wallet"}
-          </DialogTitle>
+          <DialogTitle>{isConnected ? "Wallet Connected" : "Connect your TON wallet"}</DialogTitle>
           <DialogDescription>
             {isConnected 
               ? "Your wallet is connected to FIPT Shop"
-              : "Connect your Tonkeeper wallet to log in or sign up"
+              : "Choose your preferred TON wallet to connect"
             }
           </DialogDescription>
         </DialogHeader>
@@ -148,12 +168,26 @@ const TonConnectButton: React.FC = () => {
               className="justify-start gap-2" 
               onClick={connectWallet}
             >
-              <img 
-                src="https://tonkeeper.com/assets/tonconnect-icon.png" 
-                alt="Tonkeeper" 
-                className="h-5 w-5" 
-              />
-              Tonkeeper
+              <img src="https://tonkeeper.com/assets/tonconnect-icon.png" alt="Tonkeeper" className="h-5 w-5" />
+              Connect with Tonkeeper
+            </Button>
+            
+            <Button 
+              variant="outline" 
+              className="justify-start gap-2"
+              onClick={connectWallet}
+            >
+              <img src="https://ton.org/download/ton_symbol.svg" alt="TonHub" className="h-5 w-5" />
+              Connect with TonHub
+            </Button>
+            
+            <Button 
+              variant="outline" 
+              className="justify-start gap-2"
+              onClick={connectWallet}
+            >
+              <Link className="h-5 w-5" />
+              Connect with OpenMask
             </Button>
           </div>
         )}
