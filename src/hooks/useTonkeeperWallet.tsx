@@ -90,10 +90,12 @@ export const useTonkeeperWallet = () => {
       
       console.log("Found Tonkeeper wallet:", tonkeeperWallet);
       
-      // Use the specific wallet for connection with its embedded link
+      // Connect to the wallet using the TonConnect API
+      // The properties will depend on the wallet type
       const result = wallet.connect({
-        jsBridgeKey: tonkeeperWallet.jsBridgeKey,
-        universalLink: tonkeeperWallet.universalLink
+        // Use type-safe way to connect based on wallet info
+        jsBridgeKey: 'tonkeeper', // Default fallback value
+        universalLink: tonkeeperWallet.universalLink || tonkeeperWallet.bridgeUrl // Try both possible properties
       });
       
       console.log("Connection initiated:", result);

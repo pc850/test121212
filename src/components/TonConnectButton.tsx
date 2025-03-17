@@ -32,6 +32,14 @@ const TonConnectButton: React.FC = () => {
     }
   }, [wallet, connected, address, available]);
 
+  // Store wallet address in Supabase when connected
+  useEffect(() => {
+    if (connected && address) {
+      console.log("Storing wallet address in Supabase:", address);
+      storeWalletAddress(address);
+    }
+  }, [connected, address]);
+
   // Connect function to trigger Tonkeeper via TonConnect
   const handleConnect = async () => {
     try {
@@ -87,6 +95,10 @@ const TonConnectButton: React.FC = () => {
         });
       } else {
         console.log("Wallet address stored in Supabase successfully");
+        toast({
+          title: "Wallet stored",
+          description: "Your wallet address has been saved successfully",
+        });
       }
     } catch (dbError) {
       console.error("Database operation failed:", dbError);
