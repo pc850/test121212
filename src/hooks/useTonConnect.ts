@@ -1,8 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { TonClient } from "@ton/ton";
-import { Address } from "@ton/core";
-import { TonConnect, Wallet } from "@tonconnect/sdk";
+import { TonConnect, Wallet, WalletInfo } from "@tonconnect/sdk";
 
 // Define TON Connect manifest
 const manifestUrl = 'https://fipt-shop.app/tonconnect-manifest.json';
@@ -13,7 +12,7 @@ export function useTonConnect() {
   const [walletAddress, setWalletAddress] = useState("");
   const [provider, setProvider] = useState<string | null>(null);
   const [tonConnectUI, setTonConnectUI] = useState<TonConnect | null>(null);
-  const [wallets, setWallets] = useState<Wallet[]>([]);
+  const [availableWallets, setAvailableWallets] = useState<WalletInfo[]>([]);
   
   // Initialize TON client
   const tonClient = new TonClient({
@@ -38,8 +37,8 @@ export function useTonConnect() {
     // Get available wallets
     const getWallets = async () => {
       try {
-        const availableWallets = await connector.getWallets();
-        setWallets(availableWallets);
+        const walletsList = await connector.getWallets();
+        setAvailableWallets(walletsList);
       } catch (error) {
         console.error("Error getting available wallets:", error);
       }
@@ -113,21 +112,31 @@ export function useTonConnect() {
   }, []);
 
   // Connect to a real wallet using TON Connect
-  const connectToWallet = useCallback(async (walletName: string) => {
+  const connectToWallet = useCallback(async (walletId: string) => {
     if (!tonConnectUI) return null;
     
     setIsConnecting(true);
     try {
-      // Find the wallet by name
-      const wallet = wallets.find(w => w.name.toLowerCase() === walletName.toLowerCase());
+      // Find the wallet by id
+      const walletInfo = availableWallets.find(w => w.id.toLowerCase() === walletId.toLowerCase() || 
+                                               w.name.toLowerCase() === walletId.toLowerCase());
       
-      if (!wallet) {
-        console.error(`Wallet ${walletName} not found`);
+      if (!walletInfo) {
+        console.error(`Wallet ${walletId} not found`);
         return null;
       }
       
       // Connect to the selected wallet
-      await tonConnectUI.connect({ jsBridgeKey: wallet.jsBridgeKey });
+      if ('bridgeUrl' in walletInfo) {
+        // Universal link/bridge url flow for mobile wallets
+        await tonConnectUI.connect({ universalLink: walletInfo.universalLink, bridgeUrl: walletInfo.bridgeUrl });
+      } else if ('jsBridgeKey' in walletInfo) {
+        // JS Bridge for web wallets
+        await tonConnectUI.connect({ jsBridgeKey: walletInfo.jsBridgeKey });
+      } else {
+        console.error("Unknown wallet connection type");
+        return null;
+      }
       
       // The connection status will be handled by the onStatusChange listener
       // We return the address here for immediate UI feedback
@@ -138,11 +147,11 @@ export function useTonConnect() {
     } finally {
       setIsConnecting(false);
     }
-  }, [tonConnectUI, wallets]);
+  }, [tonConnectUI, availableWallets]);
 
   // Connect specifically to Tonkeeper
   const connectToTonkeeper = useCallback(async () => {
-    return await connectToWallet("Tonkeeper");
+    return await connectToWallet("tonkeeper");
   }, [connectToWallet]);
 
   const disconnect = useCallback(async () => {
@@ -176,6 +185,6 @@ export function useTonConnect() {
     connectToTonkeeper,
     disconnect,
     tonClient,
-    wallets
+    wallets: availableWallets
   };
 }

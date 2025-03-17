@@ -29,20 +29,20 @@ const TonConnectButton: React.FC = () => {
   // Track whether we're in development mode and should allow mock connections
   const [useMockConnection, setUseMockConnection] = useState(false);
 
-  const handleConnect = async (walletType: string) => {
+  const handleConnect = async (walletId: string) => {
     let address;
     
     // Use real wallet connection if not in development mode
     if (!useMockConnection) {
-      address = await connectToWallet(walletType);
+      address = await connectToWallet(walletId);
     } else {
       // Fallback to mock connection for development
-      address = await mockConnect(walletType);
+      address = await mockConnect(walletId);
     }
     
     if (address) {
       toast({
-        title: `Connected to ${walletType}`,
+        title: `Connected to ${walletId}`,
         description: `Wallet address: ${address}`,
       });
     } else {
@@ -103,10 +103,10 @@ const TonConnectButton: React.FC = () => {
             {wallets.length > 0 ? (
               wallets.map((wallet) => (
                 <Button 
-                  key={wallet.name}
+                  key={wallet.id}
                   variant="outline" 
                   className="justify-start gap-2" 
-                  onClick={() => handleConnect(wallet.name)}
+                  onClick={() => handleConnect(wallet.id)}
                   disabled={isConnecting}
                 >
                   {wallet.imageUrl ? (
@@ -122,7 +122,7 @@ const TonConnectButton: React.FC = () => {
                 <Button 
                   variant="outline" 
                   className="justify-start gap-2" 
-                  onClick={() => handleConnect("Tonkeeper")}
+                  onClick={() => handleConnect("tonkeeper")}
                   disabled={isConnecting}
                 >
                   <img src="https://tonkeeper.com/assets/tonconnect-icon.png" alt="Tonkeeper" className="h-5 w-5" />
@@ -132,7 +132,7 @@ const TonConnectButton: React.FC = () => {
                 <Button 
                   variant="outline" 
                   className="justify-start gap-2"
-                  onClick={() => handleConnect("TonHub")}
+                  onClick={() => handleConnect("tonhub")}
                   disabled={isConnecting}
                 >
                   <img src="https://ton.org/download/ton_symbol.svg" alt="TonHub" className="h-5 w-5" />
@@ -142,7 +142,7 @@ const TonConnectButton: React.FC = () => {
                 <Button 
                   variant="outline" 
                   className="justify-start gap-2"
-                  onClick={() => handleConnect("OpenMask")}
+                  onClick={() => handleConnect("openmask")}
                   disabled={isConnecting}
                 >
                   <Link className="h-5 w-5" />
