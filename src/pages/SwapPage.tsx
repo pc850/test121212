@@ -2,7 +2,7 @@
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { ArrowDownUp, Info } from "lucide-react";
+import { ArrowDownUp, Info, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { 
   Select,
@@ -13,25 +13,58 @@ import {
 } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
-
-// Define token types with their properties
-const tokens = [
-  { id: "fipt", name: "FIPT", balance: 1250, icon: "🪙" },
-  { id: "ton", name: "TON", balance: 2.5, icon: "💎" },
-  { id: "usdt", name: "USDT", balance: 15.75, icon: "💵" },
-];
+import { useTonkeeperWallet } from "@/hooks/useTonkeeperWallet";
+import { 
+  SUPPORTED_TOKENS, 
+  TokenWithBalance,
+  calculateSwapAmount,
+  getTokenBalances,
+  executeSwap
+} from "@/utils/tonswapApi";
 
 const SwapPage = () => {
+  // Set page title
   useEffect(() => {
-    // Set page title
     document.title = "FIPT - Swap";
   }, []);
 
-  const [fromToken, setFromToken] = useState(tokens[0].id);
-  const [toToken, setToToken] = useState(tokens[1].id);
+  // Connect to wallet
+  const { connected, address } = useTonkeeperWallet();
+
+  // State management
+  const [fromToken, setFromToken] = useState("fipt");
+  const [toToken, setToToken] = useState("ton");
   const [fromAmount, setFromAmount] = useState("");
   const [toAmount, setToAmount] = useState("");
   const [slippage, setSlippage] = useState("1");
+  const [isLoading, setIsLoading] = useState(false);
+  const [isCalculating, setIsCalculating] = useState(false);
+  const [priceImpact, setPriceImpact] = useState(0);
+  const [tokens, setTokens] = useState<TokenWithBalance[]>([]);
+  const [exchangeRate, setExchangeRate] = useState(0);
+
+  // Fetch token balances
+  useEffect(() => {
+    const fetchBalances = async () => {
+      try {
+        const balances = await getTokenBalances(address);
+        
+        // Create token list with balances
+        const tokenList = Object.values(SUPPORTED_TOKENS).map(token => ({
+          ...token,
+          balance: balances[token.id] || 0,
+          price: 0 // Will be updated if price API is implemented
+        }));
+        
+        setTokens(tokenList);
+      } catch (error) {
+        console.error("Error fetching token balances:", error);
+        toast.error("Failed to fetch token balances");
+      }
+    };
+
+    fetchBalances();
+  }, [address]);
 
   // Handle token swap positions
   const handleSwapPositions = () => {
@@ -40,59 +73,76 @@ const SwapPage = () => {
     setToToken(temp);
     setFromAmount(toAmount);
     setToAmount(fromAmount);
+    
+    // Recalculate the rate in reverse direction
+    if (fromAmount && toAmount) {
+      setExchangeRate(parseFloat(toAmount) / parseFloat(fromAmount));
+    }
   };
 
-  // Calculate the exchange amount (simple mock calculation)
-  const handleFromAmountChange = (value: string) => {
+  // Calculate the exchange amount using the API
+  const handleFromAmountChange = async (value: string) => {
     setFromAmount(value);
-    // Mock exchange rate: 1 FIPT = 0.002 TON, 1 TON = 500 FIPT, 1 TON = 10 USDT, 1 USDT = 0.1 TON
-    // These are just placeholder rates for the demo
-    let rate = 1;
     
-    if (fromToken === "fipt" && toToken === "ton") {
-      rate = 0.002;
-    } else if (fromToken === "ton" && toToken === "fipt") {
-      rate = 500;
-    } else if (fromToken === "ton" && toToken === "usdt") {
-      rate = 10;
-    } else if (fromToken === "usdt" && toToken === "ton") {
-      rate = 0.1;
-    } else if (fromToken === "fipt" && toToken === "usdt") {
-      rate = 0.02;
-    } else if (fromToken === "usdt" && toToken === "fipt") {
-      rate = 50;
+    if (!value || isNaN(parseFloat(value))) {
+      setToAmount("");
+      setExchangeRate(0);
+      setPriceImpact(0);
+      return;
     }
     
-    const numValue = parseFloat(value) || 0;
-    setToAmount((numValue * rate).toFixed(6));
+    setIsCalculating(true);
+    
+    try {
+      const amount = parseFloat(value);
+      const swapResult = await calculateSwapAmount(fromToken, toToken, amount);
+      
+      setToAmount(swapResult.resultAmount.toFixed(6));
+      setExchangeRate(swapResult.rate);
+      setPriceImpact(swapResult.priceImpact);
+    } catch (error) {
+      console.error("Error calculating swap amount:", error);
+      toast.error("Failed to calculate swap amount");
+    } finally {
+      setIsCalculating(false);
+    }
   };
 
-  const handleToAmountChange = (value: string) => {
+  const handleToAmountChange = async (value: string) => {
     setToAmount(value);
-    // Calculate the reverse rate
-    let rate = 1;
     
-    if (toToken === "fipt" && fromToken === "ton") {
-      rate = 0.002;
-    } else if (toToken === "ton" && fromToken === "fipt") {
-      rate = 500;
-    } else if (toToken === "ton" && fromToken === "usdt") {
-      rate = 10;
-    } else if (toToken === "usdt" && fromToken === "ton") {
-      rate = 0.1;
-    } else if (toToken === "fipt" && fromToken === "usdt") {
-      rate = 0.02;
-    } else if (toToken === "usdt" && fromToken === "fipt") {
-      rate = 50;
+    if (!value || isNaN(parseFloat(value))) {
+      setFromAmount("");
+      setExchangeRate(0);
+      setPriceImpact(0);
+      return;
     }
     
-    const numValue = parseFloat(value) || 0;
-    setFromAmount((numValue * rate).toFixed(6));
+    setIsCalculating(true);
+    
+    try {
+      const amount = parseFloat(value);
+      const swapResult = await calculateSwapAmount(toToken, fromToken, amount);
+      
+      setFromAmount(swapResult.resultAmount.toFixed(6));
+      setExchangeRate(1 / swapResult.rate);
+      setPriceImpact(swapResult.priceImpact);
+    } catch (error) {
+      console.error("Error calculating reverse swap amount:", error);
+      toast.error("Failed to calculate swap amount");
+    } finally {
+      setIsCalculating(false);
+    }
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!fromAmount || !toAmount) {
       toast.error("Please enter an amount");
+      return;
+    }
+    
+    if (!connected) {
+      toast.error("Please connect your wallet first");
       return;
     }
     
@@ -104,8 +154,41 @@ const SwapPage = () => {
       return;
     }
     
-    // Show success message (in a real app, this would be where the swap is executed)
-    toast.success("Swap initiated! This is a demo, no actual swap is performed.");
+    setIsLoading(true);
+    
+    try {
+      // Execute the swap
+      const result = await executeSwap(
+        fromToken,
+        toToken,
+        numFromAmount,
+        address || "",
+        parseFloat(slippage)
+      );
+      
+      if (result.success) {
+        toast.success("Swap successful! Transaction hash: " + result.txHash);
+        
+        // Reset form
+        setFromAmount("");
+        setToAmount("");
+        
+        // Refresh balances after swap
+        const balances = await getTokenBalances(address);
+        const updatedTokens = tokens.map(token => ({
+          ...token,
+          balance: balances[token.id] || 0
+        }));
+        setTokens(updatedTokens);
+      } else {
+        toast.error(result.error || "Swap failed");
+      }
+    } catch (error) {
+      console.error("Error executing swap:", error);
+      toast.error("Failed to execute swap");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const fromTokenData = tokens.find(t => t.id === fromToken);
@@ -127,7 +210,7 @@ const SwapPage = () => {
             <div className="flex items-center justify-between mb-2">
               <label className="text-sm font-medium text-fipt-muted">From</label>
               <span className="text-xs text-fipt-muted">
-                Balance: {fromTokenData?.balance} {fromTokenData?.name}
+                Balance: {fromTokenData?.balance || 0} {fromTokenData?.name}
               </span>
             </div>
             <div className="flex gap-2">
@@ -155,6 +238,7 @@ const SwapPage = () => {
                   value={fromAmount}
                   onChange={(e) => handleFromAmountChange(e.target.value)}
                   className="pr-16"
+                  disabled={isLoading}
                 />
                 <button 
                   className="absolute right-2 top-1/2 -translate-y-1/2 text-xs font-medium text-fipt-blue"
@@ -163,6 +247,7 @@ const SwapPage = () => {
                     setFromAmount(bal);
                     handleFromAmountChange(bal);
                   }}
+                  disabled={isLoading}
                 >
                   MAX
                 </button>
@@ -177,6 +262,7 @@ const SwapPage = () => {
               size="icon"
               className="rounded-full h-10 w-10 border-2 border-gray-200"
               onClick={handleSwapPositions}
+              disabled={isLoading || isCalculating}
             >
               <ArrowDownUp className="h-4 w-4" />
             </Button>
@@ -187,7 +273,7 @@ const SwapPage = () => {
             <div className="flex items-center justify-between mb-2">
               <label className="text-sm font-medium text-fipt-muted">To</label>
               <span className="text-xs text-fipt-muted">
-                Balance: {toTokenData?.balance} {toTokenData?.name}
+                Balance: {toTokenData?.balance || 0} {toTokenData?.name}
               </span>
             </div>
             <div className="flex gap-2">
@@ -208,13 +294,21 @@ const SwapPage = () => {
                   ))}
                 </SelectContent>
               </Select>
-              <Input
-                type="number"
-                placeholder="0.00"
-                value={toAmount}
-                onChange={(e) => handleToAmountChange(e.target.value)}
-                className="flex-1"
-              />
+              <div className="relative flex-1">
+                <Input
+                  type="number"
+                  placeholder="0.00"
+                  value={toAmount}
+                  onChange={(e) => handleToAmountChange(e.target.value)}
+                  className={cn(isCalculating && "text-gray-400")}
+                  disabled={isLoading || isCalculating}
+                />
+                {isCalculating && (
+                  <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                    <Loader2 className="h-4 w-4 animate-spin text-gray-400" />
+                  </div>
+                )}
+              </div>
             </div>
           </div>
           
@@ -226,14 +320,10 @@ const SwapPage = () => {
                 <span>Exchange Rate</span>
               </div>
               <span className="text-sm font-medium">
-                1 {fromTokenData?.name} ≈ {
-                  fromToken === "fipt" && toToken === "ton" ? "0.002" :
-                  fromToken === "ton" && toToken === "fipt" ? "500" :
-                  fromToken === "ton" && toToken === "usdt" ? "10" :
-                  fromToken === "usdt" && toToken === "ton" ? "0.1" :
-                  fromToken === "fipt" && toToken === "usdt" ? "0.02" :
-                  fromToken === "usdt" && toToken === "fipt" ? "50" : "1"
-                } {toTokenData?.name}
+                {exchangeRate ? 
+                  `1 ${fromTokenData?.name} ≈ ${exchangeRate.toFixed(6)} ${toTokenData?.name}` :
+                  "Enter an amount to see rate"
+                }
               </span>
             </div>
           </div>
@@ -252,6 +342,7 @@ const SwapPage = () => {
                     slippage === value && "bg-fipt-blue/10 border-fipt-blue text-fipt-blue"
                   )}
                   onClick={() => setSlippage(value)}
+                  disabled={isLoading}
                 >
                   {value}%
                 </Button>
@@ -265,9 +356,15 @@ const SwapPage = () => {
           <Button 
             className="w-full py-6 text-base font-semibold"
             onClick={handleSubmit}
-            disabled={!fromAmount || !toAmount || fromAmount === "0" || toAmount === "0"}
+            disabled={!fromAmount || !toAmount || isLoading || !connected}
           >
-            Swap Tokens
+            {isLoading ? (
+              <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Swapping...</>
+            ) : !connected ? (
+              "Connect Wallet to Swap"
+            ) : (
+              "Swap Tokens"
+            )}
           </Button>
         </div>
         
@@ -289,7 +386,13 @@ const SwapPage = () => {
             </div>
             <div className="flex justify-between text-sm">
               <span className="text-fipt-muted">Price Impact</span>
-              <span className="font-medium text-green-500">&lt; 0.01%</span>
+              <span className={cn(
+                "font-medium",
+                priceImpact > 0.05 ? "text-red-500" : 
+                priceImpact > 0.02 ? "text-yellow-500" : "text-green-500"
+              )}>
+                {priceImpact > 0 ? `${(priceImpact * 100).toFixed(2)}%` : '<0.01%'}
+              </span>
             </div>
           </div>
         </div>
