@@ -31,7 +31,6 @@ export function AdVideoPlayer({ adPlaying, adLoaded, setAdLoaded }: AdVideoPlaye
 
   if (!adPlaying) return null;
 
-  // Using TikTok video for the ad content
   return (
     <div className="w-full max-w-md h-96 mb-4 relative bg-black">
       {!adLoaded && (

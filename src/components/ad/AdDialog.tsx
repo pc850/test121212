@@ -1,37 +1,60 @@
-
 import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { AdContent } from "./AdContent";
 import { AdControls } from "./AdControls";
 import { AdVideoPlayer } from "./AdVideoPlayer";
 import { AdCountdown } from "./AdCountdown";
-import { useAdState } from "./hooks/useAdState";
 
 interface AdDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   points: number;
-  onSuccess?: (points: number) => void;
+  onSuccess?: () => void;
   onSkip?: () => void;
 }
 
 export function AdDialog({ open, onOpenChange, points, onSuccess, onSkip }: AdDialogProps) {
-  const {
-    adPlaying, setAdPlaying,
-    timeRemaining, setTimeRemaining,
-    completed, setCompleted,
-    adLoaded, setAdLoaded,
-    handleStartAd,
-    handleClaim,
-    handleSkip,
-    handleOpenChange
-  } = useAdState({
-    open,
-    onOpenChange,
-    points,
-    onSuccess,
-    onSkip
-  });
+  const [adPlaying, setAdPlaying] = useState(false);
+  const [timeRemaining, setTimeRemaining] = useState(15); // 15 seconds
+  const [completed, setCompleted] = useState(false);
+  const [adLoaded, setAdLoaded] = useState(false);
+
+  // Reset states when dialog opens
+  useEffect(() => {
+    if (open) {
+      setAdPlaying(false);
+      setTimeRemaining(15);
+      setCompleted(false);
+      setAdLoaded(false);
+    }
+  }, [open]);
+
+  const handleStartAd = () => {
+    setAdPlaying(true);
+  };
+
+  const handleClaim = () => {
+    // Here you would typically call an API to credit the points
+    if (onSuccess) onSuccess();
+    onOpenChange(false);
+  };
+
+  const handleSkip = () => {
+    // Close the dialog without claiming any points
+    if (onSkip) onSkip();
+    onOpenChange(false);
+  };
+
+  // Handle dialog close via X button or ESC key
+  const handleOpenChange = (open: boolean) => {
+    if (!open) {
+      if (!completed) {
+        // If closing without completing, treat as skip
+        if (onSkip) onSkip();
+      }
+    }
+    onOpenChange(open);
+  };
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>

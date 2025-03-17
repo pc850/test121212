@@ -14,16 +14,14 @@ import {
 import { toast } from "@/hooks/use-toast";
 import { useTonkeeperWallet } from "@/hooks/useTonkeeperWallet";
 
-// Import Supabase client and wallet utils
+// Import Supabase client
 import { supabase } from "@/integrations/supabase/client";
-import { getFiptBalance } from "@/utils/walletBalanceUtils";
 
 const TonConnectButton: React.FC = () => {
   const { connectWallet, disconnectWallet, connected, address, wallet, available } = useTonkeeperWallet();
   const [isConnecting, setIsConnecting] = useState(false);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [walletInfo, setWalletInfo] = useState<string>("No wallet info available");
-  const [balance, setBalance] = useState<number | null>(null);
 
   useEffect(() => {
     // Debug info
@@ -33,28 +31,6 @@ const TonConnectButton: React.FC = () => {
       setWalletInfo(info);
     }
   }, [wallet, connected, address, available]);
-
-  // Store wallet address in Supabase when connected and fetch balance
-  useEffect(() => {
-    if (connected && address) {
-      console.log("Storing wallet address in Supabase:", address);
-      storeWalletAddress(address);
-      
-      // Get FIPT balance for the connected wallet
-      fetchWalletBalance(address);
-    }
-  }, [connected, address]);
-
-  // Function to fetch wallet balance
-  const fetchWalletBalance = async (walletAddress: string) => {
-    try {
-      const fiptBalance = await getFiptBalance(walletAddress);
-      setBalance(fiptBalance);
-      console.log("Fetched FIPT balance:", fiptBalance);
-    } catch (error) {
-      console.error("Error fetching wallet balance:", error);
-    }
-  };
 
   // Connect function to trigger Tonkeeper via TonConnect
   const handleConnect = async () => {
@@ -111,10 +87,6 @@ const TonConnectButton: React.FC = () => {
         });
       } else {
         console.log("Wallet address stored in Supabase successfully");
-        toast({
-          title: "Wallet stored",
-          description: "Your wallet address has been saved successfully",
-        });
       }
     } catch (dbError) {
       console.error("Database operation failed:", dbError);
@@ -168,17 +140,6 @@ const TonConnectButton: React.FC = () => {
                 {address}
               </p>
             </div>
-            
-            {/* Show FIPT balance */}
-            {balance !== null && (
-              <div className="p-4 bg-muted rounded-md">
-                <p className="text-sm font-medium">FIPT Balance</p>
-                <p className="text-xl font-semibold">
-                  {balance.toLocaleString()} <span className="text-xs text-muted-foreground">FIPT</span>
-                </p>
-              </div>
-            )}
-            
             <Button
               variant="destructive"
               className="w-full"

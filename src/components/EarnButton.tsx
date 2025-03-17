@@ -1,27 +1,21 @@
-
 import { useState, useEffect } from "react";
 import { Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { AdDialog } from "@/components/ad/AdDialog";
-import { useToast } from "@/hooks/use-toast";
 
 interface EarnButtonProps {
   onEarn?: (points: number) => void;
-  disabled?: boolean;
 }
 
-const EarnButton = ({ onEarn, disabled = false }: EarnButtonProps) => {
+const EarnButton = ({ onEarn }: EarnButtonProps) => {
   const [points, setPoints] = useState(0);
   const [isPressed, setIsPressed] = useState(false);
   const [showAnimation, setShowAnimation] = useState(false);
   const [particles, setParticles] = useState<Array<{ id: number; x: number; y: number; size: number; color: string }>>([]);
   const [showAdDialog, setShowAdDialog] = useState(false);
   const [pendingPoints, setPendingPoints] = useState(0);
-  const { toast } = useToast();
 
   const handleClick = () => {
-    if (disabled) return;
-    
     const earnedPoints = 1;
     setPoints(prev => prev + earnedPoints);
     
@@ -51,41 +45,22 @@ const EarnButton = ({ onEarn, disabled = false }: EarnButtonProps) => {
     }, 700);
     
     if ((points + 1) % 10 === 0) {
-      console.log("Showing ad dialog after 10 clicks");
       setPendingPoints(10);
       setShowAdDialog(true);
     }
   };
   
-  const handleAdSuccess = (claimedPoints: number) => {
-    // This function is called when an ad is successfully viewed and claimed
-    console.log('Ad completed successfully, claiming points:', claimedPoints);
-    
-    if (onEarn) {
-      // Call the onEarn handler with the claimed points
-      onEarn(claimedPoints);
-      
-      // Show a success toast
-      toast({
-        title: "Points Claimed!",
-        description: `You've earned ${claimedPoints} FIPT points.`,
-        variant: "default"
-      });
-    }
-    
-    // Reset pending points
-    setPendingPoints(0);
+  const handleAdSuccess = () => {
   };
   
   const handleAdSkip = () => {
-    console.log('Ad skipped, no points awarded');
-    setPendingPoints(0);
+    setPoints(prev => prev - pendingPoints);
     
-    toast({
-      title: "Ad Skipped",
-      description: "No points were awarded.",
-      variant: "default"
-    });
+    if (onEarn) {
+      onEarn(-pendingPoints);
+    }
+    
+    setPendingPoints(0);
   };
   
   useEffect(() => {
@@ -120,40 +95,18 @@ const EarnButton = ({ onEarn, disabled = false }: EarnButtonProps) => {
         showAnimation ? "animate-pulse-scale ring-2 ring-fipt-blue" : "opacity-0"
       )} />
       
-      {/* Make the entire button area clickable */}
       <button
         onClick={handleClick}
-        disabled={disabled}
         className={cn(
-          "relative w-48 h-48 rounded-full flex items-center justify-center shadow-lg transition-all duration-200 cursor-pointer",
-          disabled 
-            ? "bg-gray-200 cursor-not-allowed" 
-            : "bg-gradient-to-br from-fipt-blue to-fipt-accent hover:scale-[1.02] active:scale-95",
-          isPressed && !disabled ? "scale-95 shadow-md" : "scale-100"
+          "relative w-48 h-48 bg-gradient-to-br from-fipt-blue to-fipt-accent rounded-full flex items-center justify-center shadow-lg transition-all duration-200",
+          isPressed ? "scale-95 shadow-md" : "scale-100 hover:scale-[1.02]"
         )}
-        aria-label="Earn FIPT points"
       >
-        <div className={cn(
-          "absolute inset-2 rounded-full flex items-center justify-center",
-          disabled ? "bg-gray-100" : "bg-white pointer-events-none"
-        )}>
-          <div className="flex flex-col items-center justify-center gap-3 pointer-events-none">
-            <Sparkles className={cn(
-              "w-10 h-10", 
-              disabled ? "text-gray-400" : "text-fipt-blue"
-            )} />
-            <span className={cn(
-              "text-2xl font-bold", 
-              disabled ? "text-gray-400" : "text-fipt-dark"
-            )}>
-              {points}
-            </span>
-            <span className={cn(
-              "text-sm font-medium", 
-              disabled ? "text-gray-400" : "text-fipt-muted"
-            )}>
-              FIPT Points
-            </span>
+        <div className="absolute inset-2 bg-white rounded-full flex items-center justify-center">
+          <div className="flex flex-col items-center justify-center gap-3">
+            <Sparkles className="w-10 h-10 text-fipt-blue" />
+            <span className="text-2xl font-bold text-fipt-dark">{points}</span>
+            <span className="text-sm font-medium text-fipt-muted">FIPT Points</span>
           </div>
         </div>
       </button>
