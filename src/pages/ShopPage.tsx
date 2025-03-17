@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { ShoppingCart } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -6,7 +5,6 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/componen
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AspectRatio } from "@/components/ui/aspect-ratio";
 import { toast } from "@/hooks/use-toast";
-import TonConnectButton from "@/components/TonConnectButton";
 
 const ShopPage: React.FC = () => {
   const [cartItems, setCartItems] = useState<number>(0);
@@ -64,7 +62,6 @@ const ShopPage: React.FC = () => {
     }
   ];
 
-  // Helper function to format the FIPT price with k notation
   const formatFiptPrice = (price: number) => {
     if (price >= 1000) {
       return `${(price / 1000).toFixed(price % 1000 === 0 ? 0 : 1)}k`;
@@ -72,7 +69,6 @@ const ShopPage: React.FC = () => {
     return price.toString();
   };
 
-  // Helper function to format the USD price
   const formatUsdPrice = (fiptPrice: number) => {
     const usdPrice = (fiptPrice * 0.0001).toFixed(2);
     return `$${usdPrice}`;
@@ -86,7 +82,6 @@ const ShopPage: React.FC = () => {
           <p className="text-muted-foreground">Official FIPT merchandise</p>
         </div>
         <div className="flex items-center gap-2">
-          <TonConnectButton />
           <Button variant="outline" size="icon" className="relative">
             <ShoppingCart className="h-5 w-5" />
             <span className="absolute -top-1 -right-1 bg-fipt-blue text-white rounded-full w-5 h-5 text-xs flex items-center justify-center">
