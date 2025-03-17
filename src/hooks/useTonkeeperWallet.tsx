@@ -1,32 +1,11 @@
-
 import { useEffect, useState } from "react";
 import { TonConnect, WalletInfo } from "@tonconnect/sdk";
-import { Address } from "@ton/core";
 
 export const useTonkeeperWallet = () => {
   const [wallet, setWallet] = useState<TonConnect | null>(null);
-  const [rawAddress, setRawAddress] = useState<string | null>(null);
   const [address, setAddress] = useState<string | null>(null);
   const [connected, setConnected] = useState(false);
   const [available, setAvailable] = useState<WalletInfo[]>([]);
-
-  // Helper function to format TON address from raw format to user-friendly format
-  const formatTonAddress = (rawAddress: string) => {
-    try {
-      if (!rawAddress) return null;
-      // Convert raw address format (chain:hex) to a user-friendly format
-      const addressParts = rawAddress.split(':');
-      if (addressParts.length !== 2) return rawAddress;
-      
-      const hexAddress = addressParts[1];
-      // Use @ton/core Address to format correctly
-      const formattedAddress = Address.parseRaw(`${addressParts[0]}:${hexAddress}`).toString();
-      return formattedAddress;
-    } catch (error) {
-      console.error("Error formatting TON address:", error);
-      return rawAddress; // Return original if formatting fails
-    }
-  };
 
   useEffect(() => {
     try {
@@ -57,9 +36,7 @@ export const useTonkeeperWallet = () => {
           const walletInfo = connector.wallet;
           console.log("Already connected to wallet:", walletInfo);
           if (walletInfo?.account.address) {
-            setRawAddress(walletInfo.account.address);
-            const formattedAddress = formatTonAddress(walletInfo.account.address);
-            setAddress(formattedAddress);
+            setAddress(walletInfo.account.address);
             setConnected(true);
           }
         } else {
@@ -75,13 +52,10 @@ export const useTonkeeperWallet = () => {
         if (walletInfo && walletInfo.account) {
           console.log("Connected with address:", walletInfo.account.address);
           setConnected(true);
-          setRawAddress(walletInfo.account.address);
-          const formattedAddress = formatTonAddress(walletInfo.account.address);
-          setAddress(formattedAddress);
+          setAddress(walletInfo.account.address);
         } else {
           console.log("Disconnected");
           setConnected(false);
-          setRawAddress(null);
           setAddress(null);
         }
       });
@@ -139,5 +113,5 @@ export const useTonkeeperWallet = () => {
     }
   };
 
-  return { connectWallet, disconnectWallet, connected, address, rawAddress, wallet, available };
+  return { connectWallet, disconnectWallet, connected, address, wallet, available };
 };

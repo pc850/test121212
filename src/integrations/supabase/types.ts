@@ -13,17 +13,38 @@ export type Database = {
         Row: {
           created_at: string
           id: number
-          wallet_address: string | null
+          wallet_address: string
         }
         Insert: {
           created_at?: string
           id?: number
-          wallet_address?: string | null
+          wallet_address: string
         }
         Update: {
           created_at?: string
           id?: number
-          wallet_address?: string | null
+          wallet_address?: string
+        }
+        Relationships: []
+      }
+      wallet_balances: {
+        Row: {
+          fipt_balance: number
+          id: number
+          last_updated: string
+          wallet_address: string
+        }
+        Insert: {
+          fipt_balance?: number
+          id?: number
+          last_updated?: string
+          wallet_address: string
+        }
+        Update: {
+          fipt_balance?: number
+          id?: number
+          last_updated?: string
+          wallet_address?: string
         }
         Relationships: []
       }

@@ -1,4 +1,3 @@
-
 "use client"; // For Next.js App Router client-side rendering
 
 import React, { useState, useEffect } from "react";
@@ -15,31 +14,47 @@ import {
 import { toast } from "@/hooks/use-toast";
 import { useTonkeeperWallet } from "@/hooks/useTonkeeperWallet";
 
-// Import Supabase client
+// Import Supabase client and wallet utils
 import { supabase } from "@/integrations/supabase/client";
+import { getFiptBalance } from "@/utils/walletBalanceUtils";
 
 const TonConnectButton: React.FC = () => {
-  const { connectWallet, disconnectWallet, connected, address, rawAddress, wallet, available } = useTonkeeperWallet();
+  const { connectWallet, disconnectWallet, connected, address, wallet, available } = useTonkeeperWallet();
   const [isConnecting, setIsConnecting] = useState(false);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [walletInfo, setWalletInfo] = useState<string>("No wallet info available");
+  const [balance, setBalance] = useState<number | null>(null);
 
   useEffect(() => {
     // Debug info
     if (wallet) {
-      const info = `Wallet initialized: ${!!wallet}, Connected: ${connected}, Address: ${address}, Raw Address: ${rawAddress}, Available wallets: ${available.length}`;
+      const info = `Wallet initialized: ${!!wallet}, Connected: ${connected}, Address: ${address}, Available wallets: ${available.length}`;
       console.log(info);
       setWalletInfo(info);
     }
-  }, [wallet, connected, address, rawAddress, available]);
+  }, [wallet, connected, address, available]);
 
-  // Store wallet address in Supabase when connected
+  // Store wallet address in Supabase when connected and fetch balance
   useEffect(() => {
     if (connected && address) {
       console.log("Storing wallet address in Supabase:", address);
       storeWalletAddress(address);
+      
+      // Get FIPT balance for the connected wallet
+      fetchWalletBalance(address);
     }
   }, [connected, address]);
+
+  // Function to fetch wallet balance
+  const fetchWalletBalance = async (walletAddress: string) => {
+    try {
+      const fiptBalance = await getFiptBalance(walletAddress);
+      setBalance(fiptBalance);
+      console.log("Fetched FIPT balance:", fiptBalance);
+    } catch (error) {
+      console.error("Error fetching wallet balance:", error);
+    }
+  };
 
   // Connect function to trigger Tonkeeper via TonConnect
   const handleConnect = async () => {
@@ -153,6 +168,17 @@ const TonConnectButton: React.FC = () => {
                 {address}
               </p>
             </div>
+            
+            {/* Show FIPT balance */}
+            {balance !== null && (
+              <div className="p-4 bg-muted rounded-md">
+                <p className="text-sm font-medium">FIPT Balance</p>
+                <p className="text-xl font-semibold">
+                  {balance.toLocaleString()} <span className="text-xs text-muted-foreground">FIPT</span>
+                </p>
+              </div>
+            )}
+            
             <Button
               variant="destructive"
               className="w-full"
