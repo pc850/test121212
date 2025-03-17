@@ -1,5 +1,5 @@
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import ProfileHeader from "@/components/ProfileHeader";
 import LeaderboardSection from "@/components/LeaderboardSection";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -7,31 +7,64 @@ import { Award, ChevronRight, BarChart3, Settings, Users } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Separator } from "@/components/ui/separator";
 import TonConnectButton from "@/components/TonConnectButton";
+import { useTelegramAuth } from "@/hooks/useTelegramAuth";
+import UserProfileSection from "@/components/UserProfileSection";
 
 const ProfilePage = () => {
+  const { currentUser, autoLogin, logout } = useTelegramAuth();
+  const [username, setUsername] = useState("crypto_user");
+
   useEffect(() => {
     // Set page title
     document.title = "FIPT - Profile";
-  }, []);
+    
+    // Try to auto-login with Telegram
+    autoLogin();
+  }, [autoLogin]);
+
+  // Update username if we have a Telegram user
+  useEffect(() => {
+    if (currentUser?.username) {
+      setUsername(currentUser.username);
+    } else if (currentUser?.first_name) {
+      setUsername(currentUser.first_name);
+    }
+  }, [currentUser]);
 
   return (
     <div className="min-h-screen flex flex-col animate-fade-in">
       {/* Profile Header */}
       <div className="flex flex-col">
         <ProfileHeader 
-          username="crypto_user"
-          userAvatar="https://i.pravatar.cc/150?img=5"
+          username={username}
+          userAvatar={currentUser?.photo_url || "https://i.pravatar.cc/150?img=5"}
           points={1250}
           followers={142}
           following={35}
-          bio="FIPT enthusiast | Crypto lover | Web3 explorer"
+          bio={currentUser ? `Telegram: @${currentUser.username || currentUser.first_name}` : "FIPT enthusiast | Crypto lover | Web3 explorer"}
         />
         
-        {/* Connect Wallet Button - Added below the profile header */}
+        {/* Connect Wallet Button or User Profile Section */}
         <div className="px-6 pb-2 flex justify-end -mt-2">
-          <TonConnectButton />
+          {currentUser ? (
+            <UserProfileSection onLogout={logout} />
+          ) : (
+            <TonConnectButton />
+          )}
         </div>
       </div>
+      
+      {/* Telegram User Info */}
+      {currentUser && (
+        <div className="px-6 mt-2 mb-4">
+          <div className="p-3 bg-fipt-blue/10 rounded-lg text-sm">
+            <span className="font-medium">Telegram: </span> 
+            <span className="text-fipt-blue">
+              @{currentUser.username || currentUser.first_name}
+            </span>
+          </div>
+        </div>
+      )}
       
       {/* Tabs Section */}
       <div className="flex-1 px-4 mt-4">
