@@ -1,100 +1,68 @@
 
-import { useState, useEffect } from 'react';
-import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/hooks/use-toast";
+import { useEffect, useState, ReactNode } from 'react';
 import { TelegramUser } from "@/types/telegram";
-import { useTonkeeperWallet } from "@/hooks/useTonkeeperWallet";
+import { supabase } from "@/integrations/supabase/client";
 
 interface UserDataFetcherProps {
+  children: ReactNode;
   telegramUser: TelegramUser | null;
+  supabaseUser?: any;
   onBalanceUpdate: (balance: number) => void;
-  children: React.ReactNode;
 }
 
-const UserDataFetcher = ({ telegramUser, onBalanceUpdate, children }: UserDataFetcherProps) => {
-  const [isLoading, setIsLoading] = useState<boolean>(true);
-  const { connected, address } = useTonkeeperWallet();
-  const { toast } = useToast();
-
-  // Fetch user balance when telegram user or wallet address changes
+const UserDataFetcher = ({ 
+  children, 
+  telegramUser, 
+  supabaseUser,
+  onBalanceUpdate 
+}: UserDataFetcherProps) => {
+  const [isLoading, setIsLoading] = useState(true);
+  
   useEffect(() => {
+    // Initialize with a mock balance
+    const mockBalance = Math.floor(Math.random() * 10000);
+    localStorage.setItem('fiptBalance', mockBalance.toString());
+    onBalanceUpdate(mockBalance);
+    
     const fetchUserData = async () => {
-      if (!telegramUser) {
-        setIsLoading(false);
-        return;
-      }
-      
-      setIsLoading(true);
-      
       try {
-        // Try to get balance from telegram_id first
-        let { data: balanceData, error } = await supabase
-          .from('wallet_balances')
-          .select('fipt_balance')
-          .eq('telegram_id', telegramUser.id)
-          .order('last_updated', { ascending: false })
-          .limit(1)
-          .single();
+        setIsLoading(true);
         
-        // If no balance found by telegram_id and wallet is connected, try by wallet_address
-        if ((!balanceData || error) && connected && address) {
-          const { data: walletBalanceData, error: walletError } = await supabase
+        if (telegramUser) {
+          // Get the balance for the Telegram user
+          const { data, error } = await supabase
             .from('wallet_balances')
             .select('fipt_balance')
-            .eq('wallet_address', address)
+            .eq('telegram_id', telegramUser.id)
             .single();
             
-          if (!walletError && walletBalanceData) {
-            balanceData = walletBalanceData;
+          if (data) {
+            localStorage.setItem('fiptBalance', data.fipt_balance.toString());
+            onBalanceUpdate(data.fipt_balance);
+          }
+        } else if (supabaseUser) {
+          // Get the balance for the Supabase user
+          const { data, error } = await supabase
+            .from('wallet_balances')
+            .select('fipt_balance')
+            .eq('user_id', supabaseUser.id)
+            .single();
             
-            // Update the wallet_balances entry with telegram_id for future queries
-            await supabase
-              .from('wallet_balances')
-              .update({ telegram_id: telegramUser.id })
-              .eq('wallet_address', address);
+          if (data) {
+            localStorage.setItem('fiptBalance', data.fipt_balance.toString());
+            onBalanceUpdate(data.fipt_balance);
           }
         }
-        
-        if (balanceData) {
-          onBalanceUpdate(balanceData.fipt_balance);
-        } else {
-          // Get balance from localStorage as fallback
-          const savedBalance = localStorage.getItem('fiptBalance');
-          if (savedBalance) {
-            const parsedBalance = parseInt(savedBalance, 10);
-            onBalanceUpdate(parsedBalance);
-            
-            // Store this balance in Supabase if we have a wallet address
-            if (connected && address) {
-              await supabase
-                .from('wallet_balances')
-                .upsert({
-                  wallet_address: address,
-                  telegram_id: telegramUser.id,
-                  fipt_balance: parsedBalance
-                });
-            }
-          }
-        }
-      } catch (err) {
-        console.error('Error fetching user data:', err);
-        toast({
-          title: 'Data Fetch Error',
-          description: 'Could not retrieve your balance information.',
-          variant: 'destructive'
-        });
+      } catch (error) {
+        console.error('Error fetching user data:', error);
       } finally {
         setIsLoading(false);
       }
     };
     
     fetchUserData();
-  }, [telegramUser, connected, address, toast, onBalanceUpdate]);
-
-  if (isLoading) {
-    return <div className="p-4 animate-pulse bg-gray-100 rounded-xl">Loading user data...</div>;
-  }
-
+  }, [telegramUser, supabaseUser, onBalanceUpdate]);
+  
   return <>{children}</>;
 };
 

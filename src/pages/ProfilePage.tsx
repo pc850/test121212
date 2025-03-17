@@ -3,33 +3,60 @@ import { useEffect, useState } from "react";
 import ProfileHeader from "@/components/ProfileHeader";
 import LeaderboardSection from "@/components/LeaderboardSection";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Award, ChevronRight, BarChart3, Settings, Users } from "lucide-react";
+import { Award, ChevronRight, BarChart3, Settings, Users, LogOut } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Separator } from "@/components/ui/separator";
 import TonConnectButton from "@/components/TonConnectButton";
 import { useTelegramAuth } from "@/hooks/useTelegramAuth";
 import UserProfileSection from "@/components/UserProfileSection";
+import TelegramLoginOptions from "@/components/auth/TelegramLoginOptions";
+import { Button } from "@/components/ui/button";
 
 const ProfilePage = () => {
-  const { currentUser, autoLogin, logout } = useTelegramAuth();
+  const { currentUser, supabaseUser, autoLogin, logout, getDisplayName, isLoggedIn } = useTelegramAuth();
   const [username, setUsername] = useState("crypto_user");
+  const [showLoginOptions, setShowLoginOptions] = useState(false);
 
   useEffect(() => {
     // Set page title
     document.title = "FIPT - Profile";
     
-    // Try to auto-login with Telegram
+    // Try to auto-login
     autoLogin();
   }, [autoLogin]);
 
-  // Update username if we have a Telegram user
+  // Update username if we have a user from any source
   useEffect(() => {
-    if (currentUser?.username) {
-      setUsername(currentUser.username);
-    } else if (currentUser?.first_name) {
-      setUsername(currentUser.first_name);
+    if (isLoggedIn) {
+      setUsername(getDisplayName());
     }
-  }, [currentUser]);
+  }, [currentUser, supabaseUser, getDisplayName, isLoggedIn]);
+
+  const getUserAvatar = () => {
+    if (currentUser?.photo_url) {
+      return currentUser.photo_url;
+    } else if (supabaseUser?.user_metadata?.avatar_url) {
+      return supabaseUser.user_metadata.avatar_url;
+    }
+    return "https://i.pravatar.cc/150?img=5";
+  };
+
+  const getUserBio = () => {
+    if (currentUser) {
+      return `Telegram: @${currentUser.username || currentUser.first_name}`;
+    } else if (supabaseUser) {
+      if (supabaseUser.app_metadata?.provider === 'google') {
+        return `Google: ${supabaseUser.email}`;
+      }
+      return `Email: ${supabaseUser.email}`;
+    }
+    return "FIPT enthusiast | Crypto lover | Web3 explorer";
+  };
+
+  const handleLoginSuccess = () => {
+    setShowLoginOptions(false);
+    autoLogin();
+  };
 
   return (
     <div className="min-h-screen flex flex-col animate-fade-in">
@@ -37,31 +64,65 @@ const ProfilePage = () => {
       <div className="flex flex-col">
         <ProfileHeader 
           username={username}
-          userAvatar={currentUser?.photo_url || "https://i.pravatar.cc/150?img=5"}
+          userAvatar={getUserAvatar()}
           points={1250}
           followers={142}
           following={35}
-          bio={currentUser ? `Telegram: @${currentUser.username || currentUser.first_name}` : "FIPT enthusiast | Crypto lover | Web3 explorer"}
+          bio={getUserBio()}
         />
         
         {/* Connect Wallet Button or User Profile Section */}
-        <div className="px-6 pb-2 flex justify-end -mt-2">
-          {currentUser ? (
-            <UserProfileSection onLogout={logout} />
+        <div className="px-6 pb-2 flex justify-between -mt-2">
+          {isLoggedIn ? (
+            <div className="flex gap-2">
+              <UserProfileSection onLogout={logout} />
+            </div>
           ) : (
-            <TonConnectButton />
+            <div className="flex gap-2 w-full justify-between">
+              <Button 
+                variant="outline" 
+                onClick={() => setShowLoginOptions(!showLoginOptions)}
+              >
+                {showLoginOptions ? "Hide Login Options" : "Login / Sign Up"}
+              </Button>
+              <TonConnectButton />
+            </div>
           )}
         </div>
       </div>
       
-      {/* Telegram User Info */}
-      {currentUser && (
+      {/* Login Options Dialog */}
+      {showLoginOptions && !isLoggedIn && (
+        <div className="px-6 mt-4 mb-4">
+          <div className="p-4 bg-white rounded-lg shadow">
+            <h3 className="text-lg font-semibold mb-4 text-center">Sign In / Sign Up</h3>
+            <TelegramLoginOptions onSuccess={handleLoginSuccess} />
+          </div>
+        </div>
+      )}
+      
+      {/* User Info Banner */}
+      {isLoggedIn && (
         <div className="px-6 mt-2 mb-4">
           <div className="p-3 bg-fipt-blue/10 rounded-lg text-sm">
-            <span className="font-medium">Telegram: </span> 
-            <span className="text-fipt-blue">
-              @{currentUser.username || currentUser.first_name}
-            </span>
+            {currentUser && (
+              <>
+                <span className="font-medium">Telegram: </span> 
+                <span className="text-fipt-blue">
+                  @{currentUser.username || currentUser.first_name}
+                </span>
+              </>
+            )}
+            {supabaseUser && !currentUser && (
+              <>
+                <span className="font-medium">
+                  {supabaseUser.app_metadata?.provider === 'google' ? 'Google: ' : 'Email: '}
+                </span> 
+                <span className="text-fipt-blue">
+                  {supabaseUser.email}
+                </span>
+              </>
+            )}
           </div>
         </div>
       )}

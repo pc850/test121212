@@ -2,45 +2,25 @@
 import { useState, useEffect } from 'react';
 import { useToast } from "@/hooks/use-toast";
 import { useTonkeeperWallet } from "@/hooks/useTonkeeperWallet";
-import { TelegramUser } from "@/types/telegram";
 import { Card } from "@/components/ui/card";
 import UserHeader from "@/components/profile/UserHeader";
 import UserBalance from "@/components/profile/UserBalance";
 import UserDataFetcher from "@/components/profile/UserDataFetcher";
+import { useTelegramAuth } from "@/hooks/useTelegramAuth";
 
 interface UserProfileSectionProps {
   onLogout: () => void;
 }
 
 const UserProfileSection = ({ onLogout }: UserProfileSectionProps) => {
-  const [telegramUser, setTelegramUser] = useState<TelegramUser | null>(null);
+  const { currentUser, supabaseUser } = useTelegramAuth();
   const [balance, setBalance] = useState<number>(0);
   const { disconnectWallet } = useTonkeeperWallet();
   const { toast } = useToast();
 
-  useEffect(() => {
-    // Check if user is logged in with Telegram
-    const storedUser = localStorage.getItem('telegramUser');
-    if (storedUser) {
-      try {
-        setTelegramUser(JSON.parse(storedUser));
-      } catch (e) {
-        console.error('Failed to parse stored user:', e);
-        localStorage.removeItem('telegramUser');
-      }
-    }
-  }, []);
-
   const handleLogout = () => {
-    localStorage.removeItem('telegramUser');
-    setTelegramUser(null);
     disconnectWallet();
     onLogout();
-    
-    toast({
-      title: 'Logged Out',
-      description: 'You have been successfully logged out.',
-    });
   };
   
   const refreshBalance = async () => {
@@ -55,24 +35,27 @@ const UserProfileSection = ({ onLogout }: UserProfileSectionProps) => {
     }
   };
   
-  // If not logged in with Telegram, don't show this component
-  if (!telegramUser) return null;
+  // If not logged in, don't show this component
+  if (!currentUser && !supabaseUser) return null;
 
   return (
-    <Card className="p-4 mb-4 bg-white shadow-sm border border-gray-100 rounded-xl">
+    <Card className="p-4 mb-4 bg-white shadow-sm border border-gray-100 rounded-xl w-full">
       <UserDataFetcher 
-        telegramUser={telegramUser}
+        telegramUser={currentUser}
+        supabaseUser={supabaseUser}
         onBalanceUpdate={setBalance}
       >
         <UserHeader
-          telegramUser={telegramUser}
+          telegramUser={currentUser}
+          supabaseUser={supabaseUser}
           onLogout={handleLogout}
           onRefresh={refreshBalance}
         />
         
         <UserBalance 
           balance={balance}
-          telegramUser={telegramUser}
+          telegramUser={currentUser}
+          supabaseUser={supabaseUser}
         />
       </UserDataFetcher>
     </Card>
