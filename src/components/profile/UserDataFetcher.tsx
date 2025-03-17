@@ -34,7 +34,7 @@ const UserDataFetcher = ({
             .from('wallet_balances')
             .select('fipt_balance')
             .eq('telegram_id', telegramUser.id)
-            .single();
+            .maybeSingle(); // Using maybeSingle to avoid deep type instantiation
             
           if (data) {
             localStorage.setItem('fiptBalance', data.fipt_balance.toString());
@@ -50,7 +50,7 @@ const UserDataFetcher = ({
               .from('wallet_balances')
               .select('fipt_balance')
               .eq('user_id', userId)
-              .single();
+              .maybeSingle(); // Using maybeSingle to avoid deep type instantiation
               
             if (data) {
               localStorage.setItem('fiptBalance', data.fipt_balance.toString());
