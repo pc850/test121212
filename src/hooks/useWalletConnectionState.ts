@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from "react";
 import { TonConnect, WalletInfo } from "@tonconnect/sdk";
-import { detectMobileDevice, isTelegramMiniAppEnvironment } from "@/utils/walletConnectionUtils";
+import { detectMobileDevice, isTelegramMiniAppEnvironment } from "@/utils/environmentUtils";
 
 /**
  * Hook to manage wallet connection state
