@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+
+import React, { useState, useEffect } from "react";
 import { Wallet } from "lucide-react";
 import { 
   Button,
@@ -11,32 +12,60 @@ import {
 } from "@/components/ui";
 import { toast } from "@/hooks/use-toast";
 
-// Import TonConnect SDK
-import { TonConnect } from "@tonconnect/sdk";
+// Import TonConnect SDK with correct types
+import { TonConnect, type Wallet as TonWallet } from "@tonconnect/sdk";
 
-// Initialize TonConnect with your manifest URL
+// Initialize TonConnect with the correct manifest URL
 const tonConnect = new TonConnect({
-  manifestUrl: "https://your-site.com/manifest.json",
+  manifestUrl: "https://5bc3d506-2efc-40e2-9a59-c8a6ba10c04b.lovableproject.com/tonconnect-manifest.json",
 });
 
 const TonConnectButton: React.FC = () => {
   const [isConnected, setIsConnected] = useState(false);
   const [walletAddress, setWalletAddress] = useState("");
 
-  // Connect function that triggers Tonkeeper via TonConnect
+  // Setup TonConnect on component mount
+  useEffect(() => {
+    // Check if already connected
+    const connectedWallet = tonConnect.wallet;
+    if (connectedWallet) {
+      setIsConnected(true);
+      setWalletAddress(connectedWallet.account.address);
+    }
+
+    // Set up connection event listeners
+    const unsubscribeConnection = tonConnect.onStatusChange((wallet) => {
+      if (wallet) {
+        setIsConnected(true);
+        setWalletAddress(wallet.account.address);
+        toast({
+          title: "Connected to wallet",
+          description: `Wallet connected successfully`,
+        });
+      } else {
+        setIsConnected(false);
+        setWalletAddress("");
+      }
+    });
+
+    // Cleanup listeners on unmount
+    return () => {
+      unsubscribeConnection();
+    };
+  }, []);
+
+  // Connect function that triggers wallet connection
   const connectWallet = async () => {
     try {
-      // Initiate connection and await the user’s approval in their Tonkeeper wallet
-      const wallets = await tonConnect.connect();
-      if (wallets && wallets.length > 0) {
-        // Use the first connected wallet's address
-        const address = wallets[0].account.address;
-        setWalletAddress(address);
-        setIsConnected(true);
-        toast({
-          title: "Connected to Tonkeeper",
-          description: `Wallet address: ${address}`,
-        });
+      // Get a list of available wallets
+      const walletsList = tonConnect.getWallets();
+      const universalLink = tonConnect.connect({
+        universalLink: walletsList[0]?.universalLink,
+        bridgeUrl: walletsList[0]?.bridgeUrl
+      });
+      
+      if (universalLink) {
+        window.open(universalLink, '_blank');
       }
     } catch (error) {
       console.error("Connection error:", error);
