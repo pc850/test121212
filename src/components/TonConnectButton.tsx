@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { Wallet, Link } from "lucide-react";
 import { 
   Button,
@@ -11,116 +11,25 @@ import {
   DialogTrigger,
 } from "@/components/ui";
 import { toast } from "@/hooks/use-toast";
-import WalletConnect from "@walletconnect/client";
-import QRCodeModal from "@walletconnect/qrcode-modal";
 
 const TonConnectButton: React.FC = () => {
   const [isConnected, setIsConnected] = useState(false);
   const [walletAddress, setWalletAddress] = useState("");
-  const [connector, setConnector] = useState<WalletConnect | null>(null);
-  const [open, setOpen] = useState(false);
 
-  useEffect(() => {
-    // Initialize WalletConnect
-    const walletConnector = new WalletConnect({
-      bridge: "https://bridge.walletconnect.org", 
-      qrcodeModal: QRCodeModal,
+  const mockConnect = (walletType: string) => {
+    // This is a mock connection - in a real app, use a TON Connect SDK
+    const mockAddress = "UQD......" + Math.random().toString(16).slice(2, 8);
+    setWalletAddress(mockAddress);
+    setIsConnected(true);
+    toast({
+      title: `Connected to ${walletType}`,
+      description: `Wallet address: ${mockAddress}`,
     });
-
-    // Set the connector
-    setConnector(walletConnector);
-
-    // Setup event listeners
-    if (walletConnector) {
-      // Check if already connected
-      if (walletConnector.connected) {
-        const { accounts } = walletConnector;
-        setWalletAddress(accounts[0]);
-        setIsConnected(true);
-      }
-
-      // Listen for connect events
-      walletConnector.on("connect", (error, payload) => {
-        if (error) {
-          console.error("Connection error:", error);
-          toast({
-            title: "Connection Error",
-            description: "Failed to connect to wallet",
-            variant: "destructive"
-          });
-          return;
-        }
-
-        const { accounts } = payload.params[0];
-        setWalletAddress(accounts[0]);
-        setIsConnected(true);
-        toast({
-          title: "Wallet Connected",
-          description: `Connected to wallet: ${accounts[0].substring(0, 8)}...`,
-        });
-      });
-
-      // Listen for disconnect events
-      walletConnector.on("disconnect", (error) => {
-        if (error) {
-          console.error("Disconnect error:", error);
-        }
-        setWalletAddress("");
-        setIsConnected(false);
-        toast({
-          title: "Wallet Disconnected",
-          description: "Your wallet has been disconnected",
-        });
-      });
-    }
-
-    // Clean up event listeners on component unmount
-    return () => {
-      if (walletConnector) {
-        walletConnector.off("connect");
-        walletConnector.off("disconnect");
-      }
-    };
-  }, []);
-
-  const connectWallet = async () => {
-    if (!connector) {
-      toast({
-        title: "Connection Error",
-        description: "WalletConnect not initialized",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    if (!connector.connected) {
-      try {
-        // Create a new session and show QR code
-        await connector.createSession();
-      } catch (error) {
-        console.error("Failed to create session:", error);
-        toast({
-          title: "Connection Error",
-          description: "Failed to create wallet session",
-          variant: "destructive"
-        });
-      }
-    } else {
-      // Already connected, show the current connection
-      toast({
-        title: "Already Connected",
-        description: `Connected to wallet: ${walletAddress.substring(0, 8)}...`,
-      });
-    }
   };
 
   const disconnect = () => {
-    if (connector && connector.connected) {
-      connector.killSession();
-    }
     setIsConnected(false);
     setWalletAddress("");
-    setOpen(false);
     toast({
       title: "Wallet disconnected",
       description: "Your wallet has been disconnected",
@@ -128,7 +37,7 @@ const TonConnectButton: React.FC = () => {
   };
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog>
       <DialogTrigger asChild>
         <Button variant="outline" className="gap-2" size="sm">
           <Wallet className="h-4 w-4" />
@@ -166,28 +75,28 @@ const TonConnectButton: React.FC = () => {
             <Button 
               variant="outline" 
               className="justify-start gap-2" 
-              onClick={connectWallet}
+              onClick={() => mockConnect("Tonkeeper")}
             >
               <img src="https://tonkeeper.com/assets/tonconnect-icon.png" alt="Tonkeeper" className="h-5 w-5" />
-              Connect with Tonkeeper
+              Tonkeeper
             </Button>
             
             <Button 
               variant="outline" 
               className="justify-start gap-2"
-              onClick={connectWallet}
+              onClick={() => mockConnect("TonHub")}
             >
               <img src="https://ton.org/download/ton_symbol.svg" alt="TonHub" className="h-5 w-5" />
-              Connect with TonHub
+              TonHub
             </Button>
             
             <Button 
               variant="outline" 
               className="justify-start gap-2"
-              onClick={connectWallet}
+              onClick={() => mockConnect("OpenMask")}
             >
               <Link className="h-5 w-5" />
-              Connect with OpenMask
+              OpenMask
             </Button>
           </div>
         )}
