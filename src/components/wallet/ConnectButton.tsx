@@ -47,7 +47,7 @@ const ConnectButton: React.FC<ConnectButtonProps> = ({
         </span>
       ) : (
         isTelegramMiniApp ? (
-          <>Open Tonkeeper <ExternalLink className="h-4 w-4 ml-1" /></>
+          <>Open in Tonkeeper Browser <ExternalLink className="h-4 w-4 ml-1" /></>
         ) : isMobile ? (
           <>Open Tonkeeper App <ExternalLink className="h-4 w-4 ml-1" /></>
         ) : "Connect Tonkeeper"

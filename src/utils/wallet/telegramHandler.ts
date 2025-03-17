@@ -2,6 +2,7 @@ import { TonConnect } from "@tonconnect/sdk";
 
 /**
  * Handles connection from Telegram Mini App environment
+ * Simplified to redirect directly to Tonkeeper browser with FIPT loaded
  */
 export const handleTelegramMiniAppConnection = async (
   wallet: TonConnect,
@@ -19,40 +20,24 @@ export const handleTelegramMiniAppConnection = async (
   // Add timestamp to prevent caching
   const timestamp = Date.now();
   
+  // Construct the current URL to redirect back to after connecting
+  const currentUrl = encodeURIComponent(window.location.href);
+  
+  // Direct Tonkeeper browser URL with our app already loaded and "connect wallet" parameter
+  // This opens our app in Tonkeeper's built-in browser where wallet connection is seamless
+  const tonkeeperBrowserUrl = 
+    `https://app.tonkeeper.com/browse/${window.location.origin}?source=telegram-mini-app&t=${timestamp}&session=${sessionId}&auto_connect=true&redirect=${currentUrl}`;
+  
+  console.log(`[${sessionId}] Redirecting to Tonkeeper browser:`, tonkeeperBrowserUrl);
+  
   // Try specialized Telegram bridge method first
   if (window.telegramBridge?.openTonkeeperWallet) {
     try {
       console.log(`[${sessionId}] Using telegramBridge.openTonkeeperWallet`);
-      
-      // First try the universal URL if available
-      if (tonkeeper.universalUrl) {
-        // Fix: Ensure valid URL format for universal URL
-        const universalUrl = ensureValidUrl(tonkeeper.universalUrl);
-        const success = window.telegramBridge.openTonkeeperWallet(universalUrl, { sessionId });
-        if (success) {
-          console.log(`[${sessionId}] Successfully opened Tonkeeper with telegramBridge`);
-          return;
-        }
-      } 
-      // Fallback to a direct Tonkeeper app URL if universal URL isn't available or fails
-      else {
-        const directUrl = "https://app.tonkeeper.com/dapp/?source=telegram-mini-app&t=" + timestamp + "&session=" + sessionId;
-        const success = window.telegramBridge.openTonkeeperWallet(directUrl, { sessionId });
-        if (success) {
-          console.log(`[${sessionId}] Successfully opened direct Tonkeeper URL with telegramBridge`);
-          return;
-        }
-      }
-      
-      // Fall back to deep link if universal URL didn't work
-      if (tonkeeper.deepLink) {
-        // Fix: Ensure valid URL format for deep link
-        const deepLink = ensureValidUrl(tonkeeper.deepLink);
-        const success = window.telegramBridge.openTonkeeperWallet(deepLink, { sessionId });
-        if (success) {
-          console.log(`[${sessionId}] Successfully opened Tonkeeper with telegramBridge (deepLink)`);
-          return;
-        }
+      const success = window.telegramBridge.openTonkeeperWallet(tonkeeperBrowserUrl, { sessionId });
+      if (success) {
+        console.log(`[${sessionId}] Successfully opened Tonkeeper browser with telegramBridge`);
+        return;
       }
     } catch (e) {
       console.error(`[${sessionId}] Error using telegramBridge:`, e);
@@ -60,17 +45,14 @@ export const handleTelegramMiniAppConnection = async (
     }
   }
   
-  // If bridge method failed, use a direct Tonkeeper URL
-  const directTonkeeperUrl = "https://app.tonkeeper.com/dapp/?source=telegram-mini-app&t=" + timestamp + "&session=" + sessionId;
-  
   // Check if we have Telegram's WebApp API
   if (tg && typeof tg.openLink === 'function') {
-    console.log(`[${sessionId}] Using Telegram.WebApp.openLink API with direct Tonkeeper URL`);
+    console.log(`[${sessionId}] Using Telegram.WebApp.openLink API with Tonkeeper browser URL`);
     
     try {
       // Using try-catch because openLink might throw
-      tg.openLink(directTonkeeperUrl, { try_instant_view: false });
-      console.log(`[${sessionId}] Successfully called Telegram.WebApp.openLink for direct URL`);
+      tg.openLink(tonkeeperBrowserUrl, { try_instant_view: false });
+      console.log(`[${sessionId}] Successfully called Telegram.WebApp.openLink for Tonkeeper browser`);
       return;
     } catch (e) {
       console.error(`[${sessionId}] Error using Telegram.WebApp.openLink:`, e);
@@ -80,8 +62,8 @@ export const handleTelegramMiniAppConnection = async (
   
   // Fallback: try window.open
   try {
-    console.log(`[${sessionId}] Using window.open for direct Tonkeeper URL`);
-    const win = window.open(directTonkeeperUrl, '_blank');
+    console.log(`[${sessionId}] Using window.open for Tonkeeper browser URL`);
+    const win = window.open(tonkeeperBrowserUrl, '_blank');
     if (win) {
       console.log(`[${sessionId}] Successfully opened with window.open`);
       return;
@@ -92,7 +74,7 @@ export const handleTelegramMiniAppConnection = async (
   
   // Last resort: direct location change
   console.log(`[${sessionId}] Using window.location.href as last resort`);
-  window.location.href = directTonkeeperUrl;
+  window.location.href = tonkeeperBrowserUrl;
   return;
 };
 

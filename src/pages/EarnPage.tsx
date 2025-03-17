@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import EarnButton from "@/components/EarnButton";
 import { Card } from "@/components/ui/card";
@@ -9,6 +8,8 @@ import { TelegramUser } from "@/types/telegram";
 import UserProfileSection from "@/components/UserProfileSection";
 import { useToast } from "@/hooks/use-toast";
 import { useTelegramAuth } from "@/hooks/useTelegramAuth";
+import TonConnectButton from "@/components/TonConnectButton";
+import { useTonkeeperWallet } from "@/hooks/useTonkeeperWallet";
 
 const EarnPage = () => {
   const [balance, setBalance] = useState(() => {
@@ -17,6 +18,7 @@ const EarnPage = () => {
   });
   const { toast } = useToast();
   const { autoLogin, currentUser: telegramUser, isLoggedIn, logout } = useTelegramAuth();
+  const { connectWallet, isReady } = useTonkeeperWallet();
   
   useEffect(() => {
     document.title = "FIPT - Earn";
@@ -32,6 +34,40 @@ const EarnPage = () => {
       });
     }
   }, [toast, autoLogin, telegramUser]);
+
+  useEffect(() => {
+    const autoConnectHandler = () => {
+      console.log("Auto-connect event received, attempting to connect wallet");
+      if (isReady) {
+        connectWallet();
+        localStorage.removeItem('tonconnect_auto_connect');
+      } else {
+        console.log("Wallet not ready yet, will try again when ready");
+      }
+    };
+    
+    const checkUrlForAutoConnect = () => {
+      if (window.location.search.includes('auto_connect=true')) {
+        console.log("auto_connect parameter found in URL");
+        const newUrl = window.location.href.replace(/[?&]auto_connect=true/, '');
+        window.history.replaceState({}, document.title, newUrl);
+        
+        if (isReady) {
+          connectWallet();
+        } else {
+          localStorage.setItem('tonconnect_auto_connect', 'true');
+        }
+      }
+    };
+    
+    checkUrlForAutoConnect();
+    
+    window.addEventListener('tonkeeperAutoConnect', autoConnectHandler);
+    
+    return () => {
+      window.removeEventListener('tonkeeperAutoConnect', autoConnectHandler);
+    };
+  }, [connectWallet, isReady]);
 
   useEffect(() => {
     localStorage.setItem('fiptBalance', balance.toString());

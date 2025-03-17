@@ -1,3 +1,4 @@
+
 /**
  * Finds the Tonkeeper wallet in the list of available wallets
  */
@@ -34,7 +35,7 @@ export const findTonkeeperWallet = (available: any[]) => {
  */
 const isTelegramMiniApp = (): boolean => {
   // Check various indicators of Telegram Mini App environment
-  return (
+  return !!(
     // Check if Telegram WebApp API is available
     (typeof window !== 'undefined' && window.Telegram && window.Telegram.WebApp) ||
     // Check localStorage flag (might have been set by bridge script)

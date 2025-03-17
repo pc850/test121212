@@ -1,4 +1,3 @@
-
 (function() {
   // Initialize bridge namespace if not exists
   window.telegramBridge = window.telegramBridge || {};
@@ -14,7 +13,7 @@
     const originalOpenLink = window.Telegram.WebApp.openLink;
     
     // Replace with enhanced version
-    window.Telegram.WebApp.openLink = function(url) {
+    window.Telegram.WebApp.openLink = function(url, options) {
       console.log('Enhanced openLink called with:', url);
       
       // Special handling for Tonkeeper URLs
@@ -78,7 +77,7 @@
       
       // Default behavior for non-Tonkeeper URLs
       console.log('Using default openLink for non-Tonkeeper URL');
-      originalOpenLink.call(window.Telegram.WebApp, url);
+      originalOpenLink.call(window.Telegram.WebApp, url, options || {});
     };
     
     console.log('Telegram.WebApp.openLink enhanced for Tonkeeper support');
@@ -158,5 +157,17 @@
     // Set flags for future detection
     localStorage.setItem('isTelegramMiniApp', 'true');
     localStorage.setItem('tonconnect_in_telegram', 'true');
+    
+    // Auto-detect if we came back from Tonkeeper with auto_connect parameter
+    if (window.location.search.includes('auto_connect=true') || 
+        localStorage.getItem('tonconnect_auto_connect') === 'true') {
+      console.log('Auto-connect parameter detected, triggering wallet connection');
+      localStorage.setItem('tonconnect_auto_connect', 'true');
+      
+      // Dispatch event to notify app to connect wallet
+      setTimeout(function() {
+        window.dispatchEvent(new CustomEvent('tonkeeperAutoConnect'));
+      }, 1000);
+    }
   }
 })();
