@@ -1,4 +1,3 @@
-
 import { TonConnect } from "@tonconnect/sdk";
 
 /**
@@ -27,7 +26,9 @@ export const handleTelegramMiniAppConnection = async (
       
       // First try the universal URL if available
       if (tonkeeper.universalUrl) {
-        const success = window.telegramBridge.openTonkeeperWallet(tonkeeper.universalUrl, { sessionId });
+        // Fix: Ensure valid URL format for universal URL
+        const universalUrl = ensureValidUrl(tonkeeper.universalUrl);
+        const success = window.telegramBridge.openTonkeeperWallet(universalUrl, { sessionId });
         if (success) {
           console.log(`[${sessionId}] Successfully opened Tonkeeper with telegramBridge`);
           return;
@@ -36,7 +37,9 @@ export const handleTelegramMiniAppConnection = async (
       
       // Fall back to deep link if universal URL didn't work
       else if (tonkeeper.deepLink) {
-        const success = window.telegramBridge.openTonkeeperWallet(tonkeeper.deepLink, { sessionId });
+        // Fix: Ensure valid URL format for deep link
+        const deepLink = ensureValidUrl(tonkeeper.deepLink);
+        const success = window.telegramBridge.openTonkeeperWallet(deepLink, { sessionId });
         if (success) {
           console.log(`[${sessionId}] Successfully opened Tonkeeper with telegramBridge (deepLink)`);
           return;
@@ -53,6 +56,9 @@ export const handleTelegramMiniAppConnection = async (
     console.log(`[${sessionId}] Using universal URL:`, tonkeeper.universalUrl);
     
     try {
+      // Fix: Ensure valid URL format
+      const universalUrl = ensureValidUrl(tonkeeper.universalUrl);
+      
       // Add params to track and prevent caching
       const params = new URLSearchParams({
         t: timestamp.toString(),
@@ -60,8 +66,8 @@ export const handleTelegramMiniAppConnection = async (
         source: 'telegram-mini-app'
       });
       
-      const universalUrlWithParams = `${tonkeeper.universalUrl}${
-        tonkeeper.universalUrl.includes('?') ? '&' : '?'
+      const universalUrlWithParams = `${universalUrl}${
+        universalUrl.includes('?') ? '&' : '?'
       }${params.toString()}`;
       
       console.log(`[${sessionId}] Opening URL with params:`, universalUrlWithParams);
@@ -107,8 +113,11 @@ export const handleTelegramMiniAppConnection = async (
     console.log(`[${sessionId}] Trying deep link:`, tonkeeper.deepLink);
     
     try {
+      // Fix: Ensure valid URL format for deep link
+      const deepLink = ensureValidUrl(tonkeeper.deepLink);
+      
       // Add params to prevent caching
-      const deepLinkWithParams = `${tonkeeper.deepLink}?t=${timestamp}&session=${sessionId}&source=telegram-mini-app`;
+      const deepLinkWithParams = `${deepLink}${deepLink.includes('?') ? '&' : '?'}t=${timestamp}&session=${sessionId}&source=telegram-mini-app`;
       
       console.log(`[${sessionId}] Opening deep link with params:`, deepLinkWithParams);
       
@@ -152,3 +161,28 @@ export const handleTelegramMiniAppConnection = async (
     throw e;
   }
 };
+
+/**
+ * Ensures the URL is properly formatted for mobile/Telegram redirects
+ */
+function ensureValidUrl(url: string): string {
+  // Check if URL starts with a scheme/protocol
+  if (!url.includes('://') && !url.startsWith('http')) {
+    // For tonkeeper-specific URLs
+    if (url.startsWith('tonkeeper:')) {
+      return url; // Keep specialized protocol as is
+    }
+    
+    // For ton:// links
+    if (url.startsWith('ton:')) {
+      return url; // Keep TON protocol as is
+    }
+    
+    // For universal links that might be missing the https:// prefix
+    if (url.includes('.') && !url.startsWith('http')) {
+      return `https://${url}`;
+    }
+  }
+  
+  return url;
+}

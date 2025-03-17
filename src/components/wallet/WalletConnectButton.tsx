@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { TelegramUser } from "@/types/telegram";
 import ConnectButton from "./ConnectButton";
@@ -45,7 +46,7 @@ const WalletConnectButton: React.FC<WalletConnectButtonProps> = ({
         setRedirectInProgress(true);
       }
       
-      // Show retry button after a timeout
+      // Show retry button after a timeout - longer for Telegram Mini Apps
       const retryTimer = setTimeout(() => {
         setShowRetry(true);
         
@@ -55,7 +56,7 @@ const WalletConnectButton: React.FC<WalletConnectButtonProps> = ({
         }, 5000);
         
         return () => clearTimeout(appStoreTimer);
-      }, isMobile || isTelegramMiniApp ? 6000 : 15000);
+      }, isTelegramMiniApp ? 10000 : isMobile ? 6000 : 15000); // Give more time for Telegram Mini Apps
       
       return () => clearTimeout(retryTimer);
     }
@@ -84,11 +85,14 @@ const WalletConnectButton: React.FC<WalletConnectButtonProps> = ({
       message = "This will open the Tonkeeper app. If you don't have it installed, please install it first, then try again.";
     }
     
-    if (message && connectionAttempts === 0 && !window.confirm(message)) {
-      return;
+    // Only show confirmation on first attempt in mobile/Telegram environments
+    if (message && connectionAttempts === 0) {
+      if (window.confirm(message)) {
+        onConnect();
+      }
+    } else {
+      onConnect();
     }
-    
-    onConnect();
   };
 
   const openAppStore = () => {
@@ -111,7 +115,7 @@ const WalletConnectButton: React.FC<WalletConnectButtonProps> = ({
       />
       
       {/* App Store links - show if connection takes too long on mobile */}
-      {showAppStoreLinks && isMobile && (
+      {showAppStoreLinks && (isMobile || isTelegramMiniApp) && (
         <AppStoreLinkButton isIOS={isIOS} onOpenAppStore={openAppStore} />
       )}
       

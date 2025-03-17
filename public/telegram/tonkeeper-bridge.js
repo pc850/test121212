@@ -1,4 +1,3 @@
-
 (function() {
   // Initialize bridge namespace if not exists
   window.telegramBridge = window.telegramBridge || {};
@@ -28,6 +27,16 @@
         const timestamp = Date.now();
         
         console.log(`[${sessionId}] Detected Tonkeeper URL, using special handling`);
+        
+        // Fix: Ensure valid URL format
+        if (!url.includes('://') && !url.startsWith('http')) {
+          if (url.startsWith('tonkeeper:')) {
+            // Keep as is
+          } else if (url.includes('.') && !url.startsWith('http')) {
+            url = 'https://' + url;
+            console.log(`[${sessionId}] Fixed URL format: ${url}`);
+          }
+        }
         
         // Add tracking parameters to URL
         try {
@@ -86,6 +95,16 @@
     const timestamp = Date.now();
     
     console.log(`[${sessionId}] Opening Tonkeeper wallet with URL:`, url);
+    
+    // Fix: Ensure valid URL format
+    if (!url.includes('://') && !url.startsWith('http')) {
+      if (url.startsWith('tonkeeper:')) {
+        // Keep as is
+      } else if (url.includes('.') && !url.startsWith('http')) {
+        url = 'https://' + url;
+        console.log(`[${sessionId}] Fixed URL format: ${url}`);
+      }
+    }
     
     // Add tracking parameters to URL
     const separator = url.includes('?') ? '&' : '?';
