@@ -118,6 +118,8 @@ const EarnButton = ({ onEarn, disabled = false }: EarnButtonProps) => {
       <button
         onClick={handleClick}
         disabled={disabled}
+        type="button"
+        aria-label="Earn FIPT points"
         className={cn(
           "relative w-48 h-48 rounded-full flex items-center justify-center shadow-lg transition-all duration-200 cursor-pointer",
           disabled 
