@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Wallet } from "lucide-react";
 import { 
@@ -60,16 +59,14 @@ const TonConnectButton: React.FC = () => {
       // Get a list of available wallets - properly handle the Promise
       const walletsList = await tonConnect.getWallets();
       
-      // Properly construct wallet connection options
       if (walletsList.length > 0) {
         // Use the first wallet in the list (typically Tonkeeper)
         const selectedWallet = walletsList[0];
         
-        // Create a proper universal link
-        tonConnect.connect({ 
-          jsBridgeKey: selectedWallet.jsBridgeKey,
-          universalLink: selectedWallet.universalLink,
-          bridgeUrl: selectedWallet.bridgeUrl,
+        // Connect using the proper method based on the wallet type
+        // The SDK handles different wallet types internally
+        tonConnect.connect({
+          wallet: selectedWallet,
         });
       } else {
         toast({
