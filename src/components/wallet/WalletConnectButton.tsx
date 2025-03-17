@@ -1,8 +1,12 @@
-
 import React, { useState, useEffect } from "react";
-import { Button } from "@/components/ui";
 import { TelegramUser } from "@/types/telegram";
-import { ExternalLink, AlertTriangle, RefreshCw, Smartphone, Download } from "lucide-react";
+import ConnectButton from "./ConnectButton";
+import AppStoreLinkButton from "./AppStoreLinkButton";
+import RetryNotice from "./RetryNotice";
+import EnvironmentNotice from "./EnvironmentNotice";
+import WalletUnavailableNotice from "./WalletUnavailableNotice";
+import TelegramUserInfo from "./TelegramUserInfo";
+import DebugInfo from "./DebugInfo";
 
 interface WalletConnectButtonProps {
   isConnecting: boolean;
@@ -63,6 +67,10 @@ const WalletConnectButton: React.FC<WalletConnectButtonProps> = ({
     (w.appName && w.appName.toLowerCase().includes('tonkeeper'))
   );
 
+  // Detect if we're on iOS
+  const isIOS = typeof navigator !== 'undefined' && /iPhone|iPad|iPod/i.test(navigator.userAgent);
+  const isAndroid = typeof navigator !== 'undefined' && /Android/i.test(navigator.userAgent);
+
   // Handle connect click with appropriate guidance for different environments
   const handleConnectClick = () => {
     setShowRetry(false); // Reset retry state
@@ -83,10 +91,6 @@ const WalletConnectButton: React.FC<WalletConnectButtonProps> = ({
     onConnect();
   };
 
-  // Detect if we're on iOS
-  const isIOS = typeof navigator !== 'undefined' && /iPhone|iPad|iPod/i.test(navigator.userAgent);
-  const isAndroid = typeof navigator !== 'undefined' && /Android/i.test(navigator.userAgent);
-
   const openAppStore = () => {
     if (isIOS) {
       window.location.href = "https://apps.apple.com/app/tonkeeper/id1587312458";
@@ -97,111 +101,47 @@ const WalletConnectButton: React.FC<WalletConnectButtonProps> = ({
 
   return (
     <div className="grid gap-4">
-      <Button
-        variant="outline"
-        className="justify-start gap-2"
+      <ConnectButton
+        isConnecting={isConnecting}
+        showRetry={showRetry}
+        redirectInProgress={redirectInProgress}
+        isTelegramMiniApp={isTelegramMiniApp}
+        isMobile={isMobile}
         onClick={handleConnectClick}
-        disabled={isConnecting && !showRetry}
-      >
-        <img
-          src="https://tonkeeper.com/assets/tonconnect-icon.png"
-          alt="Tonkeeper"
-          className="h-5 w-5"
-        />
-        {isConnecting && !showRetry ? (
-          <span className="flex items-center">
-            <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-primary" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-            </svg>
-            {redirectInProgress ? "Redirecting to Tonkeeper..." : "Opening Tonkeeper..."}
-          </span>
-        ) : showRetry ? (
-          <span className="flex items-center">
-            <RefreshCw className="h-4 w-4 mr-1 text-yellow-500" />
-            Try Again
-          </span>
-        ) : (
-          isTelegramMiniApp ? (
-            <>Open Tonkeeper <ExternalLink className="h-4 w-4 ml-1" /></>
-          ) : isMobile ? (
-            <>Open Tonkeeper App <ExternalLink className="h-4 w-4 ml-1" /></>
-          ) : "Connect Tonkeeper"
-        )}
-      </Button>
+      />
       
       {/* App Store links - show if connection takes too long on mobile */}
       {showAppStoreLinks && isMobile && (
-        <Button 
-          variant="secondary"
-          className="justify-start gap-2 bg-blue-50 border border-blue-200 text-blue-700 hover:bg-blue-100"
-          onClick={openAppStore}
-        >
-          <Download className="h-4 w-4" />
-          {isIOS ? "Get Tonkeeper from App Store" : "Get Tonkeeper from Play Store"}
-        </Button>
+        <AppStoreLinkButton isIOS={isIOS} onOpenAppStore={openAppStore} />
       )}
       
       {showRetry && (
-        <div className="p-3 bg-yellow-50 border border-yellow-200 rounded-md text-xs text-yellow-700">
-          <p className="font-medium flex items-center"><AlertTriangle className="h-3 w-3 mr-1" /> Connection taking too long</p>
-          <p className="mt-1">If Tonkeeper didn't open, please try these steps:</p>
-          <ol className="list-decimal pl-4 mt-1 space-y-1">
-            <li>Make sure you have the Tonkeeper app installed</li>
-            <li>Tap "Try Again" to make another connection attempt</li>
-            {isMobile && <li>{isIOS ? "On iOS, you may need to open the App Store to install Tonkeeper" : "On Android, you may need to open the Play Store to install Tonkeeper"}</li>}
-            {isTelegramMiniApp && <li>After connecting in Tonkeeper, return to this Telegram Mini App</li>}
-          </ol>
-        </div>
+        <RetryNotice
+          isMobile={isMobile}
+          isTelegramMiniApp={isTelegramMiniApp}
+          isIOS={isIOS}
+        />
       )}
       
-      {isTelegramMiniApp && (
-        <div className="p-2 bg-yellow-50 border border-yellow-200 rounded-md text-xs text-yellow-700">
-          <p className="font-medium">IMPORTANT: Telegram Mini App Notice</p>
-          <p><strong>You are using a Telegram Mini App.</strong> Connecting to Tonkeeper will open outside of Telegram.</p>
-          <p className="mt-1">When you click the button, you should be redirected to Tonkeeper. After connecting in Tonkeeper, you <strong>must return to Telegram</strong> to complete the process.</p>
-        </div>
-      )}
+      <EnvironmentNotice
+        isTelegramMiniApp={isTelegramMiniApp}
+        isMobile={isMobile}
+        isIOS={isIOS}
+      />
       
-      {isMobile && !isTelegramMiniApp && (
-        <div className="p-2 bg-yellow-50 border border-yellow-200 rounded-md text-xs text-yellow-700">
-          <p className="font-medium flex items-center"><Smartphone className="h-3 w-3 mr-1" /> Mobile Device Instructions</p>
-          <p><strong>You need the Tonkeeper app installed</strong> on your device.</p>
-          <p className="mt-1">Tapping the button will attempt to open the Tonkeeper app. If it doesn't open:</p>
-          <ol className="list-decimal pl-4 mt-1 space-y-1">
-            <li>Make sure Tonkeeper is installed</li>
-            <li>{isIOS ? "On iOS, get Tonkeeper from the App Store" : "On Android, get Tonkeeper from the Play Store"}</li>
-            <li>After installing, tap the button again</li>
-          </ol>
-        </div>
-      )}
+      <WalletUnavailableNotice
+        hasTonkeeper={hasTonkeeper}
+        isConnecting={isConnecting}
+      />
       
-      {!hasTonkeeper && !isConnecting && (
-        <div className="p-2 bg-red-50 border border-red-200 rounded-md text-xs text-red-700">
-          <p className="font-medium">Tonkeeper Not Found</p>
-          <p>Tonkeeper wallet is not available. You may need to install the Tonkeeper app or extension first.</p>
-        </div>
-      )}
+      <TelegramUserInfo telegramUser={telegramUser} />
       
-      {telegramUser && (
-        <div className="p-2 bg-muted rounded-md text-xs text-muted-foreground">
-          <p>Connecting will link your wallet to your Telegram account:</p>
-          <p className="font-medium mt-1">@{telegramUser.username || telegramUser.first_name}</p>
-        </div>
-      )}
-      
-      {/* Debug info - only show in development */}
-      {process.env.NODE_ENV !== 'production' && (
-        <div className="text-xs text-muted-foreground p-2 bg-muted rounded-md">
-          <p className="font-medium">Debug Info:</p>
-          <p className="break-all">{walletInfo}</p>
-          <p className="font-medium mt-2">Available Wallets:</p>
-          <p className="break-all">{available.length > 0 ? available.map(w => w.name).join(', ') : 'None found'}</p>
-          <p className="font-medium mt-2">Environment:</p>
-          <p>Telegram Mini App: {String(isTelegramMiniApp)}, Mobile: {String(isMobile)}</p>
-          <p>User Agent: {navigator.userAgent.slice(0, 100)}...</p>
-        </div>
-      )}
+      <DebugInfo
+        walletInfo={walletInfo}
+        available={available}
+        isTelegramMiniApp={isTelegramMiniApp}
+        isMobile={isMobile}
+      />
     </div>
   );
 };
