@@ -22,7 +22,7 @@ import { supabase } from "@/integrations/supabase/client";
 
 // 3) Initialize TonConnect
 const tonConnect = new TonConnect({
-  manifestUrl: "https://your-site.com/tonconnect-manifest.json",
+  manifestUrl: "https://fipt-wonderland.lovable.app/tonconnect-manifest.json",
 });
 
 const TonConnectButton: React.FC = () => {
