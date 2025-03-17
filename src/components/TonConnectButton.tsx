@@ -1,7 +1,6 @@
-
 "use client"; // For Next.js App Router client-side rendering
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Wallet } from "lucide-react";
 import {
   Button,
@@ -27,6 +26,36 @@ const tonConnect = new TonConnect({
 const TonConnectButton: React.FC = () => {
   const [isConnected, setIsConnected] = useState(false);
   const [walletAddress, setWalletAddress] = useState("");
+
+  // Check connection status on component mount
+  useEffect(() => {
+    const checkConnection = async () => {
+      if (tonConnect.connected) {
+        const walletInfo = tonConnect.wallet;
+        const address = walletInfo?.account.address || "";
+        setWalletAddress(address);
+        setIsConnected(true);
+      }
+    };
+
+    checkConnection();
+
+    // Listen for connection status changes
+    const unsubscribe = tonConnect.onStatusChange(async (wallet) => {
+      if (wallet) {
+        const address = wallet.account.address;
+        setWalletAddress(address);
+        setIsConnected(true);
+      } else {
+        setWalletAddress("");
+        setIsConnected(false);
+      }
+    });
+
+    return () => {
+      unsubscribe();
+    };
+  }, []);
 
   // Connect function to trigger Tonkeeper via TonConnect
   const connectWallet = async () => {
