@@ -1,6 +1,6 @@
 "use client"; // For Next.js App Router client-side rendering
 
-import React from "react";
+import React, { useState } from "react";
 import { Wallet } from "lucide-react";
 import {
   Button,
@@ -19,11 +19,18 @@ import { supabase } from "@/integrations/supabase/client";
 
 const TonConnectButton: React.FC = () => {
   const { connectWallet, disconnectWallet, connected, address } = useTonkeeperWallet();
+  const [isConnecting, setIsConnecting] = useState(false);
+  const [dialogOpen, setDialogOpen] = useState(false);
 
   // Connect function to trigger Tonkeeper via TonConnect
   const handleConnect = async () => {
     try {
+      console.log("Attempting to connect wallet...");
+      setIsConnecting(true);
+      
       await connectWallet();
+      
+      console.log("Connection attempt completed, connected status:", connected);
       
       if (connected && address) {
         toast({
@@ -51,7 +58,10 @@ const TonConnectButton: React.FC = () => {
       toast({
         title: "Connection error",
         description: `Failed to connect to wallet: ${error.message || error}`,
+        variant: "destructive"
       });
+    } finally {
+      setIsConnecting(false);
     }
   };
 
@@ -68,12 +78,13 @@ const TonConnectButton: React.FC = () => {
       toast({
         title: "Error",
         description: `Failed to disconnect wallet: ${error.message || error}`,
+        variant: "destructive"
       });
     }
   };
 
   return (
-    <Dialog>
+    <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
       <DialogTrigger asChild>
         <Button variant="outline" className="gap-2" size="sm">
           <Wallet className="h-4 w-4" />
@@ -115,13 +126,14 @@ const TonConnectButton: React.FC = () => {
               variant="outline"
               className="justify-start gap-2"
               onClick={handleConnect}
+              disabled={isConnecting}
             >
               <img
                 src="https://tonkeeper.com/assets/tonconnect-icon.png"
                 alt="Tonkeeper"
                 className="h-5 w-5"
               />
-              Tonkeeper
+              {isConnecting ? "Connecting..." : "Tonkeeper"}
             </Button>
           </div>
         )}
