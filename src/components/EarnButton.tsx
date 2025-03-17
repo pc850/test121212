@@ -123,18 +123,19 @@ const EarnButton = ({ onEarn, disabled = false }: EarnButtonProps) => {
         onClick={handleClick}
         disabled={disabled}
         className={cn(
-          "relative w-48 h-48 rounded-full flex items-center justify-center shadow-lg transition-all duration-200",
+          "relative w-48 h-48 rounded-full flex items-center justify-center shadow-lg transition-all duration-200 cursor-pointer",
           disabled 
             ? "bg-gray-200 cursor-not-allowed" 
-            : "bg-gradient-to-br from-fipt-blue to-fipt-accent hover:scale-[1.02]",
+            : "bg-gradient-to-br from-fipt-blue to-fipt-accent hover:scale-[1.02] active:scale-95",
           isPressed && !disabled ? "scale-95 shadow-md" : "scale-100"
         )}
+        aria-label="Earn FIPT points"
       >
         <div className={cn(
           "absolute inset-2 rounded-full flex items-center justify-center",
-          disabled ? "bg-gray-100" : "bg-white"
+          disabled ? "bg-gray-100" : "bg-white pointer-events-none"
         )}>
-          <div className="flex flex-col items-center justify-center gap-3">
+          <div className="flex flex-col items-center justify-center gap-3 pointer-events-none">
             <Sparkles className={cn(
               "w-10 h-10", 
               disabled ? "text-gray-400" : "text-fipt-blue"
