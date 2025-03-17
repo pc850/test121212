@@ -1,171 +1,132 @@
-import { WalletInfo } from "@tonconnect/sdk";
-import { toast } from "@/hooks/use-toast";
+import { TonConnect, isWalletInfoInjectable, WalletInfoRemote } from "@tonconnect/sdk";
 
-/**
- * Attempts to connect to a Tonkeeper wallet with special handling for Telegram Mini Apps and mobile devices
- */
 export const connectToTonkeeper = async (
-  wallet: any,
-  available: WalletInfo[],
+  wallet: TonConnect,
+  available: any[],
   isMobile: boolean,
   isTelegramMiniApp: boolean,
-  setIsConnecting: (isConnecting: boolean) => void,
-  setConnectionTimeout: (timeout: NodeJS.Timeout | null) => void,
-  connectionTimeout: NodeJS.Timeout | null
+  setIsConnecting: (connecting: boolean) => void,
+  setConnectionTimeout: (timeout: ReturnType<typeof setTimeout> | null) => void,
+  connectionTimeout: ReturnType<typeof setTimeout> | null
 ) => {
+  console.log("Starting wallet connection attempt...");
+  console.log("Environment:", { isMobile, isTelegramMiniApp });
+  console.log("Available wallets:", available.map(w => w.name));
+
+  // Clean up any existing timeout
+  if (connectionTimeout) {
+    clearTimeout(connectionTimeout);
+  }
+
   try {
-    console.log("Attempting to connect wallet...");
+    // Set connecting state
     setIsConnecting(true);
-    
-    // Clear any existing timeout
-    if (connectionTimeout) {
-      clearTimeout(connectionTimeout);
-      setConnectionTimeout(null);
-    }
-    
-    // Get all available wallet options
-    console.log("Available wallets:", available.map(w => w.name));
-    
-    // Get tonkeeper from available wallets
-    const tonkeeperWallet = available.find(w => 
+
+    // Find Tonkeeper in available wallets
+    const tonkeeper = available.find(w => 
       w.name.toLowerCase().includes('tonkeeper') || 
-      ((w as any).appName && (w as any).appName.toLowerCase().includes('tonkeeper'))
+      (w.appName && w.appName.toLowerCase().includes('tonkeeper'))
     );
-    
-    if (!tonkeeperWallet) {
-      console.error("Tonkeeper wallet not found among available wallets");
+
+    if (!tonkeeper) {
+      console.error("Tonkeeper wallet not found in available wallets");
       setIsConnecting(false);
-      toast({
-        title: "Connection Error",
-        description: "Tonkeeper wallet not found",
-        variant: "destructive"
-      });
       return;
     }
-    
-    console.log("Found Tonkeeper wallet:", tonkeeperWallet);
-    
-    // Set a connection timeout - shorter now for better UX
+
+    console.log("Found Tonkeeper wallet:", tonkeeper);
+
+    // Set a timeout to reset the connecting state if it takes too long
     const timeout = setTimeout(() => {
-      console.log("Connection timeout reached");
+      console.log("Connection attempt timed out");
       setIsConnecting(false);
-      toast({
-        title: "Connection Timeout",
-        description: "Please try connecting again",
-        variant: "destructive"
-      });
-    }, 15000); // 15 seconds timeout
+    }, 30000); // 30 seconds timeout
     
     setConnectionTimeout(timeout);
-    
-    // First approach: direct universal link for all environments for reliability
-    try {
-      console.log("Using direct universal link approach first");
+
+    // Determine connection method based on environment
+    if (isTelegramMiniApp) {
+      console.log("Connecting using Telegram Mini App approach");
       
-      // Cast to any to access properties that might not be in the TypeScript interface
-      const walletAny = tonkeeperWallet as any;
-      
-      // Get universal link if available
-      let universalLink = walletAny.universalUrl || walletAny.universal_url;
-      
-      if (universalLink) {
-        // Add tonconnect=true parameter to ensure the connect flow is triggered
-        if (!universalLink.includes('?')) {
-          universalLink += '?tonconnect=true&ret=' + encodeURIComponent(window.location.href);
-        } else {
-          universalLink += '&tonconnect=true&ret=' + encodeURIComponent(window.location.href);
+      // For Telegram Mini App, we need to use universal URL to open Tonkeeper
+      if (tonkeeper.universalUrl) {
+        console.log("Using universal URL:", tonkeeper.universalUrl);
+        
+        // Open the universal URL in a new tab/window
+        window.open(tonkeeper.universalUrl, '_blank');
+        
+        // Attempt to use the connect method as well as a fallback
+        try {
+          await wallet.connect({
+            universalLink: tonkeeper.universalUrl,
+            bridgeUrl: tonkeeper.bridge?.[0]?.url
+          });
+          console.log("Connect method called successfully");
+        } catch (e) {
+          console.error("Error in wallet.connect method:", e);
         }
-        
-        console.log("Opening Tonkeeper with universal link:", universalLink);
-        
-        // For Telegram Mini App or mobile, open in a new window to break out of the iframe
-        if (isTelegramMiniApp || isMobile) {
-          window.open(universalLink, '_blank');
-        } else {
-          // For desktop, use the redirect approach
-          window.location.href = universalLink;
-        }
-        
-        // Short timeout to allow for proper redirection
-        await new Promise(resolve => setTimeout(resolve, 500));
-        return;
+      } else {
+        console.log("No universal URL available, trying standard connect");
+        await wallet.connect({ jsBridgeKey: "tonkeeper" });
       }
-    } catch (err) {
-      console.error("Direct universal link approach failed:", err);
-      // Continue to try other methods
+    } else if (isMobile) {
+      console.log("Connecting on mobile device");
+      
+      // For mobile, try using universal URL first if available
+      if (tonkeeper.universalUrl) {
+        console.log("Using universal URL for mobile:", tonkeeper.universalUrl);
+        window.location.href = tonkeeper.universalUrl;
+        
+        // As a fallback, also try the connect method
+        try {
+          await wallet.connect({
+            universalLink: tonkeeper.universalUrl,
+            bridgeUrl: tonkeeper.bridge?.[0]?.url
+          });
+          console.log("Mobile connect method called successfully");
+        } catch (e) {
+          console.error("Error in mobile wallet.connect method:", e);
+        }
+      } else if (tonkeeper.deepLink) {
+        console.log("Using deep link:", tonkeeper.deepLink);
+        window.location.href = tonkeeper.deepLink;
+      } else {
+        console.log("No deep link or universal URL, using standard connect");
+        await wallet.connect({ jsBridgeKey: "tonkeeper" });
+      }
+    } else {
+      // For desktop browsers
+      console.log("Connecting on desktop browser");
+      
+      if (isWalletInfoInjectable(tonkeeper)) {
+        console.log("Using injectable wallet connection");
+        await wallet.connect({ jsBridgeKey: "tonkeeper" });
+      } else if ((tonkeeper as WalletInfoRemote).universalLink) {
+        console.log("Using universal link for desktop:", (tonkeeper as WalletInfoRemote).universalLink);
+        const link = (tonkeeper as WalletInfoRemote).universalLink;
+        window.open(link, '_blank');
+        
+        // Also try the connect method
+        try {
+          await wallet.connect({
+            universalLink: link,
+            bridgeUrl: (tonkeeper as WalletInfoRemote).bridgeUrl
+          });
+          console.log("Desktop connect method called successfully");
+        } catch (e) {
+          console.error("Error in desktop wallet.connect method:", e);
+        }
+      } else {
+        console.log("Using standard connect method");
+        await wallet.connect({ jsBridgeKey: "tonkeeper" });
+      }
     }
-    
-    // Second approach: Use the TonConnect SDK
-    try {
-      console.log("Attempting standard SDK connection");
-      const result = await wallet.connect(tonkeeperWallet);
-      console.log("Connection initiated with standard method:", result);
-      
-      // If we get a redirect URL, use it
-      if (typeof result === 'string' && result) {
-        console.log("Got redirect URL from connect method:", result);
-        if (isTelegramMiniApp) {
-          window.open(result, '_blank');
-        } else {
-          window.location.href = result;
-        }
-        return;
-      }
-      
-      return result;
-    } catch (connectionError) {
-      console.error("Standard connection failed, trying fallback methods:", connectionError);
-      
-      // Third approach: Try deepLink as a last resort
-      const walletAny = tonkeeperWallet as any;
-      if (walletAny.deepLink) {
-        console.log("Navigating to deep link:", walletAny.deepLink);
-        if (isTelegramMiniApp) {
-          window.open(walletAny.deepLink, '_blank');
-        } else {
-          window.location.href = walletAny.deepLink;
-        }
-        return;
-      }
-      
-      // If we reach here, all connection attempts have failed
-      setIsConnecting(false);
-      clearTimeout(timeout);
-      setConnectionTimeout(null);
-      
-      toast({
-        title: "Connection Error",
-        description: "Failed to connect to Tonkeeper. Please try again.",
-        variant: "destructive"
-      });
-    }
+
+    console.log("Connection attempt completed without errors");
+    return;
   } catch (error) {
-    console.error("Connection error:", error);
+    console.error("Error connecting to wallet:", error);
     setIsConnecting(false);
-    
-    if (connectionTimeout) {
-      clearTimeout(connectionTimeout);
-      setConnectionTimeout(null);
-    }
-    
-    toast({
-      title: "Connection Error",
-      description: "Failed to open Tonkeeper",
-      variant: "destructive"
-    });
+    throw error;
   }
-};
-
-/**
- * Detects if the current device is a mobile device
- */
-export const detectMobileDevice = (): boolean => {
-  return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-};
-
-/**
- * Checks if the app is running as a Telegram Mini App
- */
-export const isTelegramMiniAppEnvironment = (): boolean => {
-  return window.Telegram?.WebApp !== undefined || localStorage.getItem('isTelegramMiniApp') === 'true';
 };

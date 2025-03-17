@@ -6,6 +6,8 @@ import { saveUserToSupabase, saveUserToLocalStorage } from "@/utils/telegramAuth
 export const useTelegramWebApp = () => {
   const detectWebApp = useCallback(async (): Promise<TelegramUser | null> => {
     try {
+      console.log("Detecting Telegram WebApp environment...");
+      
       // Check if running in Telegram WebApp
       if (window.Telegram && window.Telegram.WebApp) {
         console.log('Running in Telegram WebApp, attempting auto-login');

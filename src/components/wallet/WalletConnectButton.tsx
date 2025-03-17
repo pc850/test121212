@@ -1,3 +1,4 @@
+
 import React from "react";
 import { Button } from "@/components/ui";
 import { TelegramUser } from "@/types/telegram";
@@ -28,12 +29,23 @@ const WalletConnectButton: React.FC<WalletConnectButtonProps> = ({
     (w.appName && w.appName.toLowerCase().includes('tonkeeper'))
   );
 
+  // Handle the connect click with confirmation for Telegram Mini App
+  const handleConnectClick = () => {
+    if (isTelegramMiniApp) {
+      if (window.confirm("This will open Tonkeeper in a new window. After connecting, please return to this app.")) {
+        onConnect();
+      }
+    } else {
+      onConnect();
+    }
+  };
+
   return (
     <div className="grid gap-4">
       <Button
         variant="outline"
         className="justify-start gap-2"
-        onClick={onConnect}
+        onClick={handleConnectClick}
         disabled={isConnecting}
       >
         <img
@@ -51,9 +63,9 @@ const WalletConnectButton: React.FC<WalletConnectButtonProps> = ({
           </span>
         ) : (
           isTelegramMiniApp ? (
-            <>Open Tonkeeper <ExternalLink className="h-4 w-4" /></>
+            <>Open Tonkeeper <ExternalLink className="h-4 w-4 ml-1" /></>
           ) : isMobile ? (
-            <>Open Tonkeeper App <ExternalLink className="h-4 w-4" /></>
+            <>Open Tonkeeper App <ExternalLink className="h-4 w-4 ml-1" /></>
           ) : "Connect Tonkeeper"
         )}
       </Button>

@@ -17,14 +17,19 @@ serve(async (req) => {
   }
 
   try {
+    console.log("Received verification request");
     const { telegramData } = await req.json();
     
     if (!telegramData) {
+      console.log("Missing telegram data");
       return new Response(
         JSON.stringify({ error: "Missing telegram data" }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
       );
     }
+    
+    console.log("Received Telegram data type:", typeof telegramData);
+    console.log("Telegram data fields:", Object.keys(telegramData));
     
     // Special case for WebApp auto-login
     if (telegramData.hash && telegramData.hash.includes('web_app_data')) {
@@ -57,6 +62,8 @@ serve(async (req) => {
       .map(key => `${key}=${userData[key]}`)
       .join('\n');
     
+    console.log("Data check string:", dataCheckString);
+    
     // Create a secret key using the bot token
     const secretKey = await crypto.subtle.digest(
       "SHA-256",
@@ -83,11 +90,16 @@ serve(async (req) => {
       .map(b => b.toString(16).padStart(2, '0'))
       .join('');
     
+    console.log("Calculated hash:", hashHex);
+    console.log("Provided hash:", hash);
+    
     // Check if the hash matches the provided hash
     const isValid = hashHex === hash;
     
     // Check if the auth_date is not too old (within the last day)
     const isRecent = (Date.now() / 1000) - userData.auth_date < 86400;
+    
+    console.log("Validation result:", { isValid, isRecent });
     
     if (isValid && isRecent) {
       return new Response(
