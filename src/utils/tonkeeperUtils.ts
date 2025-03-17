@@ -85,7 +85,7 @@ export const handleMobileConnection = async (
         try {
           wallet.connect({
             jsBridgeKey: "tonkeeper"
-          }).catch(e => console.error("Error in delayed connect:", e));
+          }).catch((e: Error) => console.error("Error in delayed connect:", e));
         } catch (e) {
           console.error("Error setting up delayed connect:", e);
         }
@@ -112,10 +112,11 @@ export const handleMobileConnection = async (
       // Also try the connect method as a fallback
       setTimeout(() => {
         try {
+          // Fix: Properly handle the Promise returned by wallet.connect
           wallet.connect({
             universalLink: tonkeeper.universalUrl,
             bridgeUrl: tonkeeper.bridge?.[0]?.url
-          }).catch(e => console.error("Error in delayed connect:", e));
+          }).catch((e: Error) => console.error("Error in delayed connect:", e));
         } catch (e) {
           console.error("Error setting up delayed connect:", e);
         }
@@ -168,4 +169,3 @@ export const handleDesktopConnection = async (
     await wallet.connect({ jsBridgeKey: "tonkeeper" });
   }
 };
-
