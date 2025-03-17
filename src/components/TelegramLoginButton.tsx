@@ -1,8 +1,8 @@
-
 import { useEffect, useRef } from 'react';
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useTonkeeperWallet } from "@/hooks/useTonkeeperWallet";
+import { TelegramUser } from "@/types/telegram";
 
 // Define Telegram user interface
 export interface TelegramUser {
