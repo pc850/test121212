@@ -3,19 +3,14 @@ import { useState, useEffect } from "react";
 import { Navigate, useNavigate } from "react-router-dom";
 import { TelegramUser } from "@/types/telegram";
 import { supabase } from "@/integrations/supabase/client";
-import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Input } from "@/components/ui/input";
-import { useToast } from "@/hooks/use-toast";
-import { Mail, Lock } from "lucide-react";
-import TelegramLoginButton from "@/components/TelegramLoginButton";
 import { saveUserToLocalStorage, getUserFromLocalStorage, verifyTelegramLogin, saveUserToSupabase } from "@/utils/telegramAuthUtils";
 import { useTelegramAuth } from "@/hooks/useTelegramAuth";
+import TelegramLoginOptions from "@/components/auth/TelegramLoginOptions";
+import EmailLoginOptions from "@/components/auth/EmailLoginOptions";
+import { useToast } from "@/hooks/use-toast";
 
 const AuthPage = () => {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [loading, setLoading] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -101,67 +96,8 @@ const AuthPage = () => {
     }
   };
 
-  const handleEmailPasswordLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-
-    try {
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
-
-      if (error) {
-        throw error;
-      }
-
-      toast({
-        title: "Login successful",
-        description: "You have been logged in successfully",
-      });
-      
-      navigate('/earn');
-    } catch (error: any) {
-      toast({
-        title: "Login failed",
-        description: error.message,
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleEmailPasswordSignup = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-
-    try {
-      const { data, error } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          emailRedirectTo: window.location.origin,
-        },
-      });
-
-      if (error) {
-        throw error;
-      }
-
-      toast({
-        title: "Registration successful",
-        description: "Please check your email to verify your account",
-      });
-    } catch (error: any) {
-      toast({
-        title: "Registration failed",
-        description: error.message,
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
-    }
+  const handleLoginSuccess = () => {
+    navigate('/earn');
   };
 
   return (
@@ -179,66 +115,11 @@ const AuthPage = () => {
           </TabsList>
           
           <TabsContent value="telegram" className="flex justify-center">
-            <TelegramLoginButton 
-              botName="Chicktok_bot"
-              onAuth={handleTelegramAuth}
-              buttonSize="large"
-              cornerRadius={8}
-              className="my-2"
-            />
+            <TelegramLoginOptions onSuccess={handleTelegramAuth} />
           </TabsContent>
           
           <TabsContent value="email">
-            <form onSubmit={handleEmailPasswordLogin} className="space-y-4">
-              <div>
-                <div className="flex items-center mb-2">
-                  <Mail className="w-4 h-4 mr-2 text-muted-foreground" />
-                  <label htmlFor="email" className="text-sm font-medium">Email</label>
-                </div>
-                <Input
-                  id="email"
-                  type="email" 
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="Enter your email"
-                  required
-                />
-              </div>
-              
-              <div>
-                <div className="flex items-center mb-2">
-                  <Lock className="w-4 h-4 mr-2 text-muted-foreground" />
-                  <label htmlFor="password" className="text-sm font-medium">Password</label>
-                </div>
-                <Input
-                  id="password"
-                  type="password" 
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="Enter your password" 
-                  required
-                />
-              </div>
-              
-              <div className="flex space-x-3">
-                <Button 
-                  type="submit" 
-                  className="flex-1"
-                  disabled={loading}
-                >
-                  {loading ? "Logging in..." : "Login"}
-                </Button>
-                <Button 
-                  type="button" 
-                  variant="outline" 
-                  className="flex-1"
-                  onClick={handleEmailPasswordSignup}
-                  disabled={loading}
-                >
-                  {loading ? "Signing up..." : "Sign Up"}
-                </Button>
-              </div>
-            </form>
+            <EmailLoginOptions onSuccess={handleLoginSuccess} />
           </TabsContent>
         </Tabs>
       </div>
