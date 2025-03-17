@@ -120,6 +120,7 @@ const EarnButton = ({ onEarn, disabled = false }: EarnButtonProps) => {
         showAnimation ? "animate-pulse-scale ring-2 ring-fipt-blue" : "opacity-0"
       )} />
       
+      {/* Make the entire button area clickable */}
       <button
         onClick={handleClick}
         disabled={disabled}
