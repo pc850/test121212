@@ -68,7 +68,6 @@ const SwapPage = () => {
             showMaxButton={true}
             onMaxClick={() => {
               const bal = fromTokenData?.balance.toString() || "0";
-              setFromAmount(bal);
               handleFromAmountChange(bal);
             }}
           />
