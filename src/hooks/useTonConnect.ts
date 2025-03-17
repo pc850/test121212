@@ -1,19 +1,69 @@
-
 import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { TonClient } from "@ton/ton";
 import { Address } from "@ton/core";
+import { TonConnect, Wallet } from "@tonconnect/sdk";
+
+// Define TON Connect manifest
+const manifestUrl = 'https://fipt-shop.app/tonconnect-manifest.json';
 
 export function useTonConnect() {
   const [isConnecting, setIsConnecting] = useState(false);
   const [isConnected, setIsConnected] = useState(false);
   const [walletAddress, setWalletAddress] = useState("");
   const [provider, setProvider] = useState<string | null>(null);
+  const [tonConnectUI, setTonConnectUI] = useState<TonConnect | null>(null);
+  const [wallets, setWallets] = useState<Wallet[]>([]);
   
   // Initialize TON client
   const tonClient = new TonClient({
     endpoint: 'https://toncenter.com/api/v2/jsonRPC', // Using public TON API endpoint
   });
+
+  // Initialize TonConnect
+  useEffect(() => {
+    const connector = new TonConnect({ manifestUrl });
+    setTonConnectUI(connector);
+
+    // Check if there's an active connection
+    if (connector.connected) {
+      const wallet = connector.wallet;
+      if (wallet) {
+        setIsConnected(true);
+        setWalletAddress(wallet.account.address);
+        setProvider(wallet.device.appName);
+      }
+    }
+
+    // Get available wallets
+    const getWallets = async () => {
+      try {
+        const availableWallets = await connector.getWallets();
+        setWallets(availableWallets);
+      } catch (error) {
+        console.error("Error getting available wallets:", error);
+      }
+    };
+    getWallets();
+
+    // Listen for connection changes
+    const unsubscribe = connector.onStatusChange((wallet) => {
+      if (wallet) {
+        setIsConnected(true);
+        setWalletAddress(wallet.account.address);
+        setProvider(wallet.device.appName);
+        saveWalletConnection(wallet.account.address, wallet.device.appName);
+      } else {
+        setIsConnected(false);
+        setWalletAddress("");
+        setProvider(null);
+      }
+    });
+
+    return () => {
+      unsubscribe();
+    };
+  }, []);
   
   const saveWalletConnection = async (address: string, provider: string) => {
     try {
@@ -62,15 +112,45 @@ export function useTonConnect() {
     }
   }, []);
 
-  // In a real implementation, this would handle the real wallet connection
+  // Connect to a real wallet using TON Connect
+  const connectToWallet = useCallback(async (walletName: string) => {
+    if (!tonConnectUI) return null;
+    
+    setIsConnecting(true);
+    try {
+      // Find the wallet by name
+      const wallet = wallets.find(w => w.name.toLowerCase() === walletName.toLowerCase());
+      
+      if (!wallet) {
+        console.error(`Wallet ${walletName} not found`);
+        return null;
+      }
+      
+      // Connect to the selected wallet
+      await tonConnectUI.connect({ jsBridgeKey: wallet.jsBridgeKey });
+      
+      // The connection status will be handled by the onStatusChange listener
+      // We return the address here for immediate UI feedback
+      return tonConnectUI.wallet?.account.address;
+    } catch (error) {
+      console.error("Error connecting to wallet:", error);
+      return null;
+    } finally {
+      setIsConnecting(false);
+    }
+  }, [tonConnectUI, wallets]);
+
+  // Connect specifically to Tonkeeper
   const connectToTonkeeper = useCallback(async () => {
-    // This is where the actual TON Connect SDK implementation would go
-    // Currently using mockConnect for demo purposes
-    return await mockConnect("Tonkeeper");
-  }, [mockConnect]);
+    return await connectToWallet("Tonkeeper");
+  }, [connectToWallet]);
 
   const disconnect = useCallback(async () => {
     try {
+      if (tonConnectUI) {
+        await tonConnectUI.disconnect();
+      }
+      
       if (walletAddress) {
         await supabase
           .from('connected_wallets')
@@ -84,7 +164,7 @@ export function useTonConnect() {
     } catch (error) {
       console.error("Error disconnecting wallet:", error);
     }
-  }, [walletAddress]);
+  }, [walletAddress, tonConnectUI]);
 
   return {
     isConnecting,
@@ -92,8 +172,10 @@ export function useTonConnect() {
     walletAddress,
     provider,
     mockConnect,
+    connectToWallet,
     connectToTonkeeper,
     disconnect,
-    tonClient
+    tonClient,
+    wallets
   };
 }

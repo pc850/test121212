@@ -1,4 +1,5 @@
-import React from "react";
+
+import React, { useState } from "react";
 import { Wallet, Link } from "lucide-react";
 import { 
   Button,
@@ -19,16 +20,23 @@ const TonConnectButton: React.FC = () => {
     walletAddress, 
     provider,
     mockConnect, 
+    connectToWallet,
     connectToTonkeeper,
-    disconnect 
+    disconnect,
+    wallets
   } = useTonConnect();
+  
+  // Track whether we're in development mode and should allow mock connections
+  const [useMockConnection, setUseMockConnection] = useState(false);
 
   const handleConnect = async (walletType: string) => {
     let address;
     
-    if (walletType === "Tonkeeper") {
-      address = await connectToTonkeeper();
+    // Use real wallet connection if not in development mode
+    if (!useMockConnection) {
+      address = await connectToWallet(walletType);
     } else {
+      // Fallback to mock connection for development
       address = await mockConnect(walletType);
     }
     
@@ -91,35 +99,70 @@ const TonConnectButton: React.FC = () => {
           </div>
         ) : (
           <div className="grid gap-4">
-            <Button 
-              variant="outline" 
-              className="justify-start gap-2" 
-              onClick={() => handleConnect("Tonkeeper")}
-              disabled={isConnecting}
-            >
-              <img src="https://tonkeeper.com/assets/tonconnect-icon.png" alt="Tonkeeper" className="h-5 w-5" />
-              Tonkeeper
-            </Button>
+            {/* Display available wallets from the SDK */}
+            {wallets.length > 0 ? (
+              wallets.map((wallet) => (
+                <Button 
+                  key={wallet.name}
+                  variant="outline" 
+                  className="justify-start gap-2" 
+                  onClick={() => handleConnect(wallet.name)}
+                  disabled={isConnecting}
+                >
+                  {wallet.imageUrl ? (
+                    <img src={wallet.imageUrl} alt={wallet.name} className="h-5 w-5" />
+                  ) : (
+                    <Link className="h-5 w-5" />
+                  )}
+                  {wallet.name}
+                </Button>
+              ))
+            ) : (
+              <>
+                <Button 
+                  variant="outline" 
+                  className="justify-start gap-2" 
+                  onClick={() => handleConnect("Tonkeeper")}
+                  disabled={isConnecting}
+                >
+                  <img src="https://tonkeeper.com/assets/tonconnect-icon.png" alt="Tonkeeper" className="h-5 w-5" />
+                  Tonkeeper
+                </Button>
+                
+                <Button 
+                  variant="outline" 
+                  className="justify-start gap-2"
+                  onClick={() => handleConnect("TonHub")}
+                  disabled={isConnecting}
+                >
+                  <img src="https://ton.org/download/ton_symbol.svg" alt="TonHub" className="h-5 w-5" />
+                  TonHub
+                </Button>
+                
+                <Button 
+                  variant="outline" 
+                  className="justify-start gap-2"
+                  onClick={() => handleConnect("OpenMask")}
+                  disabled={isConnecting}
+                >
+                  <Link className="h-5 w-5" />
+                  OpenMask
+                </Button>
+              </>
+            )}
             
-            <Button 
-              variant="outline" 
-              className="justify-start gap-2"
-              onClick={() => handleConnect("TonHub")}
-              disabled={isConnecting}
-            >
-              <img src="https://ton.org/download/ton_symbol.svg" alt="TonHub" className="h-5 w-5" />
-              TonHub
-            </Button>
-            
-            <Button 
-              variant="outline" 
-              className="justify-start gap-2"
-              onClick={() => handleConnect("OpenMask")}
-              disabled={isConnecting}
-            >
-              <Link className="h-5 w-5" />
-              OpenMask
-            </Button>
+            {/* Development mode toggle */}
+            <div className="flex items-center justify-between border-t pt-2 mt-2">
+              <span className="text-xs text-muted-foreground">Development Mode</span>
+              <Button 
+                variant="ghost" 
+                size="sm"
+                onClick={() => setUseMockConnection(!useMockConnection)}
+                className={`text-xs ${useMockConnection ? 'text-green-500' : 'text-muted-foreground'}`}
+              >
+                {useMockConnection ? 'Enabled (Mock)' : 'Disabled (Real)'}
+              </Button>
+            </div>
           </div>
         )}
       </DialogContent>
