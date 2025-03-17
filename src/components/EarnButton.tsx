@@ -122,15 +122,15 @@ const EarnButton = ({ onEarn, disabled = false }: EarnButtonProps) => {
         type="button"
         aria-label="Earn FIPT points"
         className={cn(
-          "relative w-48 h-48 rounded-full flex items-center justify-center shadow-lg transition-all duration-200 cursor-pointer",
+          "relative w-48 h-48 rounded-full flex items-center justify-center shadow-lg transition-all duration-200",
           disabled 
             ? "bg-gray-200 cursor-not-allowed" 
-            : "bg-gradient-to-br from-fipt-blue to-fipt-accent hover:scale-[1.02]",
+            : "bg-gradient-to-br from-fipt-blue to-fipt-accent hover:scale-[1.02] cursor-pointer",
           isPressed && !disabled ? "scale-95 shadow-md" : "scale-100"
         )}
       >
         <div className={cn(
-          "absolute inset-2 rounded-full flex items-center justify-center",
+          "absolute inset-0 rounded-full flex items-center justify-center",
           disabled ? "bg-gray-100" : "bg-white"
         )}>
           <div className="flex flex-col items-center justify-center gap-3 pointer-events-none">
