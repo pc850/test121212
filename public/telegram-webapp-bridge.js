@@ -1,4 +1,3 @@
-
 // Bridge script to check if we're running in a Telegram Mini App
 (function() {
   // Try to detect if running inside a Telegram WebApp
@@ -52,13 +51,85 @@
         }));
       }
       
+      // Enhanced openLink handler specifically for wallet connections
+      const originalOpenLink = window.Telegram.WebApp.openLink;
+      window.Telegram.WebApp.openLink = function(url) {
+        console.log('Enhanced openLink called with:', url);
+        
+        // Check if this is a Tonkeeper URL
+        const isTonkeeperURL = url.includes('tonkeeper') || 
+                              url.includes('ton://') ||
+                              url.includes('tc://');
+        
+        if (isTonkeeperURL) {
+          console.log('Detected Tonkeeper URL, using special handling');
+          // For Tonkeeper URLs, try to open in a new window if regular openLink fails
+          try {
+            originalOpenLink.call(window.Telegram.WebApp, url);
+            console.log('Opened Tonkeeper URL with Telegram.WebApp.openLink');
+          } catch (e) {
+            console.error('Error opening Tonkeeper URL with Telegram WebApp:', e);
+            
+            // Fall back to window.open
+            try {
+              window.open(url, '_blank');
+              console.log('Opened Tonkeeper URL with window.open as fallback');
+            } catch (e2) {
+              console.error('Failed to open with window.open:', e2);
+              
+              // Last resort: direct navigation
+              try {
+                window.location.href = url;
+                console.log('Set window.location.href to Tonkeeper URL as last resort');
+              } catch (e3) {
+                console.error('All methods of opening Tonkeeper URL failed:', e3);
+              }
+            }
+          }
+          return;
+        }
+        
+        // Default behavior for non-Tonkeeper URLs
+        console.log('Using default openLink for non-Tonkeeper URL');
+        originalOpenLink.call(window.Telegram.WebApp, url);
+      };
+      
       // Add handler for external links to open in browser
       const originalOpen = window.open;
       window.open = function(url, target, features) {
         console.log('Intercepted window.open:', url, target);
         
-        if (url && (url.startsWith('https://') || url.startsWith('http://'))) {
-          // For external URLs in Telegram Mini App, try to use Telegram's openLink
+        // Special handling for Tonkeeper URLs
+        const isTonkeeperURL = url && (
+          url.includes('tonkeeper') || 
+          url.includes('ton://') ||
+          url.includes('tc://')
+        );
+        
+        if (isTonkeeperURL) {
+          console.log('Detected Tonkeeper URL in window.open');
+          
+          // Try Telegram WebApp.openLink first for Tonkeeper
+          try {
+            if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.openLink) {
+              console.log('Using Telegram.WebApp.openLink for Tonkeeper URL');
+              window.Telegram.WebApp.openLink(url);
+              return null;
+            }
+          } catch (e) {
+            console.error('Failed to use Telegram.WebApp.openLink for Tonkeeper:', e);
+          }
+          
+          // If openLink fails, try window.location.href
+          try {
+            window.location.href = url;
+            console.log('Set window.location.href to Tonkeeper URL');
+            return null;
+          } catch (e) {
+            console.error('Failed to set location.href for Tonkeeper:', e);
+          }
+        } else if (url && (url.startsWith('https://') || url.startsWith('http://'))) {
+          // For other external URLs in Telegram Mini App, try to use Telegram's openLink
           try {
             if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.openLink) {
               console.log('Using Telegram.WebApp.openLink for:', url);

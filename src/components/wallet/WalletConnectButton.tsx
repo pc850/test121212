@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+
+import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui";
 import { TelegramUser } from "@/types/telegram";
 import { ExternalLink, AlertTriangle } from "lucide-react";
@@ -23,6 +24,23 @@ const WalletConnectButton: React.FC<WalletConnectButtonProps> = ({
   isTelegramMiniApp = false
 }) => {
   const [showRetry, setShowRetry] = useState(false);
+  const [connectionAttempts, setConnectionAttempts] = useState(0);
+  
+  // Reset retry state when connection state changes
+  useEffect(() => {
+    if (!isConnecting) {
+      setTimeout(() => {
+        setShowRetry(false);
+      }, 1000);
+    } else {
+      // Show retry button after a timeout
+      const retryTimer = setTimeout(() => {
+        setShowRetry(true);
+      }, 10000);
+      
+      return () => clearTimeout(retryTimer);
+    }
+  }, [isConnecting]);
   
   // Find if Tonkeeper is available
   const hasTonkeeper = available.some(w => 
@@ -33,22 +51,18 @@ const WalletConnectButton: React.FC<WalletConnectButtonProps> = ({
   // Handle the connect click with guidance for different environments
   const handleConnectClick = () => {
     setShowRetry(false); // Reset retry state
+    setConnectionAttempts(prev => prev + 1);
     
     let message = "";
     if (isTelegramMiniApp) {
-      message = "This will open Tonkeeper in a new window. After connecting, please return to this app.";
+      message = "This will open Tonkeeper outside Telegram. After connecting, please return to this app.";
     } else if (isMobile) {
       message = "This will open the Tonkeeper app. If you don't have it installed, please install it first, then try again.";
     }
     
-    if (message && !window.confirm(message)) {
+    if (message && connectionAttempts === 0 && !window.confirm(message)) {
       return;
     }
-    
-    // Show retry button after a timeout
-    setTimeout(() => {
-      setShowRetry(true);
-    }, 10000);
     
     onConnect();
   };
@@ -103,9 +117,10 @@ const WalletConnectButton: React.FC<WalletConnectButtonProps> = ({
       
       {isTelegramMiniApp && (
         <div className="p-2 bg-yellow-50 border border-yellow-200 rounded-md text-xs text-yellow-700">
-          <p className="font-medium">Important</p>
-          <p>Clicking will open Tonkeeper outside this app. After connecting, please return here.</p>
-          <p className="mt-1">If nothing happens, please try again or open Tonkeeper manually.</p>
+          <p className="font-medium">Telegram Mini App Notice</p>
+          <p><strong>You are using a Telegram Mini App.</strong> Connecting to Tonkeeper will open outside of Telegram.</p>
+          <p className="mt-1">When you click the button, you'll be redirected to Tonkeeper. After connecting, you <strong>must return to Telegram</strong> to complete the process.</p>
+          <p className="mt-1">If nothing happens when you click, check that you have Tonkeeper installed or try again.</p>
         </div>
       )}
       
@@ -132,6 +147,7 @@ const WalletConnectButton: React.FC<WalletConnectButtonProps> = ({
           <p className="break-all">{available.length > 0 ? available.map(w => w.name).join(', ') : 'None found'}</p>
           <p className="font-medium mt-2">Environment:</p>
           <p>Telegram Mini App: {String(isTelegramMiniApp)}, Mobile: {String(isMobile)}</p>
+          <p>Telegram WebApp available: {String(!!window.Telegram?.WebApp)}</p>
         </div>
       )}
     </div>

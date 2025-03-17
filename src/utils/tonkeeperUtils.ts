@@ -1,4 +1,3 @@
-
 import { TonConnect, isWalletInfoInjectable, WalletInfoRemote } from "@tonconnect/sdk";
 
 /**
@@ -27,32 +26,64 @@ export const handleTelegramMiniAppConnection = async (
   tonkeeper: any
 ): Promise<void> => {
   console.log("Connecting using Telegram Mini App approach");
+  console.log("Tonkeeper details in Mini App:", JSON.stringify(tonkeeper, null, 2));
   
-  // For Telegram Mini App, prioritize deep links if available
+  // For Telegram Mini App, we need to explicitly use window.Telegram.WebApp.openLink
+  // if available as it handles redirects properly in the Mini App environment
+  if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.openLink) {
+    // First try direct deep link if available
+    if (tonkeeper.deepLink) {
+      console.log("Using Telegram.WebApp.openLink with deep link:", tonkeeper.deepLink);
+      try {
+        window.Telegram.WebApp.openLink(tonkeeper.deepLink);
+        console.log("Opened deep link via Telegram.WebApp.openLink");
+        return;
+      } catch (e) {
+        console.error("Error opening deep link via Telegram.WebApp.openLink:", e);
+      }
+    }
+    
+    // If deep link failed or unavailable, try universal URL
+    if (tonkeeper.universalUrl) {
+      console.log("Using Telegram.WebApp.openLink with universal URL:", tonkeeper.universalUrl);
+      try {
+        window.Telegram.WebApp.openLink(tonkeeper.universalUrl);
+        console.log("Opened universal URL via Telegram.WebApp.openLink");
+        return;
+      } catch (e) {
+        console.error("Error opening universal URL via Telegram.WebApp.openLink:", e);
+      }
+    }
+  }
+  
+  // Fallback to standard methods if Telegram.WebApp.openLink is not available
+  
+  // Try direct deep link first
   if (tonkeeper.deepLink) {
-    console.log("Using deep link for Telegram Mini App:", tonkeeper.deepLink);
+    console.log("Falling back to direct navigation with deep link:", tonkeeper.deepLink);
     try {
+      // Force window location change
       window.location.href = tonkeeper.deepLink;
       console.log("Redirected to deep link");
-      return; // Return early as we've navigated away
+      return;
     } catch (e) {
       console.error("Deep link navigation failed:", e);
-      // Continue to try other methods
     }
   }
   
   // If no deep link or it failed, try universal URL
   if (tonkeeper.universalUrl) {
-    console.log("Using universal URL:", tonkeeper.universalUrl);
+    console.log("Falling back to direct navigation with universal URL:", tonkeeper.universalUrl);
     
     try {
       // For Telegram, direct navigation works better than window.open
       window.location.href = tonkeeper.universalUrl;
       console.log("Redirected to universal URL");
-      return; // Return early as we've navigated away
+      return;
     } catch (e) {
       console.error("Error redirecting to universal URL:", e);
-      // Try window.open as fallback before giving up
+      
+      // Try window.open as final fallback
       try {
         window.open(tonkeeper.universalUrl, '_blank');
         console.log("Opened universal URL in new window");
@@ -69,7 +100,7 @@ export const handleTelegramMiniAppConnection = async (
     console.log("Standard connect method called");
   } catch (e) {
     console.error("Error in standard connect:", e);
-    throw e; // Rethrow so caller knows connection failed
+    throw e;
   }
 };
 

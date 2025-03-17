@@ -47,14 +47,26 @@ export const connectToTonkeeper = async (
     }
 
     // Set a timeout to reset the connecting state if it takes too long
-    // Use a longer timeout for mobile as opening apps can take time
-    const timeoutDuration = isMobile || isTelegramMiniApp ? 45000 : 30000;
+    // Use a longer timeout for Telegram Mini App as it involves app switching
+    const timeoutDuration = isTelegramMiniApp ? 60000 : (isMobile ? 45000 : 30000);
     const timeout = setupConnectionTimeout(timeoutDuration, () => {
       console.log("Connection attempt timed out");
       setIsConnecting(false);
     });
     
     setConnectionTimeout(timeout);
+
+    // Log additional information for debugging
+    if (isTelegramMiniApp) {
+      console.log("Telegram WebApp info:", 
+        window.Telegram ? "Available" : "Not available",
+        window.Telegram?.WebApp ? "WebApp available" : "WebApp not available"
+      );
+      
+      if (window.Telegram?.WebApp) {
+        console.log("Telegram platform:", window.Telegram.WebApp.platform || "unknown");
+      }
+    }
 
     // Determine connection method based on environment
     try {
