@@ -1,4 +1,3 @@
-
 import { TonConnect } from "@tonconnect/sdk";
 import { detectMobileDevice, isTelegramMiniAppEnvironment } from "./environmentUtils";
 import { clearConnectionTimeout, setupConnectionTimeout } from "./timeoutUtils";
