@@ -13,16 +13,22 @@ export type Database = {
         Row: {
           created_at: string
           id: number
+          is_active: boolean | null
+          provider: string | null
           wallet_address: string | null
         }
         Insert: {
           created_at?: string
           id?: number
+          is_active?: boolean | null
+          provider?: string | null
           wallet_address?: string | null
         }
         Update: {
           created_at?: string
           id?: number
+          is_active?: boolean | null
+          provider?: string | null
           wallet_address?: string | null
         }
         Relationships: []
