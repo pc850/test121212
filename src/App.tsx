@@ -8,7 +8,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import Index from "./pages/Index";
 import EarnPage from "./pages/EarnPage";
 import FeedPage from "./pages/FeedPage";
-import NotificationsPage from "./pages/NotificationsPage";
+import SwapPage from "./pages/SwapPage";
 import ShopPage from "./pages/ShopPage";
 import ProfilePage from "./pages/ProfilePage";
 import NotFound from "./pages/NotFound";
@@ -27,7 +27,7 @@ const App = () => (
             <Route path="/" element={<Index />} />
             <Route path="/earn" element={<EarnPage />} />
             <Route path="/feed" element={<FeedPage />} />
-            <Route path="/notifications" element={<NotificationsPage />} />
+            <Route path="/swap" element={<SwapPage />} />
             <Route path="/shop" element={<ShopPage />} />
             <Route path="/profile" element={<ProfilePage />} />
             <Route path="*" element={<NotFound />} />
