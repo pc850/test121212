@@ -29,6 +29,13 @@ export const connectToTonkeeper = async (
   console.log("Starting wallet connection attempt...");
   console.log("Environment:", { isMobile, isTelegramMiniApp });
   console.log("Available wallets:", available.map(w => w.name));
+  
+  // Double-check Telegram environment to be absolutely sure
+  const forceTelegramCheck = window.Telegram && window.Telegram.WebApp;
+  if (forceTelegramCheck && !isTelegramMiniApp) {
+    console.log("Forcing Telegram Mini App environment detection based on window.Telegram.WebApp");
+    isTelegramMiniApp = true;
+  }
 
   // Clean up any existing timeout
   clearConnectionTimeout(connectionTimeout);
@@ -48,7 +55,7 @@ export const connectToTonkeeper = async (
 
     // Set a timeout to reset the connecting state if it takes too long
     // Use a longer timeout for Telegram Mini App as it involves app switching
-    const timeoutDuration = isTelegramMiniApp ? 60000 : (isMobile ? 45000 : 30000);
+    const timeoutDuration = isTelegramMiniApp ? 120000 : (isMobile ? 45000 : 30000);
     const timeout = setupConnectionTimeout(timeoutDuration, () => {
       console.log("Connection attempt timed out");
       setIsConnecting(false);
@@ -65,6 +72,8 @@ export const connectToTonkeeper = async (
       
       if (window.Telegram?.WebApp) {
         console.log("Telegram platform:", window.Telegram.WebApp.platform || "unknown");
+        console.log("Telegram version:", window.Telegram.WebApp.version || "unknown");
+        console.log("Telegram initData:", window.Telegram.WebApp.initData ? "Available" : "Not available");
       }
     }
 

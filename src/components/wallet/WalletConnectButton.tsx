@@ -102,25 +102,25 @@ const WalletConnectButton: React.FC<WalletConnectButtonProps> = ({
       {showRetry && (
         <div className="p-2 bg-red-50 border border-red-200 rounded-md text-xs text-red-700">
           <p className="font-medium">Connection taking too long?</p>
-          <p>If Tonkeeper didn't open or you were unable to connect, try again or check if you have the app installed.</p>
-        </div>
-      )}
-      
-      {isMobile && (
-        <div className="p-2 bg-yellow-50 border border-yellow-200 rounded-md text-xs text-yellow-700">
-          <p className="font-medium">Mobile Device Detected</p>
-          <p><strong>You need the Tonkeeper app installed</strong> for this to work.</p>
-          <p className="mt-1">Clicking will attempt to open the Tonkeeper app. If it doesn't open, please install it from your app store first.</p>
-          <p className="mt-1">After connecting in Tonkeeper, return to this browser tab.</p>
+          <p>If Tonkeeper didn't open or you were unable to connect, please tap "Try Again" or check if you have the Tonkeeper app installed.</p>
         </div>
       )}
       
       {isTelegramMiniApp && (
         <div className="p-2 bg-yellow-50 border border-yellow-200 rounded-md text-xs text-yellow-700">
-          <p className="font-medium">Telegram Mini App Notice</p>
+          <p className="font-medium">IMPORTANT: Telegram Mini App Notice</p>
           <p><strong>You are using a Telegram Mini App.</strong> Connecting to Tonkeeper will open outside of Telegram.</p>
-          <p className="mt-1">When you click the button, you'll be redirected to Tonkeeper. After connecting, you <strong>must return to Telegram</strong> to complete the process.</p>
-          <p className="mt-1">If nothing happens when you click, check that you have Tonkeeper installed or try again.</p>
+          <p className="mt-1">When you click the button, Tonkeeper should open in another app. After connecting in Tonkeeper, you <strong>must return to Telegram</strong> to complete the process.</p>
+          <p className="mt-1">If you're stuck at "Opening Tonkeeper..." for more than 10 seconds, please tap "Try Again" or install the Tonkeeper app if you haven't already.</p>
+        </div>
+      )}
+      
+      {isMobile && !isTelegramMiniApp && (
+        <div className="p-2 bg-yellow-50 border border-yellow-200 rounded-md text-xs text-yellow-700">
+          <p className="font-medium">Mobile Device Detected</p>
+          <p><strong>You need the Tonkeeper app installed</strong> for this to work.</p>
+          <p className="mt-1">Clicking will attempt to open the Tonkeeper app. If it doesn't open, please install it from your app store first.</p>
+          <p className="mt-1">After connecting in Tonkeeper, return to this browser tab.</p>
         </div>
       )}
       

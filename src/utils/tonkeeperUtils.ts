@@ -28,68 +28,59 @@ export const handleTelegramMiniAppConnection = async (
   console.log("Connecting using Telegram Mini App approach");
   console.log("Tonkeeper details in Mini App:", JSON.stringify(tonkeeper, null, 2));
   
-  // For Telegram Mini App, we need to explicitly use window.Telegram.WebApp.openLink
-  // if available as it handles redirects properly in the Mini App environment
-  if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.openLink) {
-    // First try direct deep link if available
-    if (tonkeeper.deepLink) {
-      console.log("Using Telegram.WebApp.openLink with deep link:", tonkeeper.deepLink);
-      try {
-        window.Telegram.WebApp.openLink(tonkeeper.deepLink);
-        console.log("Opened deep link via Telegram.WebApp.openLink");
-        return;
-      } catch (e) {
-        console.error("Error opening deep link via Telegram.WebApp.openLink:", e);
-      }
-    }
-    
-    // If deep link failed or unavailable, try universal URL
-    if (tonkeeper.universalUrl) {
-      console.log("Using Telegram.WebApp.openLink with universal URL:", tonkeeper.universalUrl);
-      try {
-        window.Telegram.WebApp.openLink(tonkeeper.universalUrl);
-        console.log("Opened universal URL via Telegram.WebApp.openLink");
-        return;
-      } catch (e) {
-        console.error("Error opening universal URL via Telegram.WebApp.openLink:", e);
-      }
-    }
-  }
+  // Extract the most reliable URL to use
+  let tonkeeperUrl = '';
   
-  // Fallback to standard methods if Telegram.WebApp.openLink is not available
-  
-  // Try direct deep link first
-  if (tonkeeper.deepLink) {
-    console.log("Falling back to direct navigation with deep link:", tonkeeper.deepLink);
-    try {
-      // Force window location change
-      window.location.href = tonkeeper.deepLink;
-      console.log("Redirected to deep link");
-      return;
-    } catch (e) {
-      console.error("Deep link navigation failed:", e);
-    }
-  }
-  
-  // If no deep link or it failed, try universal URL
+  // For Telegram, we prioritize direct wallet URLs over the TonConnect protocol
   if (tonkeeper.universalUrl) {
-    console.log("Falling back to direct navigation with universal URL:", tonkeeper.universalUrl);
+    tonkeeperUrl = tonkeeper.universalUrl;
+    console.log("Using universal URL:", tonkeeperUrl);
+  } else if (tonkeeper.deepLink) {
+    tonkeeperUrl = tonkeeper.deepLink;
+    console.log("Using deep link:", tonkeeperUrl);
+  } else {
+    console.log("No direct URLs found, will try standard connection");
+  }
+  
+  // Direct approach for Telegram WebApp
+  if (tonkeeperUrl && window.Telegram?.WebApp) {
+    console.log("Using Telegram WebApp to open Tonkeeper");
     
+    // Force app to open externally with correct parameters
     try {
-      // For Telegram, direct navigation works better than window.open
-      window.location.href = tonkeeper.universalUrl;
-      console.log("Redirected to universal URL");
+      // Add a timestamp to prevent caching
+      const timestampedUrl = tonkeeperUrl.includes('?') 
+        ? `${tonkeeperUrl}&_t=${Date.now()}` 
+        : `${tonkeeperUrl}?_t=${Date.now()}`;
+      
+      // Tell Telegram explicitly this should open externally
+      window.Telegram.WebApp.openLink(timestampedUrl, {
+        try_instant_view: false
+      });
+      
+      console.log("Opened link via Telegram.WebApp.openLink");
       return;
     } catch (e) {
-      console.error("Error redirecting to universal URL:", e);
+      console.error("Error using Telegram.WebApp.openLink:", e);
+    }
+  }
+  
+  // If WebApp API failed or isn't available, try direct navigation
+  if (tonkeeperUrl) {
+    console.log("Falling back to direct navigation with URL:", tonkeeperUrl);
+    
+    try {
+      // Add timestamp to prevent caching
+      const timestampedUrl = tonkeeperUrl.includes('?') 
+        ? `${tonkeeperUrl}&_t=${Date.now()}` 
+        : `${tonkeeperUrl}?_t=${Date.now()}`;
       
-      // Try window.open as final fallback
-      try {
-        window.open(tonkeeper.universalUrl, '_blank');
-        console.log("Opened universal URL in new window");
-      } catch (e2) {
-        console.error("Window.open fallback failed:", e2);
-      }
+      // Force window location change
+      window.location.href = timestampedUrl;
+      console.log("Redirected directly");
+      return;
+    } catch (e) {
+      console.error("Direct navigation failed:", e);
     }
   }
   
