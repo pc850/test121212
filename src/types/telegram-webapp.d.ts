@@ -12,6 +12,12 @@ interface TelegramWebAppUser {
   language_code?: string;
 }
 
+interface TelegramWebAppBotInfo {
+  username: string;
+  name?: string;
+  photo_url?: string;
+}
+
 interface TelegramWebAppInitData {
   query_id?: string;
   user?: TelegramWebAppUser;
@@ -33,6 +39,7 @@ interface TelegramWebApp {
     hide: () => void;
     onClick: (callback: () => void) => void;
   };
+  botInfo?: TelegramWebAppBotInfo;
 }
 
 interface TelegramBridge {

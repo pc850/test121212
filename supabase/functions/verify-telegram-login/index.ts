@@ -7,7 +7,7 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-// Set the Telegram bot token directly
+// Set the Telegram bot token directly - for Chicktok_bot (https://t.me/Chicktok_bot)
 const TELEGRAM_BOT_TOKEN = "7622575103:AAFNq5Vtl6pPFy0Yyxmi1SzWnaLgcNq8RVo";
 
 serve(async (req) => {

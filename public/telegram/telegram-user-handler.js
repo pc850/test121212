@@ -43,7 +43,11 @@
         ready: function() {},
         expand: function() {},
         initDataUnsafe: tgWebAppData ? JSON.parse(decodeURIComponent(tgWebAppData)) : { user: null },
-        initData: tgWebAppData || ''
+        initData: tgWebAppData || '',
+        // Add a note about which bot we're using
+        botInfo: {
+          username: 'Chicktok_bot'
+        }
       }
     };
     

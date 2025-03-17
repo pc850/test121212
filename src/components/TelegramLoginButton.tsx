@@ -1,3 +1,4 @@
+
 import { useEffect, useRef } from 'react';
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -6,7 +7,7 @@ import { TelegramUser } from "@/types/telegram";
 
 // Define Telegram login button props interface
 interface TelegramLoginButtonProps {
-  botName: string;
+  botName?: string;
   buttonSize?: 'large' | 'medium' | 'small';
   cornerRadius?: number;
   requestAccess?: 'write';
@@ -25,6 +26,7 @@ declare global {
   }
 }
 
+// Default to Chicktok_bot which is https://t.me/Chicktok_bot
 const TelegramLoginButton = ({
   botName = 'Chicktok_bot',
   buttonSize = 'medium',
