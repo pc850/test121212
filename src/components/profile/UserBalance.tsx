@@ -19,13 +19,15 @@ const UserBalance = ({ balance, telegramUser, supabaseUser }: UserBalanceProps) 
   };
   
   return (
-    <div className="mt-3 pt-3 border-t border-gray-100">
+    <div className="mt-4 pt-4 border-t border-gray-100">
       <div className="flex items-center justify-between">
         <div>
-          <p className="text-xs text-muted-foreground">Available Balance</p>
-          <p className="text-xl font-bold text-fipt-blue">{balance.toLocaleString()} FIPT</p>
+          <p className="text-xs text-muted-foreground font-medium">Available Balance</p>
+          <p className="text-xl font-bold bg-gradient-to-r from-fipt-blue to-fipt-accent bg-clip-text text-transparent">
+            {balance.toLocaleString()} FIPT
+          </p>
         </div>
-        <div className="bg-gray-100 px-2 py-1 rounded text-xs text-muted-foreground">
+        <div className="bg-gray-50 px-3 py-1.5 rounded-full text-xs text-muted-foreground border border-gray-100">
           ID: {getUserId()}
         </div>
       </div>

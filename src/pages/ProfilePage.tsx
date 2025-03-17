@@ -3,7 +3,6 @@ import { useEffect, useState } from "react";
 import ProfileHeader from "@/components/ProfileHeader";
 import { useTelegramAuth } from "@/hooks/useTelegramAuth";
 import UserProfileSection from "@/components/UserProfileSection";
-import { Button } from "@/components/ui/button";
 import LoginSection from "@/components/profile/LoginSection";
 import UserInfoBanner from "@/components/profile/UserInfoBanner";
 import ProfileTabs from "@/components/profile/ProfileTabs";
@@ -55,7 +54,7 @@ const ProfilePage = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col animate-fade-in">
+    <div className="min-h-screen flex flex-col animate-fade-in bg-gradient-to-b from-white to-gray-50">
       {/* Profile Header */}
       <div className="flex flex-col">
         <ProfileHeader 
@@ -70,7 +69,7 @@ const ProfilePage = () => {
         {/* Connect Wallet Button or User Profile Section */}
         <div className="px-6 pb-2 flex justify-between -mt-2">
           {isLoggedIn ? (
-            <div className="flex gap-2">
+            <div className="flex gap-2 w-full">
               <UserProfileSection onLogout={logout} />
             </div>
           ) : (
@@ -92,7 +91,7 @@ const ProfilePage = () => {
       />
       
       {/* Tabs Section */}
-      <div className="flex-1 px-4 mt-4">
+      <div className="flex-1 px-4 mt-4 pb-20">
         <ProfileTabs />
       </div>
     </div>

@@ -1,6 +1,7 @@
 
 import { Settings, Share2, Badge } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 
 interface ProfileHeaderProps {
   username: string;
@@ -21,16 +22,16 @@ const ProfileHeader = ({
 }: ProfileHeaderProps) => {
   return (
     <div className="w-full animate-slide-down">
-      {/* Background with blur effect */}
-      <div className="relative h-40 bg-gradient-to-r from-fipt-blue/20 to-fipt-accent/20 overflow-hidden">
+      {/* Background with gradient effect */}
+      <div className="relative h-48 bg-gradient-to-r from-fipt-blue/30 to-fipt-accent/30 overflow-hidden">
         <div className="absolute inset-0 backdrop-blur-md"></div>
         
         {/* Top actions */}
-        <div className="absolute top-4 right-4 flex items-center gap-2">
-          <button className="w-8 h-8 rounded-full bg-white/80 flex items-center justify-center">
+        <div className="absolute top-4 right-4 flex items-center gap-2 z-10">
+          <button className="w-8 h-8 rounded-full bg-white/90 shadow-sm flex items-center justify-center transition-transform hover:scale-105">
             <Share2 className="w-4 h-4 text-fipt-dark" />
           </button>
-          <button className="w-8 h-8 rounded-full bg-white/80 flex items-center justify-center">
+          <button className="w-8 h-8 rounded-full bg-white/90 shadow-sm flex items-center justify-center transition-transform hover:scale-105">
             <Settings className="w-4 h-4 text-fipt-dark" />
           </button>
         </div>
@@ -39,16 +40,21 @@ const ProfileHeader = ({
       {/* Profile info */}
       <div className="px-6 pb-6 relative">
         {/* Avatar */}
-        <div className="absolute -top-12 left-6 w-24 h-24 rounded-full border-4 border-white bg-white overflow-hidden shadow-md">
-          <img 
-            src={userAvatar} 
-            alt={username} 
-            className="w-full h-full object-cover" 
-          />
+        <div className="absolute -top-16 left-6 w-28 h-28 rounded-full border-4 border-white bg-white overflow-hidden shadow-lg">
+          <Avatar className="w-full h-full">
+            <AvatarImage 
+              src={userAvatar} 
+              alt={username}
+              className="object-cover"
+            />
+            <AvatarFallback className="bg-fipt-blue text-white text-xl">
+              {username.charAt(0).toUpperCase()}
+            </AvatarFallback>
+          </Avatar>
         </div>
         
         {/* User info */}
-        <div className="pt-16">
+        <div className="pt-20">
           <div className="flex items-center gap-2">
             <h1 className="text-xl font-bold text-fipt-dark">{username}</h1>
             <Badge className="w-4 h-4 text-fipt-blue" />
@@ -59,9 +65,9 @@ const ProfileHeader = ({
           )}
           
           {/* Stats */}
-          <div className="flex items-center gap-6 mt-4">
+          <div className="flex items-center gap-8 mt-5 bg-white/70 backdrop-blur-sm rounded-xl p-4 shadow-sm border border-gray-100">
             <div className="flex flex-col items-center">
-              <span className="text-lg font-bold text-fipt-dark">{points}</span>
+              <span className="text-lg font-bold text-fipt-blue">{points}</span>
               <span className="text-xs text-fipt-muted">Points</span>
             </div>
             <div className="flex flex-col items-center">

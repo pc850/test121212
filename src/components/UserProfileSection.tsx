@@ -39,7 +39,7 @@ const UserProfileSection = ({ onLogout }: UserProfileSectionProps) => {
   if (!currentUser && !supabaseUser) return null;
 
   return (
-    <Card className="p-4 mb-4 bg-white shadow-sm border border-gray-100 rounded-xl w-full">
+    <Card className="p-5 mb-4 bg-white shadow-md border border-gray-100 rounded-xl w-full hover:shadow-lg transition-shadow duration-300">
       <UserDataFetcher 
         telegramUser={currentUser}
         supabaseUser={supabaseUser}

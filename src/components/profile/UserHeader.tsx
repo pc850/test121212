@@ -1,9 +1,9 @@
 
 import { useState } from 'react';
-import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { RefreshCw, LogOut } from "lucide-react";
 import { TelegramUser } from "@/types/telegram";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 
 interface UserHeaderProps {
   telegramUser: TelegramUser | null;
@@ -41,21 +41,23 @@ const UserHeader = ({ telegramUser, supabaseUser, onLogout, onRefresh }: UserHea
     } else if (supabaseUser?.user_metadata?.avatar_url) {
       return supabaseUser.user_metadata.avatar_url;
     }
-    return "https://i.pravatar.cc/150?img=5";
+    return "";
   };
+
+  const displayName = getDisplayName();
+  const avatarUrl = getAvatarUrl();
   
   return (
     <div className="flex items-center justify-between w-full">
       <div className="flex items-center">
-        <div className="w-10 h-10 rounded-full overflow-hidden mr-3">
-          <img 
-            src={getAvatarUrl()} 
-            alt="User Avatar" 
-            className="w-full h-full object-cover"
-          />
-        </div>
+        <Avatar className="w-11 h-11 mr-3 border-2 border-white shadow-sm">
+          <AvatarImage src={avatarUrl} alt={displayName} />
+          <AvatarFallback className="bg-fipt-blue text-white">
+            {displayName.charAt(0).toUpperCase()}
+          </AvatarFallback>
+        </Avatar>
         <div>
-          <h3 className="text-sm font-medium">{getDisplayName()}</h3>
+          <h3 className="text-sm font-medium">{displayName}</h3>
           <p className="text-xs text-muted-foreground">
             {telegramUser ? 'Telegram User' : supabaseUser?.app_metadata?.provider === 'google' ? 'Google User' : 'Email User'}
           </p>
@@ -64,20 +66,20 @@ const UserHeader = ({ telegramUser, supabaseUser, onLogout, onRefresh }: UserHea
       
       <div className="flex gap-2">
         <Button
-          variant="ghost"
+          variant="outline"
           size="icon"
           onClick={handleRefresh}
-          className={`h-8 w-8 ${isRefreshing ? 'animate-spin' : ''}`}
+          className={`h-8 w-8 rounded-full ${isRefreshing ? 'animate-spin' : ''}`}
           title="Refresh balance"
         >
           <RefreshCw className="h-4 w-4" />
         </Button>
         
         <Button
-          variant="ghost"
+          variant="outline"
           size="icon"
           onClick={onLogout}
-          className="h-8 w-8"
+          className="h-8 w-8 rounded-full bg-gray-50"
           title="Log out"
         >
           <LogOut className="h-4 w-4" />

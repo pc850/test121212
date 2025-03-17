@@ -6,7 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 interface UserDataFetcherProps {
   children: ReactNode;
   telegramUser: TelegramUser | null;
-  supabaseUser: { id: string } | null; // Explicitly define the type to prevent deep instantiation
+  supabaseUser: { id: string } | null;
   onBalanceUpdate: (balance: number) => void;
 }
 
@@ -34,7 +34,7 @@ const UserDataFetcher = ({
             .from('wallet_balances')
             .select('fipt_balance')
             .eq('telegram_id', telegramUser.id)
-            .maybeSingle(); // Using maybeSingle to avoid deep type instantiation
+            .maybeSingle();
             
           if (data) {
             localStorage.setItem('fiptBalance', data.fipt_balance.toString());
@@ -50,7 +50,7 @@ const UserDataFetcher = ({
               .from('wallet_balances')
               .select('fipt_balance')
               .eq('user_id', userId)
-              .maybeSingle(); // Using maybeSingle to avoid deep type instantiation
+              .maybeSingle();
               
             if (data) {
               localStorage.setItem('fiptBalance', data.fipt_balance.toString());
