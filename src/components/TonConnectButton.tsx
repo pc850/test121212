@@ -1,4 +1,5 @@
-"use client"; // If you’re using Next.js App Router and need client-side rendering
+
+"use client"; // If you're using Next.js App Router and need client-side rendering
 
 import React, { useState } from "react";
 import { Wallet } from "lucide-react";
@@ -17,7 +18,7 @@ import { toast } from "@/hooks/use-toast";
 import { TonConnect } from "@tonconnect/sdk";
 
 // 2) Supabase client import
-import { supabase } from "@/lib/supabase";
+import { supabase } from "@/integrations/supabase/client";
 
 // 3) Initialize TonConnect
 const tonConnect = new TonConnect({
@@ -47,8 +48,8 @@ const TonConnectButton: React.FC = () => {
 
         // 4) Store the wallet address in Supabase
         const { data, error } = await supabase
-          .from("wallets")               // <--- Replace with your table name
-          .insert({ wallet_address: address }); // <--- Replace with your column name
+          .from("connected_wallets")               // Using the table name from your Supabase schema
+          .insert({ wallet_address: address }); 
 
         if (error) {
           console.error("Supabase insertion error:", error);
