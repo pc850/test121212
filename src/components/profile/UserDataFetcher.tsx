@@ -6,7 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 interface UserDataFetcherProps {
   children: ReactNode;
   telegramUser: TelegramUser | null;
-  supabaseUser?: { id: string } | null; // Fixed type definition to avoid deep recursion
+  supabaseUser?: { id: string } | null; // Explicitly typed to avoid deep recursion
   onBalanceUpdate: (balance: number) => void;
 }
 
@@ -41,7 +41,7 @@ const UserDataFetcher = ({
             onBalanceUpdate(data.fipt_balance);
           }
         } else if (supabaseUser && supabaseUser.id) {
-          // Use the id directly from the typed supabaseUser object
+          // Access the id directly from the typed supabaseUser object
           const userId = supabaseUser.id;
           
           if (userId) {
