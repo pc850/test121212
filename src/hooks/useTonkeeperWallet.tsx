@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { TonConnect } from "@tonconnect/sdk";
 
@@ -8,46 +7,52 @@ export const useTonkeeperWallet = () => {
   const [connected, setConnected] = useState(false);
 
   useEffect(() => {
-    // Initialize TonConnect with the correct manifest URL
-    // Using relative URL to avoid CORS issues
-    const connector = new TonConnect({
-      manifestUrl: '/tonconnect-manifest.json',
-    });
+    // Creating the connector with correct manifest URL
+    try {
+      const connector = new TonConnect({
+        manifestUrl: 'https://raw.githubusercontent.com/ton-connect/demo-dapp-with-react/main/public/tonconnect-manifest.json',
+      });
 
-    setWallet(connector);
-    console.log("TonConnect initialized with manifest", connector);
+      setWallet(connector);
+      console.log("TonConnect initialized with manifest", connector);
 
-    const checkConnection = async () => {
-      console.log("Checking existing connection...");
-      if (connector.connected) {
-        const walletInfo = connector.wallet;
-        console.log("Already connected to wallet:", walletInfo);
-        if (walletInfo?.account.address) {
-          setAddress(walletInfo.account.address);
-          setConnected(true);
+      // Check for existing connection
+      const checkConnection = async () => {
+        console.log("Checking existing connection...");
+        if (connector.connected) {
+          const walletInfo = connector.wallet;
+          console.log("Already connected to wallet:", walletInfo);
+          if (walletInfo?.account.address) {
+            setAddress(walletInfo.account.address);
+            setConnected(true);
+          }
+        } else {
+          console.log("No existing connection found");
         }
-      } else {
-        console.log("No existing connection found");
-      }
-    };
+      };
 
-    checkConnection();
+      checkConnection();
 
-    // Subscribe to connection status changes
-    const unsubscribe = connector.onStatusChange((walletInfo) => {
-      console.log("Wallet status changed:", walletInfo);
-      if (walletInfo && walletInfo.account) {
-        setConnected(true);
-        setAddress(walletInfo.account.address);
-      } else {
-        setConnected(false);
-        setAddress(null);
-      }
-    });
+      // Subscribe to connection status changes
+      const unsubscribe = connector.onStatusChange((walletInfo) => {
+        console.log("Wallet status changed:", walletInfo);
+        if (walletInfo && walletInfo.account) {
+          console.log("Connected with address:", walletInfo.account.address);
+          setConnected(true);
+          setAddress(walletInfo.account.address);
+        } else {
+          console.log("Disconnected");
+          setConnected(false);
+          setAddress(null);
+        }
+      });
 
-    return () => {
-      unsubscribe();
-    };
+      return () => {
+        unsubscribe();
+      };
+    } catch (error) {
+      console.error("Error initializing TonConnect:", error);
+    }
   }, []);
 
   const connectWallet = async () => {
@@ -58,11 +63,16 @@ export const useTonkeeperWallet = () => {
 
     try {
       console.log("Attempting to connect wallet...");
-      // The empty array is for wallet features we want to use
-      const result = await wallet.connect({ 
-        universalLink: 'https://app.tonkeeper.com/ton-connect',
-        bridgeUrl: 'https://bridge.tonapi.io/bridge'
+      
+      // Use a known-working configuration for Tonkeeper
+      const wallets = await wallet.getWallets();
+      console.log("Available wallets:", wallets);
+      
+      const result = await wallet.connect({
+        universalLink: "https://app.tonkeeper.com/ton-connect",
+        bridgeUrl: "https://bridge.tonapi.io/bridge"
       });
+      
       console.log("Connection result:", result);
       return result;
     } catch (error) {
@@ -78,5 +88,5 @@ export const useTonkeeperWallet = () => {
     }
   };
 
-  return { connectWallet, disconnectWallet, connected, address };
+  return { connectWallet, disconnectWallet, connected, address, wallet };
 };

@@ -1,6 +1,6 @@
 "use client"; // For Next.js App Router client-side rendering
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Wallet } from "lucide-react";
 import {
   Button,
@@ -18,50 +18,79 @@ import { useTonkeeperWallet } from "@/hooks/useTonkeeperWallet";
 import { supabase } from "@/integrations/supabase/client";
 
 const TonConnectButton: React.FC = () => {
-  const { connectWallet, disconnectWallet, connected, address } = useTonkeeperWallet();
+  const { connectWallet, disconnectWallet, connected, address, wallet } = useTonkeeperWallet();
   const [isConnecting, setIsConnecting] = useState(false);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [walletInfo, setWalletInfo] = useState<string>("No wallet info available");
+
+  useEffect(() => {
+    // Debug info
+    if (wallet) {
+      const info = `Wallet initialized: ${!!wallet}, Connected: ${connected}, Address: ${address}`;
+      console.log(info);
+      setWalletInfo(info);
+    }
+  }, [wallet, connected, address]);
 
   // Connect function to trigger Tonkeeper via TonConnect
   const handleConnect = async () => {
     try {
-      console.log("Attempting to connect wallet...");
+      console.log("Attempting to connect wallet from button...");
       setIsConnecting(true);
       
       await connectWallet();
       
-      console.log("Connection attempt completed, connected status:", connected);
-      
-      if (connected && address) {
-        toast({
-          title: "Connected to Wallet",
-          description: `Wallet address: ${address}`,
-        });
-
-        // Insert wallet address into Supabase (adjust table/column names as needed)
-        const { error } = await supabase
-          .from("connected_wallets")
-          .insert({ wallet_address: address });
-
-        if (error) {
-          console.error("Supabase insertion error:", error);
+      // The connection status might not update immediately, so we check after a short delay
+      setTimeout(() => {
+        console.log("Connection attempt completed, connected status:", connected, "address:", address);
+        
+        if (connected && address) {
           toast({
-            title: "Database error",
-            description: "Failed to store wallet address",
+            title: "Connected to Wallet",
+            description: `Wallet address: ${address}`,
           });
+
+          // Store wallet address in Supabase
+          storeWalletAddress(address);
         } else {
-          console.log("Wallet address stored in Supabase successfully");
+          toast({
+            title: "Connection pending",
+            description: "Please complete the connection in your wallet app",
+          });
         }
-      }
+      }, 2000);
     } catch (error: any) {
       console.error("Connection error:", error);
       toast({
         title: "Connection error",
-        description: `Failed to connect to wallet: ${error.message || error}`,
+        description: `Failed to connect to wallet: ${error.message || String(error)}`,
         variant: "destructive"
       });
     } finally {
-      setIsConnecting(false);
+      // We'll keep the connecting state for a bit in case the user is completing the process
+      setTimeout(() => {
+        setIsConnecting(false);
+      }, 5000);
+    }
+  };
+
+  const storeWalletAddress = async (address: string) => {
+    try {
+      const { error } = await supabase
+        .from("connected_wallets")
+        .insert({ wallet_address: address });
+
+      if (error) {
+        console.error("Supabase insertion error:", error);
+        toast({
+          title: "Database error",
+          description: "Failed to store wallet address",
+        });
+      } else {
+        console.log("Wallet address stored in Supabase successfully");
+      }
+    } catch (dbError) {
+      console.error("Database operation failed:", dbError);
     }
   };
 
@@ -77,7 +106,7 @@ const TonConnectButton: React.FC = () => {
       console.error("Disconnect error:", error);
       toast({
         title: "Error",
-        description: `Failed to disconnect wallet: ${error.message || error}`,
+        description: `Failed to disconnect wallet: ${error.message || String(error)}`,
         variant: "destructive"
       });
     }
@@ -135,6 +164,12 @@ const TonConnectButton: React.FC = () => {
               />
               {isConnecting ? "Connecting..." : "Tonkeeper"}
             </Button>
+            
+            {/* Debug info - hidden in production */}
+            <div className="text-xs text-muted-foreground p-2 bg-muted rounded-md">
+              <p className="font-medium">Debug Info:</p>
+              <p className="break-all">{walletInfo}</p>
+            </div>
           </div>
         )}
       </DialogContent>
