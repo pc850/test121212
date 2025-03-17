@@ -18,7 +18,7 @@ import { useTonkeeperWallet } from "@/hooks/useTonkeeperWallet";
 import { supabase } from "@/integrations/supabase/client";
 
 const TonConnectButton: React.FC = () => {
-  const { connectWallet, disconnectWallet, connected, address, wallet } = useTonkeeperWallet();
+  const { connectWallet, disconnectWallet, connected, address, wallet, available } = useTonkeeperWallet();
   const [isConnecting, setIsConnecting] = useState(false);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [walletInfo, setWalletInfo] = useState<string>("No wallet info available");
@@ -26,11 +26,11 @@ const TonConnectButton: React.FC = () => {
   useEffect(() => {
     // Debug info
     if (wallet) {
-      const info = `Wallet initialized: ${!!wallet}, Connected: ${connected}, Address: ${address}`;
+      const info = `Wallet initialized: ${!!wallet}, Connected: ${connected}, Address: ${address}, Available wallets: ${available.length}`;
       console.log(info);
       setWalletInfo(info);
     }
-  }, [wallet, connected, address]);
+  }, [wallet, connected, address, available]);
 
   // Connect function to trigger Tonkeeper via TonConnect
   const handleConnect = async () => {
@@ -38,27 +38,26 @@ const TonConnectButton: React.FC = () => {
       console.log("Attempting to connect wallet from button...");
       setIsConnecting(true);
       
+      // If no wallets are available, show specific error
+      if (!available || available.length === 0) {
+        toast({
+          title: "No wallets available",
+          description: "No compatible wallets found. Please install Tonkeeper.",
+          variant: "destructive"
+        });
+        return;
+      }
+      
+      // Display available wallets for debugging
+      console.log("Available wallets:", JSON.stringify(available, null, 2));
+      
       await connectWallet();
       
-      // The connection status might not update immediately, so we check after a short delay
-      setTimeout(() => {
-        console.log("Connection attempt completed, connected status:", connected, "address:", address);
-        
-        if (connected && address) {
-          toast({
-            title: "Connected to Wallet",
-            description: `Wallet address: ${address}`,
-          });
-
-          // Store wallet address in Supabase
-          storeWalletAddress(address);
-        } else {
-          toast({
-            title: "Connection pending",
-            description: "Please complete the connection in your wallet app",
-          });
-        }
-      }, 2000);
+      toast({
+        title: "Connection initiated",
+        description: "Please check your wallet app to approve the connection",
+      });
+      
     } catch (error: any) {
       console.error("Connection error:", error);
       toast({
@@ -165,10 +164,12 @@ const TonConnectButton: React.FC = () => {
               {isConnecting ? "Connecting..." : "Tonkeeper"}
             </Button>
             
-            {/* Debug info - hidden in production */}
+            {/* Debug info */}
             <div className="text-xs text-muted-foreground p-2 bg-muted rounded-md">
               <p className="font-medium">Debug Info:</p>
               <p className="break-all">{walletInfo}</p>
+              <p className="font-medium mt-2">Available Wallets:</p>
+              <p className="break-all">{available.length > 0 ? available.map(w => w.name).join(', ') : 'None found'}</p>
             </div>
           </div>
         )}

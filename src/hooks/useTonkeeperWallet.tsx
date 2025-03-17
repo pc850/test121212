@@ -1,21 +1,33 @@
-
 import { useEffect, useState } from "react";
-import { TonConnect } from "@tonconnect/sdk";
+import { TonConnect, WalletInfo } from "@tonconnect/sdk";
 
 export const useTonkeeperWallet = () => {
   const [wallet, setWallet] = useState<TonConnect | null>(null);
   const [address, setAddress] = useState<string | null>(null);
   const [connected, setConnected] = useState(false);
+  const [available, setAvailable] = useState<WalletInfo[]>([]);
 
   useEffect(() => {
     try {
-      // Use the relative path to the manifest in the public folder
+      // Use the absolute URL to the manifest file
+      const manifestUrl = `${window.location.origin}/tonconnect-manifest.json`;
+      console.log("Using manifest URL:", manifestUrl);
+      
       const connector = new TonConnect({
-        manifestUrl: '/tonconnect-manifest.json'
+        manifestUrl
       });
 
       setWallet(connector);
       console.log("TonConnect initialized with manifest", connector);
+
+      // Get available wallets
+      const getWallets = async () => {
+        const wallets = await connector.getWallets();
+        console.log("Available wallets:", wallets);
+        setAvailable(wallets);
+      };
+      
+      getWallets();
 
       // Check for existing connection
       const checkConnection = async () => {
@@ -65,18 +77,26 @@ export const useTonkeeperWallet = () => {
     try {
       console.log("Attempting to connect wallet...");
       
-      // List available wallets for debugging
-      const wallets = await wallet.getWallets();
-      console.log("Available wallets:", wallets);
+      // Get tonkeeper from available wallets
+      const tonkeeperWallet = available.find(w => 
+        w.name.toLowerCase().includes('tonkeeper') || 
+        w.appName.toLowerCase().includes('tonkeeper')
+      );
       
-      // Connect using mobile-friendly parameters
-      // Fixing the property name from 'universalUrl' to 'universalLink'
-      const result = await wallet.connect({
-        universalLink: "https://app.tonkeeper.com/ton-connect",
-        bridgeUrl: "https://bridge.tonapi.io/bridge"
+      if (!tonkeeperWallet) {
+        console.error("Tonkeeper wallet not found among available wallets");
+        return;
+      }
+      
+      console.log("Found Tonkeeper wallet:", tonkeeperWallet);
+      
+      // Use the specific wallet for connection with its embedded link
+      const result = wallet.connect({
+        jsBridgeKey: tonkeeperWallet.jsBridgeKey,
+        universalLink: tonkeeperWallet.universalLink
       });
       
-      console.log("Connection result:", result);
+      console.log("Connection initiated:", result);
       return result;
     } catch (error) {
       console.error("Connection error:", error);
@@ -91,5 +111,5 @@ export const useTonkeeperWallet = () => {
     }
   };
 
-  return { connectWallet, disconnectWallet, connected, address, wallet };
+  return { connectWallet, disconnectWallet, connected, address, wallet, available };
 };
