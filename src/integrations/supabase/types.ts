@@ -103,6 +103,7 @@ export type Database = {
           fipt_balance: number
           id: number
           last_updated: string
+          points: number | null
           telegram_id: number | null
           wallet_address: string
         }
@@ -110,6 +111,7 @@ export type Database = {
           fipt_balance?: number
           id?: number
           last_updated?: string
+          points?: number | null
           telegram_id?: number | null
           wallet_address: string
         }
@@ -117,6 +119,7 @@ export type Database = {
           fipt_balance?: number
           id?: number
           last_updated?: string
+          points?: number | null
           telegram_id?: number | null
           wallet_address?: string
         }

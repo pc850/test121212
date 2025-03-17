@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import EarnButton from "@/components/EarnButton";
 import { Card } from "@/components/ui/card";
@@ -17,6 +16,12 @@ const EarnPage = () => {
     const savedBalance = localStorage.getItem('fiptBalance');
     return savedBalance ? parseInt(savedBalance, 10) : 0;
   });
+  
+  const [points, setPoints] = useState(() => {
+    const savedPoints = localStorage.getItem('fiptPoints');
+    return savedPoints ? parseInt(savedPoints, 10) : 0;
+  });
+  
   const { toast } = useToast();
   const { autoLogin, currentUser: telegramUser, isLoggedIn, supabaseUser, logout } = useTelegramAuth();
   const { connectWallet, isReady } = useTonkeeperWallet();
@@ -72,6 +77,7 @@ const EarnPage = () => {
 
   useEffect(() => {
     localStorage.setItem('fiptBalance', balance.toString());
+    localStorage.setItem('fiptPoints', points.toString());
     
     if (telegramUser) {
       const updateBalanceInSupabase = async () => {
@@ -96,7 +102,10 @@ const EarnPage = () => {
           if (data && data.length > 0) {
             await supabase
               .from('wallet_balances')
-              .update({ fipt_balance: balance })
+              .update({ 
+                fipt_balance: balance,
+                points: points
+              })
               .eq('telegram_id', telegramUser.id);
           } else {
             await supabase
@@ -104,6 +113,7 @@ const EarnPage = () => {
               .insert({
                 telegram_id: telegramUser.id,
                 fipt_balance: balance,
+                points: points,
                 wallet_address: defaultWalletAddress
               });
           }
@@ -114,10 +124,11 @@ const EarnPage = () => {
       
       updateBalanceInSupabase();
     }
-  }, [balance, telegramUser]);
+  }, [balance, points, telegramUser]);
 
   const handleEarnPoints = (points: number) => {
     setBalance(prev => prev + points);
+    setPoints(prev => prev + points);
   };
   
   const handleTelegramAuth = (user: TelegramUser) => {
@@ -143,7 +154,6 @@ const EarnPage = () => {
         </div>
       )}
       
-      {/* Only show the balance display for non-logged-in users here, since logged-in users see it in UserProfileSection */}
       {!isLoggedIn && (
         <div className="mb-6">
           <Card className="w-full p-4 border border-fipt-blue/20 bg-gradient-to-r from-fipt-blue/10 to-fipt-accent/10">
@@ -154,6 +164,9 @@ const EarnPage = () => {
                   <Coins className="w-5 h-5 mr-2 text-fipt-blue" />
                   <span className="text-2xl font-bold text-fipt-dark">{balance.toLocaleString()}</span>
                   <span className="ml-1 text-xs font-medium text-fipt-blue">FIPT</span>
+                </div>
+                <div className="mt-2 text-xs font-medium text-fipt-muted">
+                  Points: <span className="text-fipt-blue">{points.toLocaleString()}</span>
                 </div>
               </div>
               <div className="bg-white/80 px-3 py-1 rounded-full shadow-sm">
@@ -182,6 +195,7 @@ const EarnPage = () => {
         <div className="p-4 rounded-xl bg-white border border-gray-100 shadow-sm">
           <h3 className="text-sm font-medium text-fipt-muted mb-1">Today's Earnings</h3>
           <p className="text-xl font-bold text-fipt-dark">{balance} FIPT</p>
+          <p className="text-sm text-fipt-blue mt-1">{points} Points</p>
         </div>
         <div className="p-4 rounded-xl bg-white border border-gray-100 shadow-sm">
           <h3 className="text-sm font-medium text-fipt-muted mb-1">Rank</h3>

@@ -15,6 +15,7 @@ interface UserProfileSectionProps {
 const UserProfileSection = ({ onLogout }: UserProfileSectionProps) => {
   const { currentUser, supabaseUser } = useTelegramAuth();
   const [balance, setBalance] = useState<number>(0);
+  const [points, setPoints] = useState<number>(0);
   const { disconnectWallet } = useTonkeeperWallet();
   const { toast } = useToast();
 
@@ -25,14 +26,20 @@ const UserProfileSection = ({ onLogout }: UserProfileSectionProps) => {
   
   const refreshBalance = async () => {
     const savedBalance = localStorage.getItem('fiptBalance');
+    const savedPoints = localStorage.getItem('fiptPoints');
+    
     if (savedBalance) {
       setBalance(parseInt(savedBalance, 10));
-      
-      toast({
-        title: 'Balance Refreshed',
-        description: 'Your FIPT balance has been updated.',
-      });
     }
+    
+    if (savedPoints) {
+      setPoints(parseInt(savedPoints, 10));
+    }
+    
+    toast({
+      title: 'Balance Refreshed',
+      description: 'Your FIPT balance and points have been updated.',
+    });
   };
   
   // If not logged in, don't show this component
@@ -44,6 +51,7 @@ const UserProfileSection = ({ onLogout }: UserProfileSectionProps) => {
         telegramUser={currentUser}
         supabaseUser={supabaseUser}
         onBalanceUpdate={setBalance}
+        onPointsUpdate={setPoints}
       >
         <UserHeader
           telegramUser={currentUser}
@@ -54,6 +62,7 @@ const UserProfileSection = ({ onLogout }: UserProfileSectionProps) => {
         
         <UserBalance 
           balance={balance}
+          points={points}
           telegramUser={currentUser}
           supabaseUser={supabaseUser}
         />
