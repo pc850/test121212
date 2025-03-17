@@ -3,73 +3,27 @@ import { useEffect, useState } from "react";
 import EarnButton from "@/components/EarnButton";
 import { Card } from "@/components/ui/card";
 import { Coins } from "lucide-react";
-import { useTonkeeperWallet } from "@/hooks/useTonkeeperWallet";
-import { getFiptBalance, updateFiptBalance } from "@/utils/walletBalanceUtils";
-import { Skeleton } from "@/components/ui/skeleton";
-import { useToast } from "@/hooks/use-toast";
 
 const EarnPage = () => {
-  const [balance, setBalance] = useState<number | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const { connected, address } = useTonkeeperWallet();
-  const { toast } = useToast();
+  const [balance, setBalance] = useState(() => {
+    // Initialize balance from localStorage, or 0 if not found
+    const savedBalance = localStorage.getItem('fiptBalance');
+    return savedBalance ? parseInt(savedBalance, 10) : 0;
+  });
   
   useEffect(() => {
     // Set page title
     document.title = "FIPT - Earn";
   }, []);
 
-  // Load balance from Supabase when wallet is connected
   useEffect(() => {
-    const loadBalance = async () => {
-      if (connected && address) {
-        setIsLoading(true);
-        try {
-          const balanceFromDB = await getFiptBalance(address);
-          setBalance(balanceFromDB);
-        } catch (error) {
-          console.error("Error loading balance:", error);
-          toast({
-            title: "Error loading balance",
-            description: "Could not retrieve your FIPT balance",
-            variant: "destructive"
-          });
-        } finally {
-          setIsLoading(false);
-        }
-      } else {
-        // If wallet is not connected, show 0 balance after a short delay
-        setTimeout(() => {
-          setBalance(0);
-          setIsLoading(false);
-        }, 500);
-      }
-    };
-    
-    loadBalance();
-  }, [connected, address, toast]);
+    // Save balance to localStorage whenever it changes
+    localStorage.setItem('fiptBalance', balance.toString());
+  }, [balance]);
 
   // Function to increase balance with each button tap
-  const handleEarnPoints = async (points: number) => {
-    if (connected && address) {
-      try {
-        const newBalance = await updateFiptBalance(address, points, true);
-        setBalance(newBalance);
-      } catch (error) {
-        console.error("Error updating balance:", error);
-        toast({
-          title: "Error earning points",
-          description: "Could not update your FIPT balance",
-          variant: "destructive"
-        });
-      }
-    } else {
-      toast({
-        title: "Wallet not connected",
-        description: "Please connect your wallet to earn FIPT",
-        variant: "default"
-      });
-    }
+  const handleEarnPoints = (points: number) => {
+    setBalance(prev => prev + points);
   };
 
   return (
@@ -82,14 +36,8 @@ const EarnPage = () => {
               <h2 className="text-sm font-medium text-fipt-muted">Your Balance</h2>
               <div className="flex items-center mt-1">
                 <Coins className="w-5 h-5 mr-2 text-fipt-blue" />
-                {isLoading ? (
-                  <Skeleton className="h-8 w-24" />
-                ) : (
-                  <>
-                    <span className="text-2xl font-bold text-fipt-dark">{balance?.toLocaleString()}</span>
-                    <span className="ml-1 text-xs font-medium text-fipt-blue">FIPT</span>
-                  </>
-                )}
+                <span className="text-2xl font-bold text-fipt-dark">{balance.toLocaleString()}</span>
+                <span className="ml-1 text-xs font-medium text-fipt-blue">FIPT</span>
               </div>
             </div>
             <div className="bg-white/80 px-3 py-1 rounded-full shadow-sm">
@@ -106,26 +54,20 @@ const EarnPage = () => {
         </div>
         <h1 className="text-2xl font-bold text-fipt-dark">Earn FIPT Points</h1>
         <p className="text-sm text-fipt-muted mt-1">
-          {connected 
-            ? "Tap the button below to earn FIPT points" 
-            : "Connect your wallet to start earning FIPT points"}
+          Tap the button below to earn FIPT points
         </p>
       </div>
       
       {/* Earn Button */}
       <div className="flex-1 flex flex-col items-center justify-center">
-        <EarnButton onEarn={handleEarnPoints} disabled={!connected} />
+        <EarnButton onEarn={handleEarnPoints} />
       </div>
       
       {/* Stats */}
       <div className="mt-8 grid grid-cols-2 gap-4 mb-4">
         <div className="p-4 rounded-xl bg-white border border-gray-100 shadow-sm">
           <h3 className="text-sm font-medium text-fipt-muted mb-1">Today's Earnings</h3>
-          {isLoading ? (
-            <Skeleton className="h-6 w-16" />
-          ) : (
-            <p className="text-xl font-bold text-fipt-dark">{balance} FIPT</p>
-          )}
+          <p className="text-xl font-bold text-fipt-dark">{balance} FIPT</p>
         </div>
         <div className="p-4 rounded-xl bg-white border border-gray-100 shadow-sm">
           <h3 className="text-sm font-medium text-fipt-muted mb-1">Rank</h3>
