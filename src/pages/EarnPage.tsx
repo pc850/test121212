@@ -1,9 +1,11 @@
+
 import { useEffect, useState } from "react";
 import EarnButton from "@/components/EarnButton";
 import { Card } from "@/components/ui/card";
 import { Coins } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import TelegramLoginButton, { TelegramUser } from "@/components/TelegramLoginButton";
+import TelegramLoginButton from "@/components/TelegramLoginButton";
+import { TelegramUser } from "@/types/telegram";
 import UserProfileSection from "@/components/UserProfileSection";
 import { useToast } from "@/hooks/use-toast";
 import { useTelegramAuth } from "@/hooks/useTelegramAuth";

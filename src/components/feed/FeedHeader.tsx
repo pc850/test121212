@@ -2,7 +2,7 @@
 import { Search } from "lucide-react";
 import TonConnectButton from "@/components/TonConnectButton";
 import { useState, useEffect } from "react";
-import { TelegramUser } from "@/components/TelegramLoginButton";
+import { TelegramUser } from "@/types/telegram";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { supabase } from "@/integrations/supabase/client";
 import { useTelegramAuth } from "@/hooks/useTelegramAuth";

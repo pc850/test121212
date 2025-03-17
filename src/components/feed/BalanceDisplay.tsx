@@ -1,7 +1,7 @@
 
 import { cn } from "@/lib/utils";
 import { useState, useEffect } from "react";
-import { TelegramUser } from "@/components/TelegramLoginButton";
+import { TelegramUser } from "@/types/telegram";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 interface BalanceDisplayProps {
