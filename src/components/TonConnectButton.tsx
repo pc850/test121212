@@ -1,9 +1,8 @@
-
-"use client"; // If you're using Next.js App Router and need client-side rendering
+"use client"; // For Next.js App Router client-side rendering
 
 import React, { useState } from "react";
 import { Wallet } from "lucide-react";
-import { 
+import {
   Button,
   Dialog,
   DialogContent,
@@ -14,13 +13,12 @@ import {
 } from "@/components/ui";
 import { toast } from "@/hooks/use-toast";
 
-// 1) TonConnect SDK import
+// Import TonConnect SDK
 import { TonConnect } from "@tonconnect/sdk";
-
-// 2) Supabase client import
+// Import Supabase client
 import { supabase } from "@/integrations/supabase/client";
 
-// 3) Initialize TonConnect
+// Initialize TonConnect with your manifest URL (ensure the manifest file exists and is accessible)
 const tonConnect = new TonConnect({
   manifestUrl: "https://fipt-wonderland.lovable.app/tonconnect-manifest.json",
 });
@@ -29,10 +27,10 @@ const TonConnectButton: React.FC = () => {
   const [isConnected, setIsConnected] = useState(false);
   const [walletAddress, setWalletAddress] = useState("");
 
-  // Connect function that triggers Tonkeeper via TonConnect
+  // Connect function to trigger Tonkeeper via TonConnect
   const connectWallet = async () => {
     try {
-      // Attempt to connect specifically to Tonkeeper
+      // Connect only to Tonkeeper
       const wallets = await tonConnect.connect([{ id: "tonkeeper" }]);
       if (wallets && wallets.length > 0) {
         const address = wallets[0].account.address;
@@ -46,10 +44,10 @@ const TonConnectButton: React.FC = () => {
           description: `Wallet address: ${address}`,
         });
 
-        // 4) Store the wallet address in Supabase
-        const { data, error } = await supabase
-          .from("connected_wallets")               // Using the table name from your Supabase schema
-          .insert({ wallet_address: address }); 
+        // Insert wallet address into Supabase (adjust table/column names as needed)
+        const { error } = await supabase
+          .from("connected_wallets")
+          .insert({ wallet_address: address });
 
         if (error) {
           console.error("Supabase insertion error:", error);
@@ -58,7 +56,7 @@ const TonConnectButton: React.FC = () => {
             description: "Failed to store wallet address",
           });
         } else {
-          console.log("Wallet address stored in Supabase:", data);
+          console.log("Wallet address stored in Supabase");
         }
       }
     } catch (error: any) {
@@ -105,10 +103,9 @@ const TonConnectButton: React.FC = () => {
             {isConnected ? "Wallet Connected" : "Connect your TON wallet"}
           </DialogTitle>
           <DialogDescription>
-            {isConnected 
+            {isConnected
               ? "Your wallet is connected to FIPT Shop"
-              : "Connect your Tonkeeper wallet to log in or sign up"
-            }
+              : "Connect your Tonkeeper wallet to log in or sign up"}
           </DialogDescription>
         </DialogHeader>
         
@@ -116,10 +113,12 @@ const TonConnectButton: React.FC = () => {
           <div className="space-y-4">
             <div className="p-4 bg-muted rounded-md">
               <p className="text-sm font-medium">Wallet Address</p>
-              <p className="text-xs text-muted-foreground break-all">{walletAddress}</p>
+              <p className="text-xs text-muted-foreground break-all">
+                {walletAddress}
+              </p>
             </div>
-            <Button 
-              variant="destructive" 
+            <Button
+              variant="destructive"
               className="w-full"
               onClick={disconnect}
             >
@@ -128,15 +127,15 @@ const TonConnectButton: React.FC = () => {
           </div>
         ) : (
           <div className="grid gap-4">
-            <Button 
-              variant="outline" 
-              className="justify-start gap-2" 
+            <Button
+              variant="outline"
+              className="justify-start gap-2"
               onClick={connectWallet}
             >
-              <img 
-                src="https://tonkeeper.com/assets/tonconnect-icon.png" 
-                alt="Tonkeeper" 
-                className="h-5 w-5" 
+              <img
+                src="https://tonkeeper.com/assets/tonconnect-icon.png"
+                alt="Tonkeeper"
+                className="h-5 w-5"
               />
               Tonkeeper
             </Button>
