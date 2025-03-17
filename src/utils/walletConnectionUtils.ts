@@ -1,3 +1,4 @@
+
 import { TonConnect } from "@tonconnect/sdk";
 import { detectMobileDevice, isTelegramMiniAppEnvironment } from "./environmentUtils";
 import { clearConnectionTimeout, setupConnectionTimeout } from "./timeoutUtils";
@@ -40,31 +41,44 @@ export const connectToTonkeeper = async (
     const tonkeeper = findTonkeeperWallet(available);
 
     if (!tonkeeper) {
+      console.error("No Tonkeeper wallet found in available wallets");
       setIsConnecting(false);
       return;
     }
 
     // Set a timeout to reset the connecting state if it takes too long
-    const timeout = setupConnectionTimeout(30000, () => {
+    // Use a longer timeout for mobile as opening apps can take time
+    const timeoutDuration = isMobile || isTelegramMiniApp ? 45000 : 30000;
+    const timeout = setupConnectionTimeout(timeoutDuration, () => {
+      console.log("Connection attempt timed out");
       setIsConnecting(false);
     });
     
     setConnectionTimeout(timeout);
 
     // Determine connection method based on environment
-    if (isTelegramMiniApp) {
-      await handleTelegramMiniAppConnection(wallet, tonkeeper);
-    } else if (isMobile) {
-      await handleMobileConnection(wallet, tonkeeper);
-    } else {
-      await handleDesktopConnection(wallet, tonkeeper);
+    try {
+      if (isTelegramMiniApp) {
+        await handleTelegramMiniAppConnection(wallet, tonkeeper);
+      } else if (isMobile) {
+        await handleMobileConnection(wallet, tonkeeper);
+      } else {
+        await handleDesktopConnection(wallet, tonkeeper);
+      }
+      
+      console.log("Connection attempt completed without errors");
+    } catch (error) {
+      console.error("Error during connection attempt:", error);
+      // Don't clear connecting state here since we might have navigated away
+      // on mobile/telegram and the connection might still complete
     }
-
-    console.log("Connection attempt completed without errors");
+    
     return;
   } catch (error) {
     console.error("Error connecting to wallet:", error);
     setIsConnecting(false);
+    clearConnectionTimeout(connectionTimeout);
+    setConnectionTimeout(null);
     throw error;
   }
 };
