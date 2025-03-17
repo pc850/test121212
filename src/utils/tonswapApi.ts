@@ -59,25 +59,43 @@ export interface PairData {
   liquidityFee: number;
 }
 
+// Swap result interface
+interface SwapResult {
+  resultAmount: number;
+  rate: number;
+  priceImpact: number;
+  slippage: number;
+}
+
+// Transaction result interface
+interface TransactionResult {
+  success: boolean;
+  txHash?: string;
+  error?: string;
+}
+
 /**
  * Fetch current token prices from TonSwap
  * @returns Promise with token price data
  */
 export const fetchTokenPrices = async (): Promise<Record<string, number>> => {
   try {
-    // In a real implementation, we would fetch from the actual API
-    // For demonstration, we're returning mock data similar to what the API would return
-    console.log("Fetching token prices from TonSwap API...");
+    const response = await fetch(`${API_BASE_URL}/tokens/prices`);
     
-    // Mock API response - would be replaced with actual fetch in production
-    return {
-      fipt: 0.02,  // $0.02 per FIPT
-      ton: 10.00,  // $10.00 per TON
-      usdt: 1.00    // $1.00 per USDT
-    };
+    if (!response.ok) {
+      throw new Error(`Error ${response.status}: ${response.statusText}`);
+    }
+    
+    const data = await response.json();
+    return data.prices;
   } catch (error) {
     console.error("Error fetching token prices:", error);
-    throw new Error("Failed to fetch token prices");
+    // Fallback to default values in case of API failure
+    return {
+      fipt: 0.02,
+      ton: 10.00,
+      usdt: 1.00
+    };
   }
 };
 
@@ -92,12 +110,21 @@ export const getExchangeRate = async (
   toToken: string
 ): Promise<number> => {
   try {
-    // For demonstration purposes, using predefined rates
-    // In production, this would fetch from the DEX API
-    console.log(`Getting exchange rate from ${fromToken} to ${toToken}`);
+    const response = await fetch(
+      `${API_BASE_URL}/pairs/rate?fromToken=${fromToken}&toToken=${toToken}`
+    );
     
-    // Mock exchange rates based on the token pairs
-    const exchangeRates: Record<string, Record<string, number>> = {
+    if (!response.ok) {
+      throw new Error(`Error ${response.status}: ${response.statusText}`);
+    }
+    
+    const data = await response.json();
+    return data.rate;
+  } catch (error) {
+    console.error("Error getting exchange rate:", error);
+    
+    // Fallback to default rates in case of API failure
+    const fallbackRates: Record<string, Record<string, number>> = {
       fipt: {
         ton: 0.002,
         usdt: 0.02
@@ -112,10 +139,7 @@ export const getExchangeRate = async (
       }
     };
     
-    return exchangeRates[fromToken]?.[toToken] || 0;
-  } catch (error) {
-    console.error("Error getting exchange rate:", error);
-    throw new Error("Failed to get exchange rate");
+    return fallbackRates[fromToken]?.[toToken] || 0;
   }
 };
 
@@ -130,30 +154,46 @@ export const calculateSwapAmount = async (
   fromTokenId: string,
   toTokenId: string,
   amount: number
-): Promise<{ 
-  resultAmount: number;
-  rate: number;
-  priceImpact: number;
-  slippage: number;
-}> => {
+): Promise<SwapResult> => {
   try {
     if (!amount) return { resultAmount: 0, rate: 0, priceImpact: 0, slippage: 0 };
     
-    const rate = await getExchangeRate(fromTokenId, toTokenId);
-    const resultAmount = amount * rate;
+    const response = await fetch(
+      `${API_BASE_URL}/swap/estimate?fromToken=${fromTokenId}&toToken=${toTokenId}&amount=${amount}`
+    );
     
-    // Mock values for price impact and slippage
-    const priceImpact = amount > 1000 ? 0.05 : amount > 100 ? 0.02 : 0.01;
+    if (!response.ok) {
+      throw new Error(`Error ${response.status}: ${response.statusText}`);
+    }
     
+    const data = await response.json();
     return {
-      resultAmount,
-      rate,
-      priceImpact,
-      slippage: 0.01 // Default 1% slippage
+      resultAmount: data.resultAmount,
+      rate: data.rate,
+      priceImpact: data.priceImpact,
+      slippage: data.slippage || 0.01
     };
   } catch (error) {
     console.error("Error calculating swap amount:", error);
-    throw new Error("Failed to calculate swap amount");
+    
+    // Fallback to simplified calculation in case of API failure
+    try {
+      const rate = await getExchangeRate(fromTokenId, toTokenId);
+      const resultAmount = amount * rate;
+      
+      // Simplified price impact estimation
+      const priceImpact = amount > 1000 ? 0.05 : amount > 100 ? 0.02 : 0.01;
+      
+      return {
+        resultAmount,
+        rate,
+        priceImpact,
+        slippage: 0.01
+      };
+    } catch (innerError) {
+      console.error("Fallback calculation failed:", innerError);
+      throw new Error("Failed to calculate swap amount");
+    }
   }
 };
 
@@ -172,37 +212,41 @@ export const executeSwap = async (
   amount: number,
   walletAddress: string,
   slippageTolerance: number
-): Promise<{ 
-  success: boolean;
-  txHash?: string;
-  error?: string;
-}> => {
+): Promise<TransactionResult> => {
   try {
     if (!walletAddress) {
       return { success: false, error: "Wallet not connected" };
     }
     
-    console.log(`Executing swap: ${amount} ${fromTokenId} to ${toTokenId}`);
-    console.log(`Wallet: ${walletAddress}, Slippage: ${slippageTolerance}%`);
+    const response = await fetch(`${API_BASE_URL}/swap/execute`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        fromToken: fromTokenId,
+        toToken: toTokenId,
+        amount,
+        walletAddress,
+        slippageTolerance
+      }),
+    });
     
-    // In a real implementation, this would call the DEX API to execute the swap
-    // For demonstration, we're simulating a successful transaction
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.message || `Error ${response.status}: ${response.statusText}`);
+    }
     
-    // Simulate network delay
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
-    // Mock transaction hash
-    const txHash = `ton1${Date.now().toString(16)}${Math.random().toString(16).substring(2, 8)}`;
-    
+    const data = await response.json();
     return {
       success: true,
-      txHash
+      txHash: data.txHash
     };
   } catch (error) {
     console.error("Error executing swap:", error);
     return {
       success: false,
-      error: error instanceof Error ? error.message : "Unknown error occurred"
+      error: error instanceof Error ? error.message : "Unknown error occurred during swap"
     };
   }
 };
@@ -225,17 +269,24 @@ export const getTokenBalances = async (
       };
     }
     
-    console.log(`Fetching token balances for wallet: ${walletAddress}`);
+    const response = await fetch(
+      `${API_BASE_URL}/wallets/${walletAddress}/balances`
+    );
     
-    // In production, this would fetch actual balances from the blockchain
-    // For now, returning mock data that would be similar to API response
+    if (!response.ok) {
+      throw new Error(`Error ${response.status}: ${response.statusText}`);
+    }
+    
+    const data = await response.json();
+    return data.balances;
+  } catch (error) {
+    console.error("Error fetching token balances:", error);
+    
+    // Fallback to default values in case of API failure
     return {
       fipt: 1250,
       ton: 2.5,
       usdt: 15.75
     };
-  } catch (error) {
-    console.error("Error fetching token balances:", error);
-    throw new Error("Failed to fetch token balances");
   }
 };
