@@ -36,9 +36,7 @@ export const useSwapForm = (address?: string) => {
   // Swap execution logic
   const {
     isLoading,
-    executeSwapTransaction,
-    useStonFi,
-    setUseStonFi
+    executeSwapTransaction
   } = useSwapExecution(setTokens, tokens);
 
   // Handler for from amount changes
@@ -91,8 +89,6 @@ export const useSwapForm = (address?: string) => {
     handleSwapPositions,
     handleFromAmountChange,
     handleToAmountChange,
-    handleSubmit,
-    useStonFi,
-    setUseStonFi
+    handleSubmit
   };
 };

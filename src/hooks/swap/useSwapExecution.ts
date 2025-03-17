@@ -2,14 +2,12 @@
 import { useState } from "react";
 import { toast } from "sonner";
 import { executeSwap, getTokenBalances, TokenWithBalance } from "@/utils/api";
-import { executeStonfiSwap } from "@/utils/api/stonfiService";
 
 export const useSwapExecution = (
   setTokens: React.Dispatch<React.SetStateAction<TokenWithBalance[]>>,
   tokens: TokenWithBalance[]
 ) => {
   const [isLoading, setIsLoading] = useState(false);
-  const [useStonFi, setUseStonFi] = useState(false);
 
   const executeSwapTransaction = async (
     fromToken: string,
@@ -34,34 +32,17 @@ export const useSwapExecution = (
     setIsLoading(true);
     
     try {
-      // Calculate minimum amount based on slippage
-      const slippageValue = parseFloat(slippage) / 100;
-      const minAmount = "1"; // In a real implementation, this would be calculated based on expected output and slippage
-      
-      let result;
-      
-      if (useStonFi) {
-        // Execute the swap using StonFi SDK
-        result = await executeStonfiSwap(
-          fromToken,
-          toToken,
-          numFromAmount,
-          address,
-          minAmount
-        );
-      } else {
-        // Execute the swap using the original implementation
-        result = await executeSwap(
-          fromToken,
-          toToken,
-          numFromAmount,
-          address,
-          parseFloat(slippage)
-        );
-      }
+      // Execute the swap
+      const result = await executeSwap(
+        fromToken,
+        toToken,
+        numFromAmount,
+        address,
+        parseFloat(slippage)
+      );
       
       if (result.success) {
-        toast.success(`Swap successful! Transaction hash: ${result.txHash}`);
+        toast.success("Swap successful! Transaction hash: " + result.txHash);
         
         // Refresh balances after swap
         const balances = await getTokenBalances(address);
@@ -86,8 +67,6 @@ export const useSwapExecution = (
 
   return {
     isLoading,
-    executeSwapTransaction,
-    useStonFi,
-    setUseStonFi
+    executeSwapTransaction
   };
 };
