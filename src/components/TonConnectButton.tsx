@@ -1,6 +1,7 @@
+"use client"; // If you’re using Next.js App Router and need client-side rendering
 
-import React, { useState, useEffect } from "react";
-import { Wallet, Link } from "lucide-react";
+import React, { useState } from "react";
+import { Wallet } from "lucide-react";
 import { 
   Button,
   Dialog,
@@ -11,124 +12,85 @@ import {
   DialogTrigger,
 } from "@/components/ui";
 import { toast } from "@/hooks/use-toast";
-import WalletConnect from "@walletconnect/client";
-import QRCodeModal from "@walletconnect/qrcode-modal";
+
+// 1) TonConnect SDK import
+import { TonConnect } from "@tonconnect/sdk";
+
+// 2) Supabase client import
+import { supabase } from "@/lib/supabase";
+
+// 3) Initialize TonConnect
+const tonConnect = new TonConnect({
+  manifestUrl: "https://your-site.com/tonconnect-manifest.json",
+});
 
 const TonConnectButton: React.FC = () => {
   const [isConnected, setIsConnected] = useState(false);
   const [walletAddress, setWalletAddress] = useState("");
-  const [connector, setConnector] = useState<WalletConnect | null>(null);
-  const [open, setOpen] = useState(false);
 
-  useEffect(() => {
-    // Initialize WalletConnect
-    const walletConnector = new WalletConnect({
-      bridge: "https://bridge.walletconnect.org", 
-      qrcodeModal: QRCodeModal,
-    });
-
-    // Set the connector
-    setConnector(walletConnector);
-
-    // Setup event listeners
-    if (walletConnector) {
-      // Check if already connected
-      if (walletConnector.connected) {
-        const { accounts } = walletConnector;
-        setWalletAddress(accounts[0]);
-        setIsConnected(true);
-      }
-
-      // Listen for connect events
-      walletConnector.on("connect", (error, payload) => {
-        if (error) {
-          console.error("Connection error:", error);
-          toast({
-            title: "Connection Error",
-            description: "Failed to connect to wallet",
-            variant: "destructive"
-          });
-          return;
-        }
-
-        const { accounts } = payload.params[0];
-        setWalletAddress(accounts[0]);
-        setIsConnected(true);
-        toast({
-          title: "Wallet Connected",
-          description: `Connected to wallet: ${accounts[0].substring(0, 8)}...`,
-        });
-      });
-
-      // Listen for disconnect events
-      walletConnector.on("disconnect", (error) => {
-        if (error) {
-          console.error("Disconnect error:", error);
-        }
-        setWalletAddress("");
-        setIsConnected(false);
-        toast({
-          title: "Wallet Disconnected",
-          description: "Your wallet has been disconnected",
-        });
-      });
-    }
-
-    // Clean up event listeners on component unmount
-    return () => {
-      if (walletConnector) {
-        walletConnector.off("connect");
-        walletConnector.off("disconnect");
-      }
-    };
-  }, []);
-
+  // Connect function that triggers Tonkeeper via TonConnect
   const connectWallet = async () => {
-    if (!connector) {
-      toast({
-        title: "Connection Error",
-        description: "WalletConnect not initialized",
-        variant: "destructive"
-      });
-      return;
-    }
+    try {
+      // Attempt to connect specifically to Tonkeeper
+      const wallets = await tonConnect.connect([{ id: "tonkeeper" }]);
+      if (wallets && wallets.length > 0) {
+        const address = wallets[0].account.address;
 
-    if (!connector.connected) {
-      try {
-        // Create a new session and show QR code
-        await connector.createSession();
-      } catch (error) {
-        console.error("Failed to create session:", error);
+        // Update local state
+        setWalletAddress(address);
+        setIsConnected(true);
+
         toast({
-          title: "Connection Error",
-          description: "Failed to create wallet session",
-          variant: "destructive"
+          title: "Connected to Tonkeeper",
+          description: `Wallet address: ${address}`,
         });
+
+        // 4) Store the wallet address in Supabase
+        const { data, error } = await supabase
+          .from("wallets")               // <--- Replace with your table name
+          .insert({ wallet_address: address }); // <--- Replace with your column name
+
+        if (error) {
+          console.error("Supabase insertion error:", error);
+          toast({
+            title: "Database error",
+            description: "Failed to store wallet address",
+          });
+        } else {
+          console.log("Wallet address stored in Supabase:", data);
+        }
       }
-    } else {
-      // Already connected, show the current connection
+    } catch (error: any) {
+      console.error("Connection error:", error);
       toast({
-        title: "Already Connected",
-        description: `Connected to wallet: ${walletAddress.substring(0, 8)}...`,
+        title: "Connection error",
+        description: `Failed to connect to wallet: ${error.message || error}`,
       });
     }
   };
 
-  const disconnect = () => {
-    if (connector && connector.connected) {
-      connector.killSession();
+  // Disconnect function to end the session
+  const disconnect = async () => {
+    try {
+      await tonConnect.disconnect();
+      setIsConnected(false);
+      setWalletAddress("");
+
+      toast({
+        title: "Wallet disconnected",
+        description: "Your wallet has been disconnected",
+      });
+    } catch (error: any) {
+      console.error("Disconnect error:", error);
+      toast({
+        title: "Error",
+        description: `Failed to disconnect wallet: ${error.message || error}`,
+      });
     }
-    setIsConnected(false);
-    setWalletAddress("");
-    setOpen(false);
-    toast({
-      title: "Wallet disconnected",
-      description: "Your wallet has been disconnected",
-    });
   };
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog>
       <DialogTrigger asChild>
         <Button variant="outline" className="gap-2" size="sm">
           <Wallet className="h-4 w-4" />
@@ -138,11 +100,13 @@ const TonConnectButton: React.FC = () => {
       
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>{isConnected ? "Wallet Connected" : "Connect your TON wallet"}</DialogTitle>
+          <DialogTitle>
+            {isConnected ? "Wallet Connected" : "Connect your TON wallet"}
+          </DialogTitle>
           <DialogDescription>
             {isConnected 
               ? "Your wallet is connected to FIPT Shop"
-              : "Choose your preferred TON wallet to connect"
+              : "Connect your Tonkeeper wallet to log in or sign up"
             }
           </DialogDescription>
         </DialogHeader>
@@ -168,26 +132,12 @@ const TonConnectButton: React.FC = () => {
               className="justify-start gap-2" 
               onClick={connectWallet}
             >
-              <img src="https://tonkeeper.com/assets/tonconnect-icon.png" alt="Tonkeeper" className="h-5 w-5" />
-              Connect with Tonkeeper
-            </Button>
-            
-            <Button 
-              variant="outline" 
-              className="justify-start gap-2"
-              onClick={connectWallet}
-            >
-              <img src="https://ton.org/download/ton_symbol.svg" alt="TonHub" className="h-5 w-5" />
-              Connect with TonHub
-            </Button>
-            
-            <Button 
-              variant="outline" 
-              className="justify-start gap-2"
-              onClick={connectWallet}
-            >
-              <Link className="h-5 w-5" />
-              Connect with OpenMask
+              <img 
+                src="https://tonkeeper.com/assets/tonconnect-icon.png" 
+                alt="Tonkeeper" 
+                className="h-5 w-5" 
+              />
+              Tonkeeper
             </Button>
           </div>
         )}
