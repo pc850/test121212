@@ -1,3 +1,4 @@
+
 "use client"; // For Next.js App Router client-side rendering
 
 import React, { useState, useEffect } from "react";
@@ -13,13 +14,13 @@ import {
 } from "@/components/ui";
 import { toast } from "@/hooks/use-toast";
 import { useTonkeeperWallet } from "@/hooks/useTonkeeperWallet";
-import { TelegramUser } from "@/components/TelegramLoginButton";
+import { TelegramUser } from "@/types/telegram";
 import { useWalletStorage } from "@/hooks/useWalletStorage";
 import WalletInfoDisplay from "@/components/wallet/WalletInfoDisplay";
 import WalletConnectButton from "@/components/wallet/WalletConnectButton";
 
 const TonConnectButton: React.FC = () => {
-  const { connectWallet, disconnectWallet, connected, address, wallet, available, isMobile, isConnecting } = useTonkeeperWallet();
+  const { connectWallet, disconnectWallet, connected, address, wallet, available, isMobile, isConnecting, isTelegramMiniApp } = useTonkeeperWallet();
   const { storeWalletAddress } = useWalletStorage();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [walletInfo, setWalletInfo] = useState<string>("No wallet info available");
@@ -28,7 +29,7 @@ const TonConnectButton: React.FC = () => {
   useEffect(() => {
     // Debug info
     if (wallet) {
-      const info = `Wallet initialized: ${!!wallet}, Connected: ${connected}, Address: ${address}, Available wallets: ${available.length}, Mobile: ${isMobile}`;
+      const info = `Wallet initialized: ${!!wallet}, Connected: ${connected}, Address: ${address}, Available wallets: ${available.length}, Mobile: ${isMobile}, TG Mini App: ${isTelegramMiniApp}`;
       console.log(info);
       setWalletInfo(info);
     }
@@ -42,7 +43,7 @@ const TonConnectButton: React.FC = () => {
         console.error('Failed to parse stored user:', e);
       }
     }
-  }, [wallet, connected, address, available, isMobile]);
+  }, [wallet, connected, address, available, isMobile, isTelegramMiniApp]);
 
   // When connection status changes, update local storage and Supabase if needed
   useEffect(() => {
@@ -80,7 +81,7 @@ const TonConnectButton: React.FC = () => {
       console.log("Available wallets:", available.map(w => w.name).join(', '));
       
       // On mobile devices, we'll close the dialog since we're redirecting to another app
-      if (isMobile) {
+      if (isMobile || isTelegramMiniApp) {
         // Set a short timeout to allow the button click to be processed
         setTimeout(() => {
           setDialogOpen(false);
@@ -88,7 +89,9 @@ const TonConnectButton: React.FC = () => {
         
         toast({
           title: "Opening Tonkeeper",
-          description: "We're redirecting you to the Tonkeeper app. Please approve the connection and return to this app.",
+          description: isTelegramMiniApp 
+            ? "We're opening Tonkeeper in a new window. After connecting, please return and refresh this page." 
+            : "We're redirecting you to the Tonkeeper app. Please approve the connection and return to this app.",
         });
       } else {
         toast({
@@ -169,6 +172,7 @@ const TonConnectButton: React.FC = () => {
             available={available}
             onConnect={handleConnect}
             isMobile={isMobile}
+            isTelegramMiniApp={isTelegramMiniApp}
           />
         )}
       </DialogContent>

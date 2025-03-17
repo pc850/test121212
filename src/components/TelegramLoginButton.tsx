@@ -4,17 +4,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useTonkeeperWallet } from "@/hooks/useTonkeeperWallet";
 import { TelegramUser } from "@/types/telegram";
 
-// Define Telegram user interface
-export interface TelegramUser {
-  id: number;
-  first_name: string;
-  last_name?: string;
-  username?: string;
-  photo_url?: string;
-  auth_date: number;
-  hash: string;
-}
-
+// Define Telegram login button props interface
 interface TelegramLoginButtonProps {
   botName: string;
   buttonSize?: 'large' | 'medium' | 'small';

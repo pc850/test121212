@@ -1,7 +1,7 @@
 
 import React from "react";
 import { Button } from "@/components/ui";
-import { TelegramUser } from "@/components/TelegramLoginButton";
+import { TelegramUser } from "@/types/telegram";
 import { ExternalLink } from "lucide-react";
 
 interface WalletConnectButtonProps {
@@ -11,6 +11,7 @@ interface WalletConnectButtonProps {
   available: any[];
   onConnect: () => void;
   isMobile?: boolean;
+  isTelegramMiniApp?: boolean;
 }
 
 const WalletConnectButton: React.FC<WalletConnectButtonProps> = ({
@@ -19,7 +20,8 @@ const WalletConnectButton: React.FC<WalletConnectButtonProps> = ({
   walletInfo,
   available,
   onConnect,
-  isMobile = false
+  isMobile = false,
+  isTelegramMiniApp = false
 }) => {
   // Find if Tonkeeper is available
   const hasTonkeeper = available.some(w => 
@@ -49,13 +51,23 @@ const WalletConnectButton: React.FC<WalletConnectButtonProps> = ({
             Connecting...
           </span>
         ) : (
-          isMobile ? (
+          isTelegramMiniApp ? (
+            <>Open Tonkeeper Wallet <ExternalLink className="h-4 w-4" /></>
+          ) : isMobile ? (
             <>Open Tonkeeper App <ExternalLink className="h-4 w-4" /></>
           ) : "Connect Tonkeeper"
         )}
       </Button>
       
-      {isMobile && (
+      {isTelegramMiniApp && (
+        <div className="p-2 bg-yellow-50 border border-yellow-200 rounded-md text-xs text-yellow-700">
+          <p className="font-medium">Telegram Mini App Detected</p>
+          <p>Clicking the button above will open Tonkeeper in a new window. After connecting in Tonkeeper, please return to this app and refresh the page.</p>
+          <p className="mt-1 font-medium">Important: You may need to manually approve the connection in Tonkeeper!</p>
+        </div>
+      )}
+      
+      {isMobile && !isTelegramMiniApp && (
         <div className="p-2 bg-yellow-50 border border-yellow-200 rounded-md text-xs text-yellow-700">
           <p className="font-medium">Mobile Device Detected</p>
           <p>Clicking the button above will open the Tonkeeper app. You'll need to approve the connection there and then return to this app.</p>
@@ -84,6 +96,8 @@ const WalletConnectButton: React.FC<WalletConnectButtonProps> = ({
           <p className="break-all">{walletInfo}</p>
           <p className="font-medium mt-2">Available Wallets:</p>
           <p className="break-all">{available.length > 0 ? available.map(w => w.name).join(', ') : 'None found'}</p>
+          <p className="font-medium mt-2">Environment:</p>
+          <p>Telegram Mini App: {String(isTelegramMiniApp)}, Mobile: {String(isMobile)}</p>
         </div>
       )}
     </div>
