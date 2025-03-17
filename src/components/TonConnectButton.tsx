@@ -35,7 +35,7 @@ const TonConnectButton: React.FC = () => {
     setIsTonkeeperBrowser(checkTonkeeperBrowser);
     
     if (wallet) {
-      const info = `Wallet initialized: ${!!wallet}, Connected: ${connected}, Address: ${address}, Available wallets: ${available.length}, Mobile: ${isMobile}, TG Mini App: ${isTelegramMiniApp}, Tonkeeper Browser: ${checkTonkeeperBrowser}`;
+      const info = `Wallet initialized: ${!!wallet}, Connected: ${connected}, Address: ${address}, Available wallets: ${available ? available.length : 0}, Mobile: ${isMobile}, TG Mini App: ${isTelegramMiniApp}, Tonkeeper Browser: ${checkTonkeeperBrowser}`;
       console.log(info);
       setWalletInfo(info);
     }
@@ -70,7 +70,8 @@ const TonConnectButton: React.FC = () => {
       console.log("Attempting to connect wallet from button...");
       setConnectionAttempted(true);
       
-      if (!available || available.length === 0) {
+      // Make sure to handle the case when no wallets are available in Telegram Mini App
+      if ((!available || available.length === 0) && !isTelegramMiniApp) {
         toast({
           title: "No wallets available",
           description: "No compatible wallets found. Please install Tonkeeper.",
@@ -79,7 +80,12 @@ const TonConnectButton: React.FC = () => {
         return;
       }
       
-      console.log("Available wallets:", available.map(w => w.name).join(', '));
+      // Even with no wallets, if in Telegram Mini App, we'll try to open Tonkeeper
+      if (available && available.length > 0) {
+        console.log("Available wallets:", available.map(w => w.name).join(', '));
+      } else if (isTelegramMiniApp) {
+        console.log("No wallets available, but in Telegram Mini App. Will try direct connection.");
+      }
       
       if (isTonkeeperBrowser) {
         toast({
@@ -130,7 +136,7 @@ const TonConnectButton: React.FC = () => {
 
   // If we're inside Tonkeeper browser and not connected, auto-connect
   useEffect(() => {
-    if (isTonkeeperBrowser && !connected && !isConnecting && available.length > 0) {
+    if (isTonkeeperBrowser && !connected && !isConnecting && available && available.length > 0) {
       console.log("Auto-connecting in Tonkeeper browser");
       handleConnect();
     }
@@ -152,7 +158,7 @@ const TonConnectButton: React.FC = () => {
           address={address}
           telegramUser={telegramUser}
           walletInfo={walletInfo}
-          available={available}
+          available={available || []}
           isMobile={isMobile}
           isTelegramMiniApp={isTelegramMiniApp}
           onConnect={handleConnect}

@@ -28,7 +28,7 @@ export const connectToTonkeeper = async (
 ) => {
   console.log("Starting wallet connection attempt...");
   console.log("Environment:", { isMobile, isTelegramMiniApp });
-  console.log("Available wallets:", available.map(w => w.name));
+  console.log("Available wallets:", available ? available.map(w => w.name) : 'No wallets found');
   
   // Check if running inside Tonkeeper browser
   const isTonkeeperBrowser = /Tonkeeper/i.test(navigator.userAgent);
@@ -66,6 +66,28 @@ export const connectToTonkeeper = async (
     const tonkeeper = findTonkeeperWallet(available);
 
     if (!tonkeeper) {
+      // If explicitly in Telegram Mini App environment, use a hardcoded Tonkeeper URL
+      if (isTelegramMiniApp) {
+        console.log("No Tonkeeper wallet found, but in Telegram Mini App. Using direct approach");
+        const url = "https://app.tonkeeper.com/dapp/?source=telegram-mini-app&t=" + Date.now();
+        
+        if (window.telegramBridge?.openTonkeeperWallet) {
+          window.telegramBridge.openTonkeeperWallet(url);
+        } else if (window.Telegram?.WebApp?.openLink) {
+          window.Telegram.WebApp.openLink(url, { try_instant_view: false });
+        } else {
+          window.open(url, "_blank");
+        }
+        
+        // We don't return immediately - instead we set a timeout and wait for possible connection
+        const timeout = setupConnectionTimeout(180000, () => {
+          console.log("Connection attempt timed out");
+          setIsConnecting(false);
+        });
+        setConnectionTimeout(timeout);
+        return;
+      }
+      
       console.error("No Tonkeeper wallet found in available wallets");
       setIsConnecting(false);
       throw new Error("Tonkeeper wallet not found");

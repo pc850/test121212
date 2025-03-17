@@ -14,10 +14,19 @@ const WalletUnavailableNotice: React.FC<WalletUnavailableNoticeProps> = ({
     return null;
   }
   
+  // Determine if we're in Telegram Mini App
+  const isTelegramMiniApp = 
+    (typeof window !== 'undefined' && window.Telegram && window.Telegram.WebApp) ||
+    (typeof localStorage !== 'undefined' && localStorage.getItem('isTelegramMiniApp') === 'true');
+  
   return (
     <div className="p-2 bg-red-50 border border-red-200 rounded-md text-xs text-red-700">
       <p className="font-medium">Tonkeeper Not Found</p>
-      <p>Tonkeeper wallet is not available. You may need to install the Tonkeeper app or extension first.</p>
+      {isTelegramMiniApp ? (
+        <p>Tonkeeper wallet is not available. Don't worry - when you click Connect, you'll be redirected to install Tonkeeper.</p>
+      ) : (
+        <p>Tonkeeper wallet is not available. You may need to install the Tonkeeper app or extension first.</p>
+      )}
     </div>
   );
 };

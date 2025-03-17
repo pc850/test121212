@@ -1,3 +1,4 @@
+
 (function() {
   // Initialize bridge namespace if not exists
   window.telegramBridge = window.telegramBridge || {};
@@ -106,6 +107,12 @@
       }
     }
     
+    // Set default URL if none provided or invalid
+    if (!url || url === 'undefined') {
+      url = 'https://app.tonkeeper.com/dapp/';
+      console.log(`[${sessionId}] Using default Tonkeeper URL:`, url);
+    }
+    
     // Add tracking parameters to URL
     const separator = url.includes('?') ? '&' : '?';
     const enhancedUrl = `${url}${separator}t=${timestamp}&session=${sessionId}&source=telegram-mini-app`;
@@ -142,4 +149,14 @@
       return false;
     }
   };
+  
+  // Auto-initialize if in Telegram Mini App
+  if (window.Telegram && window.Telegram.WebApp) {
+    console.log('Telegram Mini App detected, enhancing openLink method');
+    window.telegramBridge.enhanceTelegramOpenLink();
+    
+    // Set flags for future detection
+    localStorage.setItem('isTelegramMiniApp', 'true');
+    localStorage.setItem('tonconnect_in_telegram', 'true');
+  }
 })();

@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { TelegramUser } from "@/types/telegram";
 import ConnectButton from "./ConnectButton";
@@ -33,6 +32,9 @@ const WalletConnectButton: React.FC<WalletConnectButtonProps> = ({
   const [redirectInProgress, setRedirectInProgress] = useState(false);
   const [showAppStoreLinks, setShowAppStoreLinks] = useState(false);
   
+  // Ensure available is always an array, even if undefined
+  const wallets = Array.isArray(available) ? available : [];
+  
   // Reset retry state when connection state changes
   useEffect(() => {
     if (!isConnecting) {
@@ -63,8 +65,8 @@ const WalletConnectButton: React.FC<WalletConnectButtonProps> = ({
   }, [isConnecting, isMobile, isTelegramMiniApp]);
   
   // Find if Tonkeeper is available
-  const hasTonkeeper = available.some(w => 
-    w.name.toLowerCase().includes('tonkeeper') || 
+  const hasTonkeeper = wallets.some(w => 
+    (w.name && w.name.toLowerCase().includes('tonkeeper')) || 
     (w.appName && w.appName.toLowerCase().includes('tonkeeper'))
   );
 
@@ -134,7 +136,7 @@ const WalletConnectButton: React.FC<WalletConnectButtonProps> = ({
       />
       
       <WalletUnavailableNotice
-        hasTonkeeper={hasTonkeeper}
+        hasTonkeeper={hasTonkeeper || (isTelegramMiniApp && isConnecting)}
         isConnecting={isConnecting}
       />
       
@@ -142,7 +144,7 @@ const WalletConnectButton: React.FC<WalletConnectButtonProps> = ({
       
       <DebugInfo
         walletInfo={walletInfo}
-        available={available}
+        available={wallets}
         isTelegramMiniApp={isTelegramMiniApp}
         isMobile={isMobile}
       />
