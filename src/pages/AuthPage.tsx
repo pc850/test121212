@@ -9,7 +9,8 @@ import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { Mail, Lock, Globe } from "lucide-react";
 import TelegramLoginButton from "@/components/TelegramLoginButton";
-import { saveUserToLocalStorage } from "@/utils/telegramAuthUtils";
+import { saveUserToLocalStorage, getUserFromLocalStorage, verifyTelegramLogin, saveUserToSupabase } from "@/utils/telegramAuthUtils";
+import { useTelegramAuth } from "@/hooks/useTelegramAuth";
 
 const AuthPage = () => {
   const [email, setEmail] = useState("");
@@ -18,15 +19,27 @@ const AuthPage = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
+  const { autoLogin } = useTelegramAuth();
 
   // Check if user is already authenticated
   useEffect(() => {
     const checkAuth = async () => {
-      // Check if telegram user exists
-      const storedUser = localStorage.getItem('telegramUser');
-      if (storedUser) {
+      // Try auto login with Telegram first
+      const telegramUser = await autoLogin();
+      if (telegramUser) {
         setIsAuthenticated(true);
         return;
+      }
+
+      // Check if telegram user exists in localStorage
+      const storedUser = getUserFromLocalStorage();
+      if (storedUser) {
+        // Verify the stored user
+        const isValid = await verifyTelegramLogin(storedUser);
+        if (isValid) {
+          setIsAuthenticated(true);
+          return;
+        }
       }
 
       // Check if supabase session exists
@@ -37,20 +50,55 @@ const AuthPage = () => {
     };
 
     checkAuth();
-  }, []);
+  }, [autoLogin]);
 
   // Redirect if already authenticated
   if (isAuthenticated) {
     return <Navigate to="/earn" />;
   }
 
-  const handleTelegramAuth = (user: TelegramUser) => {
-    saveUserToLocalStorage(user);
-    toast({
-      title: "Login successful",
-      description: `Welcome, ${user.first_name}!`,
-    });
-    navigate('/earn');
+  const handleTelegramAuth = async (user: TelegramUser) => {
+    try {
+      // Verify the Telegram user data
+      const isValid = await verifyTelegramLogin(user);
+      
+      if (!isValid) {
+        toast({
+          title: "Authentication failed",
+          description: "Telegram verification failed. Please try again.",
+          variant: "destructive",
+        });
+        return;
+      }
+      
+      // Save user data to Supabase
+      const saved = await saveUserToSupabase(user);
+      if (!saved) {
+        toast({
+          title: "Authentication failed",
+          description: "Failed to save user data. Please try again.",
+          variant: "destructive",
+        });
+        return;
+      }
+      
+      // Save to localStorage for persistence
+      saveUserToLocalStorage(user);
+      
+      toast({
+        title: "Login successful",
+        description: `Welcome, ${user.first_name}!`,
+      });
+      
+      navigate('/earn');
+    } catch (error) {
+      console.error('Telegram auth error:', error);
+      toast({
+        title: "Authentication failed",
+        description: "An error occurred. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
   const handleEmailPasswordLogin = async (e: React.FormEvent) => {

@@ -6,7 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 interface UserDataFetcherProps {
   children: ReactNode;
   telegramUser: TelegramUser | null;
-  supabaseUser?: { id: string } | null; // Explicitly typed to avoid deep recursion
+  supabaseUser: { id: string } | null; // Remove the optional modifier
   onBalanceUpdate: (balance: number) => void;
 }
 

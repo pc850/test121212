@@ -6,6 +6,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { supabase } from "./integrations/supabase/client";
+import { getUserFromLocalStorage, verifyTelegramLogin } from "./utils/telegramAuthUtils";
 
 import AuthPage from "./pages/AuthPage";
 import EarnPage from "./pages/EarnPage";
@@ -25,20 +26,34 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   useEffect(() => {
     const checkAuth = async () => {
       // Check if telegram user exists
-      const storedUser = localStorage.getItem('telegramUser');
+      const storedUser = getUserFromLocalStorage();
       if (storedUser) {
-        setIsAuthenticated(true);
-        setLoading(false);
-        return;
+        // Verify the stored user to ensure it's valid
+        try {
+          const isValid = await verifyTelegramLogin(storedUser);
+          if (isValid) {
+            setIsAuthenticated(true);
+            setLoading(false);
+            return;
+          }
+        } catch (error) {
+          console.error("Failed to verify telegram user:", error);
+        }
       }
 
       // Check if supabase session exists
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session) {
-        setIsAuthenticated(true);
-      } else {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session) {
+          setIsAuthenticated(true);
+        } else {
+          setIsAuthenticated(false);
+        }
+      } catch (error) {
+        console.error("Failed to get supabase session:", error);
         setIsAuthenticated(false);
       }
+      
       setLoading(false);
     };
 

@@ -1,4 +1,3 @@
-
 import { useState, useCallback, useEffect } from 'react';
 import { useToast } from "@/hooks/use-toast";
 import { TelegramUser } from "@/types/telegram";
@@ -48,6 +47,8 @@ export const useTelegramAuth = () => {
   
   const autoLogin = useCallback(async (): Promise<TelegramUser | null> => {
     try {
+      setIsVerifying(true);
+      
       // First check if we have a Supabase session
       const { data: { session } } = await supabase.auth.getSession();
       if (session?.user) {
@@ -57,25 +58,43 @@ export const useTelegramAuth = () => {
       }
       
       // Then try to detect if we're in a Telegram WebApp
-      const webAppUser = await detectWebApp();
-      if (webAppUser) {
-        setCurrentUser(webAppUser);
-        setIsLoggedIn(true);
-        return webAppUser;
+      try {
+        const webAppUser = await detectWebApp();
+        if (webAppUser) {
+          setCurrentUser(webAppUser);
+          setIsLoggedIn(true);
+          return webAppUser;
+        }
+      } catch (error) {
+        console.error('Failed to detect WebApp:', error);
       }
       
       // Otherwise check if user is already stored in localStorage
       const storedUser = getUserFromLocalStorage();
       if (storedUser) {
-        setCurrentUser(storedUser);
-        setIsLoggedIn(true);
-        return storedUser;
+        try {
+          // Verify the stored user
+          const isValid = await verifyTelegramLogin(storedUser);
+          if (isValid) {
+            setCurrentUser(storedUser);
+            setIsLoggedIn(true);
+            return storedUser;
+          } else {
+            // Remove invalid stored user
+            removeUserFromLocalStorage();
+          }
+        } catch (error) {
+          console.error('Failed to verify stored user:', error);
+          removeUserFromLocalStorage();
+        }
       }
       
       return null;
     } catch (error) {
       console.error('Auto login error:', error);
       return null;
+    } finally {
+      setIsVerifying(false);
     }
   }, [detectWebApp]);
   
