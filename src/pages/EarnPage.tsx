@@ -79,43 +79,70 @@ const EarnPage = () => {
     localStorage.setItem('fiptBalance', balance.toString());
     localStorage.setItem('fiptPoints', points.toString());
     
-    if (telegramUser) {
+    if (isLoggedIn) {
       const updateBalanceInSupabase = async () => {
         try {
-          const { data: walletLinks } = await supabase
-            .from('user_wallet_links')
-            .select('wallet_address')
-            .eq('telegram_id', telegramUser.id)
-            .eq('is_primary', true)
-            .limit(1);
+          if (telegramUser) {
+            const { data: walletLinks } = await supabase
+              .from('user_wallet_links')
+              .select('wallet_address')
+              .eq('telegram_id', telegramUser.id)
+              .eq('is_primary', true)
+              .limit(1);
+              
+            const defaultWalletAddress = walletLinks && walletLinks.length > 0 
+              ? walletLinks[0].wallet_address 
+              : 'telegram-user-' + telegramUser.id;
             
-          const defaultWalletAddress = walletLinks && walletLinks.length > 0 
-            ? walletLinks[0].wallet_address 
-            : 'telegram-user-' + telegramUser.id;
-          
-          const { data } = await supabase
-            .from('wallet_balances')
-            .select('id')
-            .eq('telegram_id', telegramUser.id)
-            .limit(1);
-            
-          if (data && data.length > 0) {
-            await supabase
+            const { data } = await supabase
               .from('wallet_balances')
-              .update({ 
-                fipt_balance: balance,
-                points: points
-              })
-              .eq('telegram_id', telegramUser.id);
-          } else {
-            await supabase
+              .select('id')
+              .eq('telegram_id', telegramUser.id)
+              .limit(1);
+              
+            if (data && data.length > 0) {
+              await supabase
+                .from('wallet_balances')
+                .update({ 
+                  fipt_balance: balance,
+                  points: points
+                })
+                .eq('telegram_id', telegramUser.id);
+            } else {
+              await supabase
+                .from('wallet_balances')
+                .insert({
+                  telegram_id: telegramUser.id,
+                  fipt_balance: balance,
+                  points: points,
+                  wallet_address: defaultWalletAddress
+                });
+            }
+          } else if (supabaseUser && supabaseUser.id) {
+            const { data } = await supabase
               .from('wallet_balances')
-              .insert({
-                telegram_id: telegramUser.id,
-                fipt_balance: balance,
-                points: points,
-                wallet_address: defaultWalletAddress
-              });
+              .select('id')
+              .eq('user_id', supabaseUser.id)
+              .limit(1);
+              
+            if (data && data.length > 0) {
+              await supabase
+                .from('wallet_balances')
+                .update({ 
+                  fipt_balance: balance,
+                  points: points
+                })
+                .eq('user_id', supabaseUser.id);
+            } else {
+              await supabase
+                .from('wallet_balances')
+                .insert({
+                  user_id: supabaseUser.id,
+                  fipt_balance: balance,
+                  points: points,
+                  wallet_address: 'supabase-user-' + supabaseUser.id
+                });
+            }
           }
         } catch (err) {
           console.error('Error updating balance in Supabase:', err);
@@ -124,7 +151,7 @@ const EarnPage = () => {
       
       updateBalanceInSupabase();
     }
-  }, [balance, points, telegramUser]);
+  }, [balance, points, telegramUser, supabaseUser, isLoggedIn]);
 
   const handleEarnPoints = (points: number) => {
     setBalance(prev => prev + points);

@@ -1,3 +1,4 @@
+
 import { useEffect, useState, ReactNode } from 'react';
 import { TelegramUser } from "@/types/telegram";
 import { supabase } from "@/integrations/supabase/client";
@@ -20,7 +21,7 @@ const UserDataFetcher = ({
   const [isLoading, setIsLoading] = useState(true);
   
   useEffect(() => {
-    // Initialize with a mock balance and points
+    // Initialize with a mock balance and points for non-authenticated users
     const mockBalance = Math.floor(Math.random() * 10000);
     const mockPoints = Math.floor(Math.random() * 5000);
     localStorage.setItem('fiptBalance', mockBalance.toString());
@@ -33,38 +34,38 @@ const UserDataFetcher = ({
         setIsLoading(true);
         
         if (telegramUser) {
-          // Get the balance for the Telegram user - fixing the type issue by using explicit typing
+          // Get the balance for the Telegram user
           const { data, error } = await supabase
             .from('wallet_balances')
             .select('fipt_balance, points')
             .eq('telegram_id', telegramUser.id)
-            .limit(1)
-            .single();
+            .limit(1);
             
-          if (data && !error) {
-            localStorage.setItem('fiptBalance', data.fipt_balance.toString());
-            localStorage.setItem('fiptPoints', data.points ? data.points.toString() : '0');
-            onBalanceUpdate(data.fipt_balance);
-            onPointsUpdate(data.points || 0);
+          if (data && data.length > 0 && !error) {
+            const userBalance = data[0];
+            localStorage.setItem('fiptBalance', userBalance.fipt_balance.toString());
+            localStorage.setItem('fiptPoints', (userBalance.points || 0).toString());
+            onBalanceUpdate(userBalance.fipt_balance);
+            onPointsUpdate(userBalance.points || 0);
           }
         } else if (supabaseUser && supabaseUser.id) {
           // Access the id directly from the typed supabaseUser object
           const userId = supabaseUser.id;
           
           if (userId) {
-            // Get the balance for the Supabase user - fixing the type issue by using explicit typing
+            // Get the balance for the Supabase user
             const { data, error } = await supabase
               .from('wallet_balances')
               .select('fipt_balance, points')
               .eq('user_id', userId)
-              .limit(1)
-              .single();
+              .limit(1);
               
-            if (data && !error) {
-              localStorage.setItem('fiptBalance', data.fipt_balance.toString());
-              localStorage.setItem('fiptPoints', data.points ? data.points.toString() : '0');
-              onBalanceUpdate(data.fipt_balance);
-              onPointsUpdate(data.points || 0);
+            if (data && data.length > 0 && !error) {
+              const userBalance = data[0];
+              localStorage.setItem('fiptBalance', userBalance.fipt_balance.toString());
+              localStorage.setItem('fiptPoints', (userBalance.points || 0).toString());
+              onBalanceUpdate(userBalance.fipt_balance);
+              onPointsUpdate(userBalance.points || 0);
             }
           }
         }
@@ -75,7 +76,10 @@ const UserDataFetcher = ({
       }
     };
     
-    fetchUserData();
+    // Only fetch data from Supabase if the user is authenticated
+    if (telegramUser || supabaseUser) {
+      fetchUserData();
+    }
   }, [telegramUser, supabaseUser, onBalanceUpdate, onPointsUpdate]);
   
   return <>{children}</>;
