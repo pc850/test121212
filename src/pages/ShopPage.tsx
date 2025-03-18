@@ -24,42 +24,42 @@ const ShopPage: React.FC = () => {
       name: "TEST Red Hoodie", 
       price: 49999,
       description: "Comfortable red hoodie with TEST branding and signature pattern",
-      image: "/lovable-uploads/d46305d6-1a9a-40ff-a23f-d089f1f82ff9.png"
+      image: "https://images.unsplash.com/photo-1556821840-3a63f95609a7?q=80&w=774&auto=format&fit=crop"
     },
     {
       id: 2, 
       name: "TEST Classic Hoodie", 
       price: 49999,
       description: "Classic red hoodie with bold TEST logo on front",
-      image: "/lovable-uploads/4648ba41-cc11-4400-9f60-cd7ddbe64569.png"
+      image: "https://images.unsplash.com/photo-1620799140408-edc6dcb6d633?q=80&w=772&auto=format&fit=crop"
     },
     {
       id: 3, 
       name: "TEST White Tee - Blue", 
       price: 24999,
       description: "Premium white cotton t-shirt with blue TEST logo",
-      image: "/lovable-uploads/7cb7440e-1c67-40ef-a80e-80673f441b31.png"
+      image: "https://images.unsplash.com/photo-1581655353564-df123a1eb820?q=80&w=774&auto=format&fit=crop"
     },
     {
       id: 4, 
       name: "TEST White Tee - Black", 
       price: 24999,
       description: "Premium white cotton t-shirt with black TEST logo",
-      image: "/lovable-uploads/6fdbbf6c-66d7-4f35-99d5-88aa55da77ad.png"
+      image: "https://images.unsplash.com/photo-1576566588028-4147f3842f27?q=80&w=774&auto=format&fit=crop"
     },
     {
       id: 5, 
       name: "TEST Sport Set", 
       price: 59999,
       description: "Two-piece workout set with crop top and shorts in blue and pink",
-      image: "/lovable-uploads/0edb97c4-4ed5-48bd-b939-bc687505eaa8.png"
+      image: "https://images.unsplash.com/photo-1517836357463-d25dfeac3438?q=80&w=1740&auto=format&fit=crop"
     },
     {
       id: 6, 
       name: "TEST Black Hoodie", 
       price: 49999,
       description: "Sleek black hoodie with minimalist TEST logo, perfect for urban style",
-      image: "/lovable-uploads/7e4efff2-6eff-4879-a1df-b660a7c9a7be.png"
+      image: "https://images.unsplash.com/photo-1509942774463-acf339cf87d5?q=80&w=1374&auto=format&fit=crop"
     }
   ];
 

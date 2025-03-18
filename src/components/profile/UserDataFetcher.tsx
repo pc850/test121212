@@ -37,15 +37,15 @@ const UserDataFetcher = ({
           // Get the balance for the Telegram user
           const { data, error } = await supabase
             .from('wallet_balances')
-            .select('test_balance, points')
+            .select('fipt_balance, points')
             .eq('telegram_id', telegramUser.id)
             .limit(1);
             
           if (data && data.length > 0 && !error) {
             const userBalance = data[0];
-            localStorage.setItem('testBalance', userBalance.test_balance.toString());
+            localStorage.setItem('testBalance', userBalance.fipt_balance.toString());
             localStorage.setItem('testPoints', (userBalance.points || 0).toString());
-            onBalanceUpdate(userBalance.test_balance);
+            onBalanceUpdate(userBalance.fipt_balance);
             onPointsUpdate(userBalance.points || 0);
           }
         } else if (supabaseUser && supabaseUser.id) {
@@ -56,15 +56,15 @@ const UserDataFetcher = ({
             // Get the balance for the Supabase user
             const { data, error } = await supabase
               .from('wallet_balances')
-              .select('test_balance, points')
+              .select('fipt_balance, points')
               .eq('user_id', userId)
               .limit(1);
               
             if (data && data.length > 0 && !error) {
               const userBalance = data[0];
-              localStorage.setItem('testBalance', userBalance.test_balance.toString());
+              localStorage.setItem('testBalance', userBalance.fipt_balance.toString());
               localStorage.setItem('testPoints', (userBalance.points || 0).toString());
-              onBalanceUpdate(userBalance.test_balance);
+              onBalanceUpdate(userBalance.fipt_balance);
               onPointsUpdate(userBalance.points || 0);
             }
           }
