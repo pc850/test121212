@@ -1,4 +1,3 @@
-
 import { useEffect, useState, ReactNode } from 'react';
 import { TelegramUser } from "@/types/telegram";
 import { supabase } from "@/integrations/supabase/client";
