@@ -15,7 +15,7 @@ const FeedTabs = ({ showWebcams, onToggleWebcams }: FeedTabsProps) => {
         onClick={() => onToggleWebcams(false)}
         className="rounded-full"
       >
-        FIPT Feed
+        TEST Feed
       </Button>
       <Button 
         variant={showWebcams ? "default" : "outline"}

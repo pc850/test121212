@@ -24,7 +24,7 @@ const BalanceDisplay = ({ balance }: BalanceDisplayProps) => {
     }
     
     // Get points from localStorage
-    const storedPoints = localStorage.getItem('fiptPoints');
+    const storedPoints = localStorage.getItem('testPoints');
     if (storedPoints) {
       setPoints(parseInt(storedPoints, 10));
     }
@@ -46,7 +46,7 @@ const BalanceDisplay = ({ balance }: BalanceDisplayProps) => {
           "px-3 py-1 rounded-full backdrop-blur-sm text-xs font-medium text-white drop-shadow-md",
           balance >= 11 ? "bg-black/30" : "bg-red-500/50"
         )}>
-          {balance} FIPT
+          {balance} TEST
         </span>
       </div>
       

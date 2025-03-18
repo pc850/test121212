@@ -15,18 +15,18 @@ const FeedPage = () => {
   
   // Get the user's balance from localStorage
   const [balance, setBalance] = useState(() => {
-    const savedBalance = localStorage.getItem('fiptBalance');
+    const savedBalance = localStorage.getItem('testBalance');
     return savedBalance ? parseInt(savedBalance, 10) : 0;
   });
 
   // Update balance in localStorage when it changes
   useEffect(() => {
-    localStorage.setItem('fiptBalance', balance.toString());
+    localStorage.setItem('testBalance', balance.toString());
   }, [balance]);
 
   useEffect(() => {
     // Set page title
-    document.title = "FIPT - Feed";
+    document.title = "TEST - Feed";
   }, []);
 
   // Function to update the balance (for FeedCard interactions)

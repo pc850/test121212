@@ -39,8 +39,8 @@ const CardActions = ({
     
     if (balance < 11) {
       toast({
-        title: "Not enough FIPT",
-        description: "You need at least 11 FIPT tokens to like this post",
+        title: "Not enough TEST",
+        description: "You need at least 11 TEST tokens to like this post",
         variant: "destructive",
       });
       return;
@@ -55,7 +55,7 @@ const CardActions = ({
     
     toast({
       title: "Like added",
-      description: `Used 1 FIPT token. ${balance - 1} tokens remaining.`,
+      description: `Used 1 TEST token. ${balance - 1} tokens remaining.`,
     });
   };
 
