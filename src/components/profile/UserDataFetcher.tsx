@@ -24,8 +24,8 @@ const UserDataFetcher = ({
     // Initialize with a mock balance and points for non-authenticated users
     const mockBalance = Math.floor(Math.random() * 10000);
     const mockPoints = Math.floor(Math.random() * 5000);
-    localStorage.setItem('fiptBalance', mockBalance.toString());
-    localStorage.setItem('fiptPoints', mockPoints.toString());
+    localStorage.setItem('testBalance', mockBalance.toString());
+    localStorage.setItem('testPoints', mockPoints.toString());
     onBalanceUpdate(mockBalance);
     onPointsUpdate(mockPoints);
     
@@ -37,15 +37,15 @@ const UserDataFetcher = ({
           // Get the balance for the Telegram user
           const { data, error } = await supabase
             .from('wallet_balances')
-            .select('fipt_balance, points')
+            .select('test_balance, points')
             .eq('telegram_id', telegramUser.id)
             .limit(1);
             
           if (data && data.length > 0 && !error) {
             const userBalance = data[0];
-            localStorage.setItem('fiptBalance', userBalance.fipt_balance.toString());
-            localStorage.setItem('fiptPoints', (userBalance.points || 0).toString());
-            onBalanceUpdate(userBalance.fipt_balance);
+            localStorage.setItem('testBalance', userBalance.test_balance.toString());
+            localStorage.setItem('testPoints', (userBalance.points || 0).toString());
+            onBalanceUpdate(userBalance.test_balance);
             onPointsUpdate(userBalance.points || 0);
           }
         } else if (supabaseUser && supabaseUser.id) {
@@ -56,15 +56,15 @@ const UserDataFetcher = ({
             // Get the balance for the Supabase user
             const { data, error } = await supabase
               .from('wallet_balances')
-              .select('fipt_balance, points')
+              .select('test_balance, points')
               .eq('user_id', userId)
               .limit(1);
               
             if (data && data.length > 0 && !error) {
               const userBalance = data[0];
-              localStorage.setItem('fiptBalance', userBalance.fipt_balance.toString());
-              localStorage.setItem('fiptPoints', (userBalance.points || 0).toString());
-              onBalanceUpdate(userBalance.fipt_balance);
+              localStorage.setItem('testBalance', userBalance.test_balance.toString());
+              localStorage.setItem('testPoints', (userBalance.points || 0).toString());
+              onBalanceUpdate(userBalance.test_balance);
               onPointsUpdate(userBalance.points || 0);
             }
           }

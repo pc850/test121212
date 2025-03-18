@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import EarnButton from "@/components/EarnButton";
 import { Card } from "@/components/ui/card";
@@ -13,12 +14,12 @@ import { useTonkeeperWallet } from "@/hooks/useTonkeeperWallet";
 
 const EarnPage = () => {
   const [balance, setBalance] = useState(() => {
-    const savedBalance = localStorage.getItem('fiptBalance');
+    const savedBalance = localStorage.getItem('testBalance');
     return savedBalance ? parseInt(savedBalance, 10) : 0;
   });
   
   const [points, setPoints] = useState(() => {
-    const savedPoints = localStorage.getItem('fiptPoints');
+    const savedPoints = localStorage.getItem('testPoints');
     return savedPoints ? parseInt(savedPoints, 10) : 0;
   });
   
@@ -27,7 +28,7 @@ const EarnPage = () => {
   const { connectWallet, isReady } = useTonkeeperWallet();
   
   useEffect(() => {
-    document.title = "FIPT - Earn";
+    document.title = "TEST - Earn";
     
     if (!isLoggedIn) {
       autoLogin().then(user => {
@@ -76,8 +77,8 @@ const EarnPage = () => {
   }, [connectWallet, isReady]);
 
   useEffect(() => {
-    localStorage.setItem('fiptBalance', balance.toString());
-    localStorage.setItem('fiptPoints', points.toString());
+    localStorage.setItem('testBalance', balance.toString());
+    localStorage.setItem('testPoints', points.toString());
     
     if (isLoggedIn) {
       const updateBalanceInSupabase = async () => {
@@ -104,7 +105,7 @@ const EarnPage = () => {
               await supabase
                 .from('wallet_balances')
                 .update({ 
-                  fipt_balance: balance,
+                  test_balance: balance,
                   points: points
                 })
                 .eq('telegram_id', telegramUser.id);
@@ -113,7 +114,7 @@ const EarnPage = () => {
                 .from('wallet_balances')
                 .insert({
                   telegram_id: telegramUser.id,
-                  fipt_balance: balance,
+                  test_balance: balance,
                   points: points,
                   wallet_address: defaultWalletAddress
                 });
@@ -129,7 +130,7 @@ const EarnPage = () => {
               await supabase
                 .from('wallet_balances')
                 .update({ 
-                  fipt_balance: balance,
+                  test_balance: balance,
                   points: points
                 })
                 .eq('user_id', supabaseUser.id);
@@ -138,7 +139,7 @@ const EarnPage = () => {
                 .from('wallet_balances')
                 .insert({
                   user_id: supabaseUser.id,
-                  fipt_balance: balance,
+                  test_balance: balance,
                   points: points,
                   wallet_address: 'supabase-user-' + supabaseUser.id
                 });
@@ -190,7 +191,7 @@ const EarnPage = () => {
                 <div className="flex items-center mt-1">
                   <Coins className="w-5 h-5 mr-2 text-fipt-blue" />
                   <span className="text-2xl font-bold text-fipt-dark">{balance.toLocaleString()}</span>
-                  <span className="ml-1 text-xs font-medium text-fipt-blue">FIPT</span>
+                  <span className="ml-1 text-xs font-medium text-fipt-blue">TEST</span>
                 </div>
                 <div className="mt-2 text-xs font-medium text-fipt-muted">
                   Points: <span className="text-fipt-blue">{points.toLocaleString()}</span>
@@ -208,9 +209,9 @@ const EarnPage = () => {
         <div className="inline-block px-3 py-1 bg-fipt-blue/10 rounded-full text-xs font-medium text-fipt-blue mb-2">
           Click to Earn
         </div>
-        <h1 className="text-2xl font-bold text-fipt-dark">Earn FIPT Points</h1>
+        <h1 className="text-2xl font-bold text-fipt-dark">Earn TEST Points</h1>
         <p className="text-sm text-fipt-muted mt-1">
-          Tap the button below to earn FIPT points
+          Tap the button below to earn TEST points
         </p>
       </div>
       
@@ -221,7 +222,7 @@ const EarnPage = () => {
       <div className="mt-8 grid grid-cols-2 gap-4 mb-4">
         <div className="p-4 rounded-xl bg-white border border-gray-100 shadow-sm">
           <h3 className="text-sm font-medium text-fipt-muted mb-1">Today's Earnings</h3>
-          <p className="text-xl font-bold text-fipt-dark">{balance} FIPT</p>
+          <p className="text-xl font-bold text-fipt-dark">{balance} TEST</p>
           <p className="text-sm text-fipt-blue mt-1">{points} Points</p>
         </div>
         <div className="p-4 rounded-xl bg-white border border-gray-100 shadow-sm">

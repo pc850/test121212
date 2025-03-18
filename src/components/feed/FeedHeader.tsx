@@ -54,7 +54,7 @@ const FeedHeader = ({ balance }: FeedHeaderProps) => {
             // Update existing balance
             await supabase
               .from('wallet_balances')
-              .update({ fipt_balance: balance })
+              .update({ test_balance: balance })
               .eq('telegram_id', telegramUser.id);
           } else {
             // Insert new balance record with the fallback wallet address
@@ -62,7 +62,7 @@ const FeedHeader = ({ balance }: FeedHeaderProps) => {
               .from('wallet_balances')
               .insert({
                 telegram_id: telegramUser.id,
-                fipt_balance: balance,
+                test_balance: balance,
                 wallet_address: defaultWalletAddress
               });
           }
@@ -77,10 +77,10 @@ const FeedHeader = ({ balance }: FeedHeaderProps) => {
 
   return (
     <div className="absolute top-0 left-0 right-0 z-10 py-3 px-4 flex items-center justify-between glass">
-      <h1 className="text-xl font-bold text-fipt-dark">FIPT Feed</h1>
+      <h1 className="text-xl font-bold text-fipt-dark">TEST Feed</h1>
       <div className="flex items-center gap-3">
         <span className="px-3 py-1 rounded-full bg-fipt-blue/10 text-sm font-medium text-fipt-blue">
-          {balance} FIPT
+          {balance} TEST
         </span>
         
         {telegramUser ? (

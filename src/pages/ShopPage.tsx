@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { ShoppingCart } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -20,57 +21,57 @@ const ShopPage: React.FC = () => {
   const merchandiseItems = [
     {
       id: 1, 
-      name: "FIPT Red Hoodie", 
+      name: "TEST Red Hoodie", 
       price: 49999,
-      description: "Comfortable red hoodie with FIPT branding and signature pattern",
+      description: "Comfortable red hoodie with TEST branding and signature pattern",
       image: "/lovable-uploads/d46305d6-1a9a-40ff-a23f-d089f1f82ff9.png"
     },
     {
       id: 2, 
-      name: "FIPT Classic Hoodie", 
+      name: "TEST Classic Hoodie", 
       price: 49999,
-      description: "Classic red hoodie with bold FIPT logo on front",
+      description: "Classic red hoodie with bold TEST logo on front",
       image: "/lovable-uploads/4648ba41-cc11-4400-9f60-cd7ddbe64569.png"
     },
     {
       id: 3, 
-      name: "FIPT White Tee - Blue", 
+      name: "TEST White Tee - Blue", 
       price: 24999,
-      description: "Premium white cotton t-shirt with blue FIPT logo",
+      description: "Premium white cotton t-shirt with blue TEST logo",
       image: "/lovable-uploads/7cb7440e-1c67-40ef-a80e-80673f441b31.png"
     },
     {
       id: 4, 
-      name: "FIPT White Tee - Black", 
+      name: "TEST White Tee - Black", 
       price: 24999,
-      description: "Premium white cotton t-shirt with black FIPT logo",
+      description: "Premium white cotton t-shirt with black TEST logo",
       image: "/lovable-uploads/6fdbbf6c-66d7-4f35-99d5-88aa55da77ad.png"
     },
     {
       id: 5, 
-      name: "FIPT Sport Set", 
+      name: "TEST Sport Set", 
       price: 59999,
       description: "Two-piece workout set with crop top and shorts in blue and pink",
       image: "/lovable-uploads/0edb97c4-4ed5-48bd-b939-bc687505eaa8.png"
     },
     {
       id: 6, 
-      name: "FIPT Black Hoodie", 
+      name: "TEST Black Hoodie", 
       price: 49999,
-      description: "Sleek black hoodie with minimalist FIPT logo, perfect for urban style",
+      description: "Sleek black hoodie with minimalist TEST logo, perfect for urban style",
       image: "/lovable-uploads/7e4efff2-6eff-4879-a1df-b660a7c9a7be.png"
     }
   ];
 
-  const formatFiptPrice = (price: number) => {
+  const formatTestPrice = (price: number) => {
     if (price >= 1000) {
       return `${(price / 1000).toFixed(price % 1000 === 0 ? 0 : 1)}k`;
     }
     return price.toString();
   };
 
-  const formatUsdPrice = (fiptPrice: number) => {
-    const usdPrice = (fiptPrice * 0.0001).toFixed(2);
+  const formatUsdPrice = (testPrice: number) => {
+    const usdPrice = (testPrice * 0.0001).toFixed(2);
     return `$${usdPrice}`;
   };
 
@@ -78,8 +79,8 @@ const ShopPage: React.FC = () => {
     <div className="container py-6 space-y-6">
       <header className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold">FIPT Shop</h1>
-          <p className="text-muted-foreground">Official FIPT merchandise</p>
+          <h1 className="text-2xl font-bold">TEST Shop</h1>
+          <p className="text-muted-foreground">Official TEST merchandise</p>
         </div>
         <div className="flex items-center gap-2">
           <Button variant="outline" size="icon" className="relative">
@@ -116,7 +117,7 @@ const ShopPage: React.FC = () => {
                   </div>
                   <p className="text-sm text-muted-foreground mb-2 h-10 line-clamp-2">{item.description}</p>
                   <p className="flex items-center gap-2">
-                    <span className="text-fipt-blue text-sm font-semibold">{formatFiptPrice(item.price)} $FIPT</span>
+                    <span className="text-fipt-blue text-sm font-semibold">{formatTestPrice(item.price)} $TEST</span>
                     <span className="text-xs text-muted-foreground">({formatUsdPrice(item.price)} USD)</span>
                   </p>
                 </CardContent>
@@ -140,12 +141,12 @@ const ShopPage: React.FC = () => {
             </CardHeader>
             <CardContent>
               <p className="text-muted-foreground">
-                Get exclusive access to premium FIPT content and merchandise with our membership options.
+                Get exclusive access to premium TEST content and merchandise with our membership options.
               </p>
               <div className="mt-4 space-y-4">
                 <div className="p-4 border rounded-lg">
                   <h3 className="flex items-center gap-2">
-                    <span className="text-fipt-blue text-sm font-semibold">9.9k $FIPT</span>
+                    <span className="text-fipt-blue text-sm font-semibold">9.9k $TEST</span>
                     <span className="text-xs text-muted-foreground">($1.00 USD)</span>
                   </h3>
                   <p className="text-sm text-muted-foreground">Full access to all premium features</p>
@@ -153,7 +154,7 @@ const ShopPage: React.FC = () => {
                 </div>
                 <div className="p-4 border rounded-lg bg-muted/50">
                   <h3 className="flex items-center gap-2">
-                    <span className="text-fipt-blue text-sm font-semibold">99.9k $FIPT</span>
+                    <span className="text-fipt-blue text-sm font-semibold">99.9k $TEST</span>
                     <span className="text-xs text-muted-foreground">($10.00 USD)</span>
                   </h3>
                   <p className="text-sm text-muted-foreground">Save over 15% with yearly membership</p>

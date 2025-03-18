@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -106,7 +107,7 @@ const EarnButton = ({ onEarn }: EarnButtonProps) => {
           <div className="flex flex-col items-center justify-center gap-3">
             <Sparkles className="w-10 h-10 text-fipt-blue" />
             <span className="text-2xl font-bold text-fipt-dark">{points}</span>
-            <span className="text-sm font-medium text-fipt-muted">FIPT Points</span>
+            <span className="text-sm font-medium text-fipt-muted">TEST Points</span>
           </div>
         </div>
       </button>

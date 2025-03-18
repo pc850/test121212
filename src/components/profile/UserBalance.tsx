@@ -25,7 +25,7 @@ const UserBalance = ({ balance, points, telegramUser, supabaseUser }: UserBalanc
         <div>
           <p className="text-xs text-muted-foreground font-medium">Available Balance</p>
           <p className="text-xl font-bold bg-gradient-to-r from-fipt-blue to-fipt-accent bg-clip-text text-transparent">
-            {balance.toLocaleString()} FIPT
+            {balance.toLocaleString()} TEST
           </p>
         </div>
         <div className="bg-gray-50 px-3 py-1.5 rounded-full text-xs text-muted-foreground border border-gray-100">
