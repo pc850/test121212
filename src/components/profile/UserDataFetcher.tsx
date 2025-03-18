@@ -34,36 +34,38 @@ const UserDataFetcher = ({
         setIsLoading(true);
         
         if (telegramUser) {
-          // Get the balance for the Telegram user
-          const { data } = await supabase
+          // Get the balance for the Telegram user - fixing the type issue by using explicit typing
+          const { data, error } = await supabase
             .from('wallet_balances')
             .select('fipt_balance, points')
             .eq('telegram_id', telegramUser.id)
-            .maybeSingle();
+            .limit(1)
+            .single();
             
-          if (data) {
+          if (data && !error) {
             localStorage.setItem('fiptBalance', data.fipt_balance.toString());
-            localStorage.setItem('fiptPoints', data.points.toString());
+            localStorage.setItem('fiptPoints', data.points ? data.points.toString() : '0');
             onBalanceUpdate(data.fipt_balance);
-            onPointsUpdate(data.points);
+            onPointsUpdate(data.points || 0);
           }
         } else if (supabaseUser && supabaseUser.id) {
           // Access the id directly from the typed supabaseUser object
           const userId = supabaseUser.id;
           
           if (userId) {
-            // Get the balance for the Supabase user
-            const { data } = await supabase
+            // Get the balance for the Supabase user - fixing the type issue by using explicit typing
+            const { data, error } = await supabase
               .from('wallet_balances')
               .select('fipt_balance, points')
               .eq('user_id', userId)
-              .maybeSingle();
+              .limit(1)
+              .single();
               
-            if (data) {
+            if (data && !error) {
               localStorage.setItem('fiptBalance', data.fipt_balance.toString());
-              localStorage.setItem('fiptPoints', data.points.toString());
+              localStorage.setItem('fiptPoints', data.points ? data.points.toString() : '0');
               onBalanceUpdate(data.fipt_balance);
-              onPointsUpdate(data.points);
+              onPointsUpdate(data.points || 0);
             }
           }
         }

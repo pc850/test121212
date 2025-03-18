@@ -12,16 +12,19 @@ export type Database = {
       connected_wallets: {
         Row: {
           created_at: string
+          email: string | null
           id: number
           wallet_address: string
         }
         Insert: {
           created_at?: string
+          email?: string | null
           id?: number
           wallet_address: string
         }
         Update: {
           created_at?: string
+          email?: string | null
           id?: number
           wallet_address?: string
         }
